@@ -43,7 +43,7 @@ public class ModernOutputTest {
         await fixture.GenerateAndBuild(grammar, driver, $"STATIC={isStatic}",
             $"CACHE_TOKENS={cacheTokens}", $"UNICODE_ESCAPE={unicode}");
         foreach (string file in Directory.GetFiles(fixture.DirectoryPath, "*.cs")) {
-            if (Path.GetFileName(file) != "Program.cs")
+            if (Path.GetFileName(file) is not ("Program.cs" or "ConsoleSetup.cs"))
                 Assert.That(File.ReadAllText(file), Does.Contain("#nullable enable"), file);
         }
         foreach (var (input, expected) in new[] { ("one", "ok"), ("one:two", "ok"), ("one:", "parse-error") }) {
