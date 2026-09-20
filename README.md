@@ -88,9 +88,10 @@ properties, and C# 14 field-backed properties, extension declarations, and
 null-conditional assignment. Syntax errors report original grammar coordinates;
 application type checking remains the consumer compiler’s responsibility.
 
-The parser itself must be a single non-generic class with a brace-delimited body
-and no primary constructor. Existing bases must be interfaces because the
-generator supplies the constants base class. See the
+The parser itself must be a single non-static class with a brace-delimited body
+and no primary constructor. Generic parser classes are supported, except for
+instance parsers with `TOKEN_MANAGER_USES_PARSER=true`. Existing bases must be
+interfaces because the generator supplies the constants base class. See the
 [tested syntax matrix and boundaries](docs/MODERNIZATION_PHASE_6.md).
 
 Run the sample

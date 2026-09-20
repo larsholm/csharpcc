@@ -1,10 +1,8 @@
 # Phase 6: embedded C# and reproducible bootstrap
 
-Status: implemented and verified locally on Linux with .NET SDK 10.0.111.
-All 253 tests pass in Debug and in a clean Release checkout whose path contains
-spaces. The rebuilt clean reader verifies all seven bootstrap files; the isolated
-prototype passes 14 checks. See [phase 7 validation](MODERNIZATION_PHASE_7.md) for
-consumer benchmarks and remote CI status.
+Status: implemented, with local and cross-platform verification recorded in
+[phase 7 validation](MODERNIZATION_PHASE_7.md). The rebuilt clean reader verifies
+all seven bootstrap files; the isolated prototype passes 14 checks.
 
 ## Embedded C# boundary
 
@@ -47,14 +45,18 @@ rethrow warnings as errors. Consumer projects reference neither CSharpCC nor Ros
 | Production return types and parameters | Nullable types, nested generics, default parameters | Invalid defaults; long parameter lists/literals |
 | Production calls and semantic lookahead | Lambdas, collection arguments, pattern expressions | Malformed argument collections and switch expressions; long whitespace before an expression continuation |
 | Declaration/action blocks and CODE bodies | Target-typed construction, nullable locals, local functions, lambdas, list patterns, switch/collection expressions | Invalid lambda, construction, pattern, and collection syntax; outer returns versus nested function returns |
-| Strings | Ordinary escapes, interpolation, raw literals | Unterminated raw/interpolated literals; braces and PARSER_END text inside comments/strings; literals longer than the parser window |
-| Parser/helper declarations | Aliases, global/static usings, file/block/nested namespaces, interface inheritance, expression-bodied members, records, required/init properties, helper primary constructors | Malformed declarations; missing/duplicate parser classes; unsupported parser shapes; a helper named PARSER_END |
+| Strings | Ordinary escapes, interpolation, raw literals; original LF/CRLF literal values in actions, arguments, and semantic lookahead | Unterminated raw/interpolated literals; braces and PARSER_END text inside comments/strings; literals longer than the parser window |
+| Parser/helper declarations | Aliases, global/static usings, file/block/nested namespaces, interface inheritance, static/instance generic parsers, expression-bodied members, records, required/init properties, helper primary constructors | Malformed declarations; missing/duplicate parser classes; unsupported parser shapes and generic instance token-manager backreferences; a helper named PARSER_END |
 | Applicable C# 14 | Field-backed properties, extension declarations, null-conditional assignment | Malformed forms of each construct |
 | Token-manager members/actions | Records, properties, expression bodies, CommonTokenAction, collection/pattern actions | Preprocessor-disabled invalid text; shared header symbols |
 | Preprocessor and delimiters | Inactive text, header-defined symbols, original comments and strings | Missing/mismatched PARSER_END; invalid text in active C# fragments; source-position diagnostics |
 
-The parser declaration must be one non-generic class with an explicit brace body,
-without a primary constructor. Top-level statements and multiple parser parts in
+The parser declaration must be one non-static class with an explicit brace body,
+without a primary constructor. Generic parser classes retain their existing
+support. Generic instance parsers with `TOKEN_MANAGER_USES_PARSER=true` are
+diagnosed explicitly: their non-generic token manager cannot reference the parser
+type, and the old generator's output for this combination did not compile.
+Top-level statements and multiple parser parts in
 the embedded unit are rejected. User-supplied bases must be interfaces: the
 constants base class occupies the class-inheritance slot. Modern helper types may
 use records and primary constructors. Grammar production declarations, access
@@ -80,7 +82,7 @@ Regeneration stages output in a temporary directory and supports a read-only
 `--check`. A newly built reader regenerates identical files; the regenerated reader
 builds and runs the fixture suite. CI now performs both generation checks around
 a rebuild/test on Linux, Windows, and macOS, using a checkout path containing
-spaces. These configured checks are not evidence of remote runs having completed.
+spaces. Completed remote runs are recorded in the phase 7 report.
 See the [verified workflow commands](../README.md#bootstrap-parser-sources) and
 [source ownership](../tools/Bootstrap/README.md).
 
@@ -99,6 +101,8 @@ See the [verified workflow commands](../README.md#bootstrap-parser-sources) and
 - Full 64-bit masks include bit 63; partial Unicode ranges use the current character's
   bit index; population counting includes the final bit. Boundary fixtures cover
   both static and instance parsers in both output modes.
+- Embedded C# preserves its original line endings, including raw-string values
+  in actions, call arguments, and semantic lookahead on Windows and Unix.
 
 ## Compatibility and performance evidence
 

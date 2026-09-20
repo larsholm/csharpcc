@@ -69,16 +69,20 @@ public partial class CSharpCCParser {
             CSharpCCErrors.ParseError(token, "The parser class must declare a body with braces.");
             throw new MetaParseException();
         }
-        if (parser.TypeParameterList != null || parser.ParameterList != null ||
+        if (parser.ParameterList != null ||
             parser.Modifiers.Any(SyntaxKind.StaticKeyword) || root.Members.OfType<GlobalStatementSyntax>().Any()) {
             CSharpCCErrors.ParseError(source.MakeToken(0, start + parser.SpanStart, start + parser.SpanStart, ""),
-                "The parser must be a non-generic class without a primary constructor; top-level statements are not supported.");
+                "The parser must be a non-static class without a primary constructor; top-level statements are not supported.");
+            throw new MetaParseException();
+        }
+        if (parser.TypeParameterList != null && Options.getTokenManagerUsesParser() && !Options.getStatic()) {
+            CSharpCCErrors.ParseError(token, "Generic instance parsers do not support TOKEN_MANAGER_USES_PARSER=true.");
             throw new MetaParseException();
         }
         var fileNamespace = parser.Ancestors().OfType<FileScopedNamespaceDeclarationSyntax>().SingleOrDefault();
         if (fileNamespace != null)
             text = text[..fileNamespace.SemicolonToken.SpanStart] + "{" + text[fileNamespace.SemicolonToken.Span.End..];
-        int insertion = parser.BaseList?.ColonToken.Span.End ?? parser.Identifier.Span.End;
+        int insertion = parser.BaseList?.ColonToken.Span.End ?? parser.TypeParameterList?.Span.End ?? parser.Identifier.Span.End;
         string inheritance = parser.BaseList is null ? " : " + parserTypeName + "Constants" : " " + parserTypeName + "Constants, ";
         string before = text[..insertion] + inheritance + text[insertion..parser.CloseBraceToken.SpanStart];
         string after = text[parser.CloseBraceToken.SpanStart..];

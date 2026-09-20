@@ -1,10 +1,13 @@
 # Phase 7 validation
 
-Status: local checks pass; the six remote CI jobs are pending.
+Status: all six remote CI jobs passed with 261 tests per job in
+[run 35533151294](https://github.com/larsholm/csharpcc/actions/runs/35533151294).
+Final verification is rerunning after adding generic parser compatibility tests.
 
 ## Local verification
 
-- .NET SDK 10.0.111 on Linux: all 253 solution tests pass in Debug and Release.
+- .NET SDK 10.0.111 on Linux: 261 solution tests passed in Debug and Release;
+  the final 267-test suite includes generic parser compatibility coverage.
 - Release tests run from a clean source copy at a path containing spaces, without
   bin/obj output from the working checkout.
 - The newly built clean generator regenerates all seven bootstrap files identically.
@@ -19,7 +22,9 @@ Status: local checks pass; the six remote CI jobs are pending.
 The GitHub Actions matrix now checks Debug and Release on Linux, Windows, and
 macOS. Each job uses a checkout path containing spaces, verifies bootstrap output,
 regenerates it, rebuilds/tests, and verifies second-generation output again.
-Remote results will be recorded after those runs complete.
+The final run will be recorded below after it completes. Windows consumers set
+UTF-8 console output explicitly so the test transport preserves Unicode values
+independently of the machine's console code page.
 
 ## Generated-consumer performance
 

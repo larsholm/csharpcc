@@ -309,7 +309,7 @@ public class EmbeddedCSharpTest(bool modernOutput) {
         Assert.That(result.Output, Does.Contain("Embedded C# CS"));
     }
 
-    [TestCase("public class FixtureParser<T> {}", "non-generic class")]
+    [TestCase("public static class FixtureParser {}", "non-static class")]
     [TestCase("public class FixtureParser(int value) {}", "primary constructor")]
     [TestCase("public class Other {}", "Parser class has not been defined")]
     [TestCase("public class FixtureParser;", "body with braces")]
@@ -320,6 +320,38 @@ public class EmbeddedCSharpTest(bool modernOutput) {
             "void Input() : {} { <EOF> }", "STATIC=false");
         Assert.That(result.ExitCode, Is.EqualTo(1), result.Output);
         Assert.That(result.Output, Does.Contain(message));
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task GenericParserClassesRetainTheirExistingSupport(bool isStatic) {
+        string grammar = Header.Replace("class FixtureParser", "class FixtureParser<T>") +
+            "T Input(T value) : {} { <EOF> { return value; } }";
+        string driver = $$"""
+            using System;
+            using System.IO;
+            using Fixture;
+            class Program {
+                static void Main() {
+                    var parser = new FixtureParser<int>(new StringReader(""));
+                    Console.WriteLine({{(isStatic ? "FixtureParser<int>" : "parser")}}.Input(42));
+                }
+            }
+            """;
+        using var fixture = new ParserFixture { ModernOutput = modernOutput };
+        await fixture.GenerateAndBuild(grammar, driver, $"STATIC={isStatic}");
+        var result = await fixture.Run("");
+        Assert.That(result.ExitCode, Is.Zero, result.Output);
+        Assert.That(result.Output.Trim(), Is.EqualTo("42"));
+    }
+
+    [Test]
+    public async Task GenericInstanceParserReferencesFromTokenManagersHaveAnExplicitDiagnostic() {
+        using var fixture = new ParserFixture { ModernOutput = modernOutput };
+        var result = await fixture.Generate(Header.Replace("class FixtureParser", "class FixtureParser<T>") +
+            "void Input() : {} { <EOF> }", "STATIC=false", "TOKEN_MANAGER_USES_PARSER=true");
+        Assert.That(result.ExitCode, Is.EqualTo(1), result.Output);
+        Assert.That(result.Output, Does.Contain("Generic instance parsers do not support TOKEN_MANAGER_USES_PARSER=true"));
     }
 
     [TestCase("", "Expected PARSER_END")]
