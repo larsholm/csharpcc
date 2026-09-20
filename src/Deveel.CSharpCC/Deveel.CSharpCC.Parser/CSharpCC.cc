@@ -35,7 +35,8 @@
  */
 
 options {
-  CSHARP_UNICODE_ESCAPE = true;
+  UNICODE_ESCAPE = true;
+  UNICODE_INPUT = true;
   STATIC=false;
 }
 
@@ -500,6 +501,7 @@ void csharpcc_options() :
 void option_binding() :
 	{
 	  String option_name;
+      int errorsBeforeValue = CSharpCCErrors.ParseErrorCount;
 	  int int_val;
 	  bool bool_val;
 	  String string_val;
@@ -514,7 +516,8 @@ void option_binding() :
   (
     int_val = IntegerLiteral()
 	{
-	  Options.SetInputFileOption(t, GetToken(0), option_name, int_val);
+	  if (CSharpCCErrors.ParseErrorCount == errorsBeforeValue)
+          Options.SetInputFileOption(t, GetToken(0), option_name, int_val);
 	}
   |
     bool_val = BooleanLiteral()
@@ -625,6 +628,7 @@ void AccessModifier(NormalProduction p) :
 void regular_expr_production() :
 	{
 	  TokenProduction p = new TokenProduction();
+      p.IsExplicit = true;
 	  List<String> states;
 	  Token t = p.FirstToken = GetToken(1);
 	  p.Line = t.beginLine;
@@ -1352,6 +1356,7 @@ void CompilationUnit() :
  * within grammar code.
  */
 	{
+	  if (TryReadCSharpCompilationUnit()) return;
 	  CSharpCCParserInternals.set_initial_cu_token(GetToken(1));
 	}
 {
@@ -1414,6 +1419,8 @@ int Modifiers():
 	  "sealed" { modifiers |= ModifierSet.SEALED; }
   |
 	  "override"
+  |
+   "const"
   |
    Annotation()
   )
@@ -1519,6 +1526,7 @@ void ClassOrInterfaceBody(bool isInterface, IList<Token> tokens):
  * excluding the braces at each end.
  */
 	{
+	  if (TryReadCSharpMembers(tokens)) return;
 	  Token first, last;
 	  if (tokens == null)
 	    tokens = new List<Token>();
@@ -1631,6 +1639,7 @@ void FormalParameters(IList<Token> tokens) :
  * parameters excluding the parentheses at each end.
  */
 	{
+	  if (TryReadCSharpParameters(tokens)) return;
 	  Token first, last;
 	  if (tokens == null)
 	    tokens = new List<Token>();
@@ -1754,6 +1763,7 @@ void PrimitiveType():
 
 void ResultType(IList<Token> tokens) :
 	{
+	  if (TryReadCSharpType(tokens)) return;
 	  Token first = GetToken(1);
 	  if (tokens == null)
 	    tokens = new List<Token>();
@@ -1823,6 +1833,7 @@ void Expression(IList tokens) :
  * around this.
  */
 	{
+	  if (TryReadCSharpExpression(tokens)) return;
 	  Token first = GetToken(1);
 	  if (tokens == null)
 	    tokens = new ArrayList();
@@ -2053,11 +2064,7 @@ int IntegerLiteral() :
 {
   <INTEGER_LITERAL>
 	{
-	  try {
-	    return Int32.Parse(token.image, CultureInfo.InvariantCulture);
-	  } catch (FormatException e) {
-	    throw new InvalidOperationException();
-	  }
+      return CSharpCCParserInternals.ParseIntegerLiteral(token);
 	}
 }
 
@@ -2098,6 +2105,7 @@ void Arguments(IList<Token> tokens) :
  * excluding the parentheses at each end.
  */
 	{
+	  if (TryReadCSharpArguments(tokens)) return;
 	  Token first, last;
 	  if (tokens == null)
 	    tokens = new List<Token>();
@@ -2216,6 +2224,7 @@ void Block(IList<Token> tokens) :
 	    tokens = new List<Token>();
 	}
 {
+  { if (TryReadCSharpBlock(tokens)) return; }
   "{"
 	{
 	  first = GetToken(1);

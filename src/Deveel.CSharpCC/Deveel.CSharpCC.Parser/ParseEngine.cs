@@ -115,7 +115,20 @@ namespace Deveel.CSharpCC.Parser {
         private const int OPENIF = 1;
         private const int OPENSWITCH = 2;
 
-        private static String buildLookaheadChecker(Lookahead[] conds, String[] actions, bool defaultTerminates = false) {
+        private static bool EndsWithJump(Expansion expansion) {
+            if (expansion is Action action)
+                return action.ActionTokens.Count != 0 && action.ActionTokens[^1].EndsWithJump;
+            if (expansion is Sequence sequence)
+                return sequence.Units.Count != 0 && EndsWithJump(sequence.Units[^1]);
+            if (expansion is Choice choice) {
+                foreach (var alternative in choice.Choices)
+                    if (!EndsWithJump(alternative)) return false;
+                return choice.Choices.Count != 0;
+            }
+            return false;
+        }
+
+        private static String buildLookaheadChecker(Lookahead[] conds, String[] actions, bool defaultTerminates = false, bool[]? actionTerminates = null) {
 
             // The state variables.
             int state = NOOPENSTM;
@@ -247,7 +260,8 @@ namespace Deveel.CSharpCC.Parser {
                             }
                         }
                         retval += actions[index];
-                        retval += "\nbreak;";
+                        if (!Options.ModernCSharp || actionTerminates?[index] != true)
+                            retval += "\nbreak;";
                         state = OPENSWITCH;
                     }
 
@@ -332,8 +346,8 @@ namespace Deveel.CSharpCC.Parser {
 
             // C# requires a terminating statement in every switch section, including
             // defaults that contain nested lookahead if/else blocks.
-            bool omitDefaultBreak = Options.ModernCSharp && defaultTerminates &&
-                index == conds.Length && state == OPENSWITCH;
+            bool omitDefaultBreak = Options.ModernCSharp && state == OPENSWITCH &&
+                (index == conds.Length ? defaultTerminates : actionTerminates?[index] == true);
             foreach (int statement in openStatements) {
                 if (statement == OPENSWITCH && !omitDefaultBreak)
                     retval += "\nbreak;";
@@ -501,6 +515,7 @@ namespace Deveel.CSharpCC.Parser {
             } else if (e is Choice choice) {
                 conds = new Lookahead[choice.Choices.Count];
                 actions = new String[choice.Choices.Count + 1];
+                var actionTerminates = new bool[choice.Choices.Count];
                 actions[choice.Choices.Count] = "\n" + "cc_consume_token(-1);\n" + "throw new ParseException();";
                 // In previous line, the "throw" never throws an exception since the
                 // evaluation of cc_consume_token(-1) causes ParseException to be
@@ -509,9 +524,10 @@ namespace Deveel.CSharpCC.Parser {
                 for (int i = 0; i < choice.Choices.Count; i++) {
                     nestedSeq = (Sequence) (choice.Choices[i]);
                     actions[i] = phase1ExpansionGen(nestedSeq);
+                    actionTerminates[i] = EndsWithJump(nestedSeq);
                     conds[i] = (Lookahead) (nestedSeq.Units[0]);
                 }
-                retval = buildLookaheadChecker(conds, actions, defaultTerminates: true);
+                retval = buildLookaheadChecker(conds, actions, defaultTerminates: true, actionTerminates);
             } else if (e is Sequence sequence) {
                 // We skip the first element in the following iteration since it is the
                 // Lookahead object.

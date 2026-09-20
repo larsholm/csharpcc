@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -97,7 +97,17 @@ namespace Deveel.CSharpCC.Parser {
 					ostr.WriteLine("#nullable enable");
 
 				bool nsFound = false;
-				if (CSharpCCGlobals.cu_to_insertion_point_1.Count != 0 &&
+                if (CSharpCCGlobals.CompilationLayout is { } layout) {
+                    string header = layout.SupportHeader;
+                    // These two legacy templates already import System at the
+                    // innermost namespace scope. Keep aliases and outer imports.
+                    if (fileName is "SimpleCharStream.cs" or "TokenManagerError.cs") {
+                        int scope = header.LastIndexOf('{');
+                        int import = header.LastIndexOf("using System;", StringComparison.Ordinal);
+                        if (import > scope) header = header.Remove(import, "using System;".Length);
+                    }
+                    ostr.Write(header);
+                } else if (CSharpCCGlobals.cu_to_insertion_point_1.Count != 0 &&
 					CSharpCCGlobals.cu_to_insertion_point_1[0].kind == CSharpCCParserConstants.NAMESPACE) {
 					for (int i = 1; i < CSharpCCGlobals.cu_to_insertion_point_1.Count; i++) {
 						if (CSharpCCGlobals.cu_to_insertion_point_1[i].kind == CSharpCCParserConstants.SEMICOLON) {
@@ -119,7 +129,9 @@ namespace Deveel.CSharpCC.Parser {
 				CSharpFileGenetor generator = new CSharpFileGenetor(templateName, options);
 				generator.Generate(ostr);
 
-				if (nsFound)
+				if (CSharpCCGlobals.CompilationLayout is { } ending)
+                    ostr.Write(ending.SupportFooter);
+                else if (nsFound)
 					ostr.WriteLine("}");
 
 				outputFile.Close();

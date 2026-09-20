@@ -25,12 +25,10 @@ records, required/init members, primary constructors, C# 14 field-backed
 properties, extension declarations, and null-conditional assignment. Negative
 checks cover a missing initializer and an incomplete block.
 
-The experiment supports choosing Roslyn for embedded C# parsing. It is **not** a
-claim that the production grammar reader accepts these constructs yet. The next
-work must connect the boundary to the grammar token stream and model, preserve
-insertion points and comments, handle parser class validation and malformed end
-delimiters, and establish the .NET-only bootstrap before changing the master
-grammar. Existing grammar fixtures must continue to pass through that integration.
+The experiment established the Roslyn boundary. Production integration now lives
+in `CSharpCCParser.Embedded.cs`; see the [phase 6 report](../../docs/MODERNIZATION_PHASE_6.md)
+for the consumer fixtures and supported contexts. The prototype remains a quick,
+isolated check of syntax boundaries, diagnostics, and the offset-based parsing API.
 
 References:
 

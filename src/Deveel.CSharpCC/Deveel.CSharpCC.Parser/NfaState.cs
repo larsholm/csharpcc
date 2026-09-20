@@ -789,14 +789,14 @@ namespace Deveel.CSharpCC.Parser {
                         loBytes[hiByte][c/64] |= (1L << (c%64));
 
                     while (++hiByte < (char) (rangeMoves[i + 1] >> 8)) {
-                        loBytes[hiByte][0] |= Int64.MaxValue /* 0xffffffffffffffffL */;
-                        loBytes[hiByte][1] |= Int64.MaxValue /* 0xffffffffffffffffL */;
-                        loBytes[hiByte][2] |= Int64.MaxValue /* 0xffffffffffffffffL */;
-                        loBytes[hiByte][3] |= Int64.MaxValue /* 0xffffffffffffffffL */;
+                        loBytes[hiByte][0] |= -1L;
+                        loBytes[hiByte][1] |= -1L;
+                        loBytes[hiByte][2] |= -1L;
+                        loBytes[hiByte][3] |= -1L;
                     }
 
                     for (int x = 0; x <= r;x++)
-                        loBytes[hiByte][x/64] |= (1L << (c%64));
+                        loBytes[hiByte][x/64] |= (1L << (x%64));
                 }
             }
 
@@ -951,12 +951,7 @@ namespace Deveel.CSharpCC.Parser {
             return true;
         }
 
-		/*
-		HEX ain't good ...
-        private static String allBits = "{\n   0xffffffffffffffffL, " +"0xffffffffffffffffL, " + "0xffffffffffffffffL, " + "0xffffffffffffffffL \n};";
-		*/
-
-		private static string allBits = "{\n   Int64.MaxValue, Int64.MaxValue, Int64.MaxValue, Int64.MaxValue \n};";
+        private const string allBits = "{\n   -1L, -1L, -1L, -1L\n};";
 
         private static bool AllBitsSet(String bitVec) {
             return bitVec.Equals(allBits);
@@ -1124,7 +1119,7 @@ namespace Deveel.CSharpCC.Parser {
 
         private static int NumberOfBitsSet(long l) {
             int ret = 0;
-            for (int i = 0; i < 63; i++)
+            for (int i = 0; i < 64; i++)
                 if (((l >> i) & 1L) != 0L)
                     ret++;
 
@@ -1616,7 +1611,7 @@ namespace Deveel.CSharpCC.Parser {
 
             //System.out.println(stateName + " \'s nextIntersects : " + nextIntersects);
             String prefix = "";
-            if (asciiMoves[byteNum] != Int64.MaxValue /* 0xffffffffffffffffL */) {
+            if (asciiMoves[byteNum] != -1L) {
                 int oneBit = OnlyOneBitSet(asciiMoves[byteNum]);
 
                 if (oneBit != -1)
@@ -1629,7 +1624,7 @@ namespace Deveel.CSharpCC.Parser {
             }
 
             if (kindToPrint != Int32.MaxValue) {
-                if (asciiMoves[byteNum] != Int64.MaxValue /* 0xffffffffffffffffL */) {
+                if (asciiMoves[byteNum] != -1L) {
                     ostr.WriteLine("                  {");
                 }
 
@@ -1666,7 +1661,7 @@ namespace Deveel.CSharpCC.Parser {
                 }
             }
 
-            if (asciiMoves[byteNum] != Int64.MaxValue /* 0xffffffffffffffffL */ && 
+            if (asciiMoves[byteNum] != -1L &&
                 kindToPrint != Int32.MaxValue)
             ostr.WriteLine("                  }");
         }
@@ -1702,7 +1697,7 @@ namespace Deveel.CSharpCC.Parser {
             //nextIntersects = false;
 
             int oneBit = OnlyOneBitSet(asciiMoves[byteNum]);
-            if (asciiMoves[byteNum] != Int64.MaxValue /* 0xffffffffffffffffL */) {
+            if (asciiMoves[byteNum] != -1L) {
                 if ((next == null || next.usefulEpsilonMoves == 0) &&
                     kindToPrint != Int32.MaxValue) {
                     String kindCheck = "";
@@ -1733,7 +1728,7 @@ namespace Deveel.CSharpCC.Parser {
                 if (oneBit != -1) {
                     ostr.WriteLine("                  if (curChar != " + (64*byteNum + oneBit) + ")");
                     ostr.WriteLine("                     break;");
-                } else if (asciiMoves[byteNum] != Int64.MaxValue /* 0xffffffffffffffffL */) {
+                } else if (asciiMoves[byteNum] != -1L) {
                     ostr.WriteLine("                  if ((" + asciiMoves[byteNum] + "L & l) == 0L)");
                     ostr.WriteLine("                     break;");
                 }
@@ -1749,7 +1744,7 @@ namespace Deveel.CSharpCC.Parser {
                     ostr.WriteLine("                  if (curChar == " +
                                    (64*byteNum + oneBit) + ")");
                     prefix = "   ";
-                } else if (asciiMoves[byteNum] != Int64.MaxValue /* 0xffffffffffffffffL */) {
+                } else if (asciiMoves[byteNum] != -1L) {
                     ostr.WriteLine("                  if ((" + asciiMoves[byteNum] + "L & l) != 0L)");
                     prefix = "   ";
                 }
@@ -2605,10 +2600,6 @@ namespace Deveel.CSharpCC.Parser {
             stateSetsToFix = new Dictionary<string, int[]>();
             allBitVectors = new List<string>();
             tmpIndices = new int[512];
-            allBits = "{\n   Int64.MaxValue /* 0xffffffffffffffffL */, " +
-                      "Int64.MaxValue /* 0xffffffffffffffffL */, " +
-                      "Int64.MaxValue /* 0xffffffffffffffffL */, " +
-                      "Int64.MaxValue /* 0xffffffffffffffffL */\n};";
             tableToDump = new Dictionary<string, int[]>();
             orderedStateSet = new List<int[]>();
             lastIndex = 0;

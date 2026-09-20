@@ -3,8 +3,8 @@
 Status: phases 1–5 implemented and verified locally on Linux. The handwritten
 core and CLI use nullable analysis with nullable warnings treated as errors.
 Generated output has an opt-in C# 14 mode, verified alongside the legacy default.
-Phases 6–7 remain: modern grammar syntax/bootstrap and final validation and
-documentation. Legacy bootstrap sources retain an explicit generated-code policy.
+Phase 6 now has production Roslyn integration and a reproducible .NET bootstrap;
+final verification and phase 7 validation/documentation are in progress. Legacy bootstrap sources retain an explicit generated-code policy.
 Cross-platform execution will run through the existing GitHub Actions matrix.
 See [the phase 1 baseline](docs/MODERNIZATION_BASELINE.md) for coverage and fixes
 and [phase 2 verification](docs/MODERNIZATION_PHASE_2.md) for syntax changes.
@@ -14,7 +14,7 @@ and its verification.
 [Phase 5 verification](docs/MODERNIZATION_PHASE_5.md) covers generated language
 modes, nullable contracts, API compatibility, and stable regeneration.
 [Phase 6 progress](docs/MODERNIZATION_PHASE_6.md) records the Roslyn boundary
-prototype and bootstrap investigation; this phase is not yet complete.
+integration, syntax coverage, compatibility limits, and bootstrap verification.
 
 Modernize the .NET 10 codebase, improve generated parsers, and support modern C#
 inside grammar files. Deliver each phase as a separate, reviewable change.

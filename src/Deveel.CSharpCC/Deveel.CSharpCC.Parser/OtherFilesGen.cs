@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -52,7 +52,9 @@ namespace Deveel.CSharpCC.Parser {
 			if (Options.ModernCSharp) ostr.WriteLine("#nullable enable");
 
             bool namespaceInserted = false;
-			if (CSharpCCGlobals.cu_to_insertion_point_1.Count != 0 &&
+            if (CSharpCCGlobals.CompilationLayout is { } layout) {
+                    ostr.Write(layout.NamespaceHeader);
+                } else if (CSharpCCGlobals.cu_to_insertion_point_1.Count != 0 &&
 			    CSharpCCGlobals. cu_to_insertion_point_1[0].kind == CSharpCCParserConstants.NAMESPACE) {
                 namespaceInserted = true;
 				for (int i = 1; i < CSharpCCGlobals.cu_to_insertion_point_1.Count; i++) {
@@ -121,7 +123,9 @@ namespace Deveel.CSharpCC.Parser {
 			ostr.WriteLine("  };");
 			ostr.WriteLine("");
 			ostr.WriteLine("}");
-            if (namespaceInserted)
+            if (CSharpCCGlobals.CompilationLayout is { } ending)
+                    ostr.Write(ending.SupportFooter);
+                else if (namespaceInserted)
                 ostr.WriteLine("}");
 
 		}

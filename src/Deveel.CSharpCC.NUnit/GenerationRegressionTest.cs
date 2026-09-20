@@ -155,6 +155,59 @@ public class GenerationRegressionTest(bool modernOutput) {
         await Expect(fixture, "123", "lexical-error");
     }
 
+    [Test]
+    public async Task EmbeddedStringsKeepTheirCSharpEscapes() {
+        const string production = """
+            string Input() : {} { <EOF> { return "say \"hello\" \\ \t"; } }
+            """;
+        const string driver = """
+            using System;
+            using System.IO;
+            using Fixture;
+            class Program {
+                static void Main() { Console.Write(new FixtureParser(new StringReader("")).Input()); }
+            }
+            """;
+        using var fixture = new ParserFixture { ModernOutput = modernOutput };
+        await fixture.GenerateAndBuild(Header + production, driver, "STATIC=false");
+        await Expect(fixture, "", "say \"hello\" \\ \t");
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task UnicodeRangesIncludeEveryBitAndRespectTheirEndpoints(bool isStatic) {
+        const string production = """
+            TOKEN: {
+                < RANGE: ["\u0101"-"\u0321"] >
+              | < ASCII: ~["?", "\u007f", "\u0080"-"\uffff"] >
+              | < OTHER: ~[] >
+            }
+            int Input() : { Token t; } { (t=<RANGE> | t=<ASCII> | t=<OTHER>) <EOF> { return t.Kind; } }
+            """;
+        string driver = $$"""
+            using System;
+            using System.IO;
+            using Fixture;
+            class Program {
+                static void Main() {
+                    var parser = new FixtureParser(new StringReader(""));
+                    for (int code = 0; code <= 0xffff; code++) {
+                        if (code >= 0x500 && (code & 63) != 63) continue;
+                        {{(isStatic ? "FixtureParser" : "parser")}}.ReInit(new StringReader(new string((char)code, 1)));
+                        int kind = {{(isStatic ? "FixtureParser" : "parser")}}.Input();
+                        int expected = code >= 0x101 && code <= 0x321 ? FixtureParserConstants.RANGE :
+                            code < 0x80 && code != 0x3f && code != 0x7f ? FixtureParserConstants.ASCII : FixtureParserConstants.OTHER;
+                        if (kind != expected) throw new Exception($"U+{code:X4}: expected {expected}, got {kind}");
+                    }
+                    Console.Write("ok");
+                }
+            }
+            """;
+        using var fixture = new ParserFixture { ModernOutput = modernOutput };
+        await fixture.GenerateAndBuild(Header + production, driver, $"STATIC={isStatic}", "UNICODE_INPUT=true");
+        await Expect(fixture, "", "ok");
+    }
+
     private static string Driver(bool isStatic) => $$"""
         using System;
         using System.IO;

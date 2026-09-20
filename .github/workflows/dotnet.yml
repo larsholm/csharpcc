@@ -12,11 +12,25 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         configuration: [Debug, Release]
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: source checkout
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: source checkout
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
       - run: dotnet restore src/CSharpCC.sln
       - run: dotnet build src/CSharpCC.sln --configuration ${{ matrix.configuration }} --no-restore
-      - run: dotnet test src/CSharpCC.sln --configuration ${{ matrix.configuration }} --no-build
+      - name: Verify bootstrap regeneration
+        run: dotnet run --project tools/Bootstrap --configuration ${{ matrix.configuration }} -- --generator src/csharpcc/bin/${{ matrix.configuration }}/net10.0/csharpcc.dll --grammar src/Deveel.CSharpCC/Deveel.CSharpCC.Parser/CSharpCC.cc --output src/Deveel.CSharpCC/Deveel.CSharpCC.Parser --check
+      - name: Regenerate bootstrap sources
+        run: dotnet run --project tools/Bootstrap --configuration ${{ matrix.configuration }} --no-build -- --generator src/csharpcc/bin/${{ matrix.configuration }}/net10.0/csharpcc.dll --grammar src/Deveel.CSharpCC/Deveel.CSharpCC.Parser/CSharpCC.cc --output src/Deveel.CSharpCC/Deveel.CSharpCC.Parser
+      - name: Build and test the regenerated reader
+        run: dotnet test src/CSharpCC.sln --configuration ${{ matrix.configuration }} --no-restore
+      - name: Verify second-generation bootstrap
+        run: dotnet run --project tools/Bootstrap --configuration ${{ matrix.configuration }} --no-build -- --generator src/csharpcc/bin/${{ matrix.configuration }}/net10.0/csharpcc.dll --grammar src/Deveel.CSharpCC/Deveel.CSharpCC.Parser/CSharpCC.cc --output src/Deveel.CSharpCC/Deveel.CSharpCC.Parser --check
+      - name: Check the embedded CSharp prototype
+        run: dotnet run --project tools/EmbeddedCSharpPrototype --configuration ${{ matrix.configuration }}

@@ -19,8 +19,43 @@ public class GrammarModelTest {
     }
 
     [Test]
-    public void UnicodeEscapingAlsoHandlesBackslashes() {
-        Assert.That(CSharpCCGlobals.AddUnicodeEscapes("a\\b"), Is.EqualTo("a\\u005cb"));
+    public void UnicodeEscapingPreservesExistingBackslashEscapes() {
+        Assert.That(CSharpCCGlobals.AddUnicodeEscapes("a\\b"), Is.EqualTo("a\\b"));
+    }
+
+    [TestCase("2147483648")]
+    [TestCase("999999999999999999999999999999999999999")]
+    [TestCase("0x80000000")]
+    public async Task OutOfRangeGrammarIntegersProduceSourceDiagnostics(string literal) {
+        string grammar = "options { LOOKAHEAD = " + literal + "; }\n" + """
+            PARSER_BEGIN(FixtureParser)
+            namespace Fixture;
+            using System;
+            public class FixtureParser {}
+            PARSER_END(FixtureParser)
+            void Input() : {} { <EOF> }
+            """;
+        using var fixture = new ParserFixture();
+        var result = await fixture.Generate(grammar, "STATIC=false");
+        Assert.That(result.ExitCode, Is.EqualTo(1), result.Output);
+        Assert.That(result.Output, Does.Contain("Line 1, Column 23: Integer literal must be between 0 and 2147483647."));
+        Assert.That(result.Output, Does.Not.Contain("OverflowException").And.Not.Contain("InvalidOperationException"));
+    }
+
+    [Test]
+    public async Task PrivateLexicalFragmentsCanBeReferencedByPublicTokens() {
+        const string grammar = """
+            PARSER_BEGIN(FixtureParser)
+            namespace Fixture;
+            using System;
+            public class FixtureParser {}
+            PARSER_END(FixtureParser)
+            TOKEN: { < #LETTER: ["a"-"z"] > | < WORD: (<LETTER>)+ > }
+            void Input() : {} { <WORD> <EOF> }
+            """;
+        using var fixture = new ParserFixture();
+        var result = await fixture.Generate(grammar, "STATIC=false");
+        Assert.That(result.ExitCode, Is.Zero, result.Output);
     }
 
     [Test]
@@ -78,6 +113,7 @@ public class GrammarModelTest {
     [TestCase("void Input() : {} { Other() } void Other() : {} { Input() }", "Left recursion detected")]
     [TestCase("void Input() : {} { Missing() }", "Non-terminal Missing has not been defined")]
     [TestCase("TOKEN: { < WORD: <MISSING> > } void Input() : {} { <WORD> <EOF> }", "Undefined lexical token name")]
+    [TestCase("TOKEN: { < #LETTER: \"a\" > } void Input() : {} { <LETTER> <EOF> }", "refers to a private")]
     [TestCase("TOKEN: { < FIRST: <SECOND> > | < SECOND: <FIRST> > } void Input() : {} { <FIRST> <EOF> }", "Loop in regular expression detected")]
     public async Task InvalidReferencesAndRecursionProduceGrammarDiagnostics(string productions, string expected) {
         string grammar = """

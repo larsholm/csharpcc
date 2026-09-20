@@ -1,0 +1,864 @@
+Deveel.CSharpCC.Parser.Action.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.Action.Method: Public, Virtual, HideBySig System.Text.StringBuilder Dump(Int32, System.Collections.IList) (indent None ,alreadyDumped None )
+Deveel.CSharpCC.Parser.Action: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.Expansion; interfaces: 
+Deveel.CSharpCC.Parser.BnfProduction.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.BnfProduction.Method: Public, HideBySig, SpecialName Boolean get_IsJumpPatched() ()
+Deveel.CSharpCC.Parser.BnfProduction.Method: Public, HideBySig, SpecialName System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token] get_DeclarationTokens() ()
+Deveel.CSharpCC.Parser.BnfProduction.Property: None Boolean IsJumpPatched
+Deveel.CSharpCC.Parser.BnfProduction.Property: None System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token] DeclarationTokens
+Deveel.CSharpCC.Parser.BnfProduction: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.NormalProduction; interfaces: 
+Deveel.CSharpCC.Parser.CSharpCCErrors.Method: Public, Static, HideBySig Void ParseError(System.Object, System.String) (node None ,mess None )
+Deveel.CSharpCC.Parser.CSharpCCErrors.Method: Public, Static, HideBySig Void ParseError(System.String) (mess None )
+Deveel.CSharpCC.Parser.CSharpCCErrors.Method: Public, Static, HideBySig Void ReInit() ()
+Deveel.CSharpCC.Parser.CSharpCCErrors.Method: Public, Static, HideBySig Void SemanticError(System.Object, System.String) (node None ,mess None )
+Deveel.CSharpCC.Parser.CSharpCCErrors.Method: Public, Static, HideBySig Void SemanticError(System.String) (mess None )
+Deveel.CSharpCC.Parser.CSharpCCErrors.Method: Public, Static, HideBySig Void Warning(System.Object, System.String) (node None ,mess None )
+Deveel.CSharpCC.Parser.CSharpCCErrors.Method: Public, Static, HideBySig Void Warning(System.String) (mess None )
+Deveel.CSharpCC.Parser.CSharpCCErrors.Method: Public, Static, HideBySig, SpecialName Int32 get_ErrorCount() ()
+Deveel.CSharpCC.Parser.CSharpCCErrors.Method: Public, Static, HideBySig, SpecialName Int32 get_ParseErrorCount() ()
+Deveel.CSharpCC.Parser.CSharpCCErrors.Method: Public, Static, HideBySig, SpecialName Int32 get_SemanticErrorCount() ()
+Deveel.CSharpCC.Parser.CSharpCCErrors.Method: Public, Static, HideBySig, SpecialName Int32 get_WarningCount() ()
+Deveel.CSharpCC.Parser.CSharpCCErrors.Property: None Int32 ErrorCount
+Deveel.CSharpCC.Parser.CSharpCCErrors.Property: None Int32 ParseErrorCount
+Deveel.CSharpCC.Parser.CSharpCCErrors.Property: None Int32 SemanticErrorCount
+Deveel.CSharpCC.Parser.CSharpCCErrors.Property: None Int32 WarningCount
+Deveel.CSharpCC.Parser.CSharpCCErrors: Public, Abstract, Sealed, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Field: Public, Static Boolean TreeGenerated
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Field: Public, Static Boolean lookaheadNeeded
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Field: Public, Static Int32 tokenCount
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Field: Public, Static System.Collections.Generic.IDictionary`2[System.Int32,Deveel.CSharpCC.Parser.RegularExpression] rexps_of_tokens
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Field: Public, Static System.Collections.Generic.IDictionary`2[System.Int32,System.String] lexstate_I2S
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Field: Public, Static System.Collections.Generic.IDictionary`2[System.Int32,System.String] names_of_tokens
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Field: Public, Static System.Collections.Generic.IDictionary`2[System.String,Deveel.CSharpCC.Parser.NormalProduction] production_table
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Field: Public, Static System.Collections.Generic.IDictionary`2[System.String,Deveel.CSharpCC.Parser.RegularExpression] named_tokens_table
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Field: Public, Static System.Collections.Generic.IDictionary`2[System.String,System.Collections.Generic.IDictionary`2[System.String,System.Collections.Generic.IDictionary`2[System.String,Deveel.CSharpCC.Parser.RegularExpression]]] simple_tokens_table
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Field: Public, Static System.Collections.Generic.IDictionary`2[System.String,System.Int32] lexstate_S2I
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Field: Public, Static System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.NormalProduction] bnfproductions
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Field: Public, Static System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.RegularExpression] ordered_named_tokens
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Field: Public, Static System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.TokenProduction] rexprlist
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Field: Public, Static System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token] cu_from_insertion_point_2
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Field: Public, Static System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token] cu_to_insertion_point_1
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Field: Public, Static System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token] cu_to_insertion_point_2
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Field: Public, Static System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token] token_mgr_decls
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Field: Public, Static System.Collections.Generic.IList`1[System.String] ToolNames
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Field: Public, Static System.String FileName
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Field: Public, Static System.String OriginalFileName
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Field: Public, Static System.String cu_name
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Field: Public, Static, Literal, HasDefault System.String ToolName = CSharpCC
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Method: Public, Static, HideBySig Boolean IsGeneratedBy(System.String, System.String) (toolName None ,fileName None )
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Method: Public, Static, HideBySig System.Collections.Generic.IList`1[System.String] GetToolNames(System.String) (fileName None )
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Method: Public, Static, HideBySig System.String AddEscapes(System.String) (str None )
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Method: Public, Static, HideBySig System.String AddUnicodeEscapes(System.String) (str None )
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Method: Public, Static, HideBySig System.String GetIdString(System.Collections.Generic.IList`1[System.String], System.String) (toolNames None ,fileName None )
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Method: Public, Static, HideBySig System.String GetIdString(System.String, System.String) (toolName None ,fileName None )
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Method: Public, Static, HideBySig System.String staticOpt() ()
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Method: Public, Static, HideBySig Void BannerLine(System.String, System.String) (fullName None ,ver None )
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Method: Public, Static, HideBySig Void CreateOutputDir(System.String) (outputDir None )
+Deveel.CSharpCC.Parser.CSharpCCGlobals.Method: Public, Static, HideBySig Void ReInit() ()
+Deveel.CSharpCC.Parser.CSharpCCGlobals: Public, Abstract, Sealed, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Field: Public, Static, Literal, HasDefault Int32 ABSTRACT = 8
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Field: Public, Static, Literal, HasDefault Int32 EXTERN = 128
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Field: Public, Static, Literal, HasDefault Int32 INTERNAL = 64
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Field: Public, Static, Literal, HasDefault Int32 PRIVATE = 4
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Field: Public, Static, Literal, HasDefault Int32 PROTECTED = 2
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Field: Public, Static, Literal, HasDefault Int32 PUBLIC = 1
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Field: Public, Static, Literal, HasDefault Int32 READONLY = 32
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Field: Public, Static, Literal, HasDefault Int32 SEALED = 2048
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Field: Public, Static, Literal, HasDefault Int32 STATIC = 16
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Field: Public, Static, Literal, HasDefault Int32 TRANSIENT = 256
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Field: Public, Static, Literal, HasDefault Int32 VIRTUAL = 1024
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Field: Public, Static, Literal, HasDefault Int32 VOLATILE = 512
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Method: Public, HideBySig Boolean isAbstract(Int32) (modifiers None )
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Method: Public, HideBySig Boolean isExtern(Int32) (modifiers None )
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Method: Public, HideBySig Boolean isInternal(Int32) (modifier None )
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Method: Public, HideBySig Boolean isPrivate(Int32) (modifiers None )
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Method: Public, HideBySig Boolean isProtected(Int32) (modifiers None )
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Method: Public, HideBySig Boolean isPublic(Int32) (modifiers None )
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Method: Public, HideBySig Boolean isReadOnly(Int32) (modifiers None )
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Method: Public, HideBySig Boolean isStatic(Int32) (modifiers None )
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Method: Public, HideBySig Boolean isTransient(Int32) (modifiers None )
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet.Method: Public, HideBySig Boolean isVolatile(Int32) (modifiers None )
+Deveel.CSharpCC.Parser.CSharpCCParser+ModifierSet: NestedPublic, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.CSharpCCParser.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(Deveel.CSharpCC.Parser.CSharpCCParserTokenManager) (tm None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(System.IO.Stream) (stream None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(System.IO.TextReader) (stream None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Field: Public Boolean lookingAhead
+Deveel.CSharpCC.Parser.CSharpCCParser.Field: Public Deveel.CSharpCC.Parser.CSharpCCParserTokenManager token_source
+Deveel.CSharpCC.Parser.CSharpCCParser.Field: Public Deveel.CSharpCC.Parser.Token mcc_nt
+Deveel.CSharpCC.Parser.CSharpCCParser.Field: Public Deveel.CSharpCC.Parser.Token token
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Boolean BooleanLiteral() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Deveel.CSharpCC.Parser.Lookahead local_lookahead() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Deveel.CSharpCC.Parser.ParseException GenerateParseException() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Deveel.CSharpCC.Parser.Token CSharpIdentifier() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Deveel.CSharpCC.Parser.Token GetNextToken() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Deveel.CSharpCC.Parser.Token GetToken(Int32) (index None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Int32 IntegerLiteral() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Int32 Modifiers() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig System.String StringLiteral() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig System.String identifier() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void AccessModifier(Deveel.CSharpCC.Parser.NormalProduction) (p None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void AdditiveExpression() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void AllocationExpression() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void AndExpression() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void Annotation() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ArgumentList() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void Arguments(System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token]) (tokens None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ArrayDimsAndInits() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ArrayInitializer() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void AssignmentOperator() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void Block(System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token]) (tokens None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void BlockStatement() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void BreakStatement() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void CastExpression() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void CastLookahead() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ClassOrInterfaceBody(Boolean, System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token]) (isInterface None ,tokens None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ClassOrInterfaceBodyDeclaration(Boolean) (isInterface None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ClassOrInterfaceDeclaration(Int32, System.Collections.IList) (modifiers None ,tokens None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ClassOrInterfaceType() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void CompilationUnit() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ConditionalAndExpression() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ConditionalExpression() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ConditionalOrExpression() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ConstructorDeclaration() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ContinueStatement() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void DefaultValue() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void DoStatement() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void EmptyStatement() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void EnumBody() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void EnumConstant() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void EnumDeclaration(Int32) (modifiers None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void EqualityExpression() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ExclusiveOrExpression() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ExplicitConstructorInvocation() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void Expression(System.Collections.IList) (tokens None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void FieldDeclaration(Int32) (modifiers None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ForInit() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ForStatement() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ForUpdate() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void FormalParameter() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void FormalParameters(System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token]) (tokens None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void GoToStatement() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void IfStatement() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void InclusiveOrExpression() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void InheritList() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void Initializer() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void IsExpression() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void LabeledStatement() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void Literal() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void LocalVariableDeclaration() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void LockStatement() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void MemberSelector() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void MemberValue() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void MemberValueArrayInitializer() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void MemberValuePair() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void MemberValuePairs() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void MethodDeclaration(Int32) (modifiers None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void MethodDeclarator() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void MultiplicativeExpression() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void Name(System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token]) (tokens None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void NameList() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void NamespaceDeclaration() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void NormalAnnotation() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void NullLiteral() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void PostfixExpression() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void PreDecrementExpression() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void PreIncrementExpression() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void PrimaryExpression() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void PrimaryPrefix() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void PrimarySuffix() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void PrimitiveType() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void RSIGNEDSHIFT() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ReInit(Deveel.CSharpCC.Parser.CSharpCCParserTokenManager) (tm None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ReInit(System.IO.Stream) (stream None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ReInit(System.IO.TextReader) (stream None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ReferenceType() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void RelationalExpression() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ResultType(System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token]) (tokens None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ReturnStatement() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ShiftExpression() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void SingleMemberAnnotation() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void Statement() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void StatementExpression() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void StatementExpressionList() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void SwitchLabel() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void SwitchStatement() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void ThrowStatement() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void TryStatement() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void Type() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void TypeArgument() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void TypeArguments() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void TypeDeclaration() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void TypeParameter() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void TypeParameters() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void UnaryExpression() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void UnaryExpressionNotPlusMinus() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void UsingDeclaration() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void VariableDeclarator() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void VariableDeclaratorId() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void VariableInitializer() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void WhileStatement() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void bnf_production() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void character_descriptor(Deveel.CSharpCC.Parser.Container) (c None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void character_list(Deveel.CSharpCC.Parser.Container) (c1 None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void complex_regular_expression(Deveel.CSharpCC.Parser.Container) (c1 None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void complex_regular_expression_choices(Deveel.CSharpCC.Parser.Container) (c1 None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void complex_regular_expression_unit(Deveel.CSharpCC.Parser.Container) (c None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void cscode_production() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void csharpcc_input() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void csharpcc_options() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void disable_tracing() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void enable_tracing() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void expansion(Deveel.CSharpCC.Parser.Container) (c1 None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void expansion_choices(Deveel.CSharpCC.Parser.Container) (c1 None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void expansion_unit(Deveel.CSharpCC.Parser.Container) (c None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void option_binding() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void production() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void regexpr_kind(Deveel.CSharpCC.Parser.TokenProduction) (p None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void regexpr_spec(Deveel.CSharpCC.Parser.TokenProduction) (p None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void regular_expr_production() ()
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void regular_expression(Deveel.CSharpCC.Parser.Container) (c None )
+Deveel.CSharpCC.Parser.CSharpCCParser.Method: Public, HideBySig Void token_manager_decls() ()
+Deveel.CSharpCC.Parser.CSharpCCParser: Public : Deveel.CSharpCC.Parser.CSharpCCParserConstants; interfaces: 
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, InitOnly System.String[] tokenImage
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 ABSTRACT = 27
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 AFTER_EGEN = 1
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 ANDASSIGN = 126
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 ASSIGN = 100
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 BANG = 102
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 BASE = 28
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 BIT_AND = 118
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 BIT_OR = 119
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 BOOL = 29
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 BREAK = 30
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 BYTE = 31
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 CASE = 32
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 CATCH = 33
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 CHAR = 34
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 CHARACTER_LITERAL = 89
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 CLASS = 35
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 COLON = 105
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 COMMA = 98
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 CONST = 36
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 CONTINUE = 37
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 DECIMAL_EXPONENT = 86
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 DECIMAL_FLOATING_POINT_LITERAL = 85
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 DECIMAL_LITERAL = 81
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 DECR = 113
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 DEFAULT = 0
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 DO = 39
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 DOT = 99
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 DOUBLE = 40
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 ELSE = 41
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 ENUM = 42
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 EOF = 0
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 EQ = 106
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 EXTERN = 43
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 FALSE = 44
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 FINALLY = 45
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 FLOAT = 46
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 FLOATING_POINT_LITERAL = 84
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 FOR = 47
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 FORMAL_COMMENT = 24
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 GE = 108
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 GOTO = 48
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 GT = 131
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 HEXADECIMAL_EXPONENT = 88
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 HEXADECIMAL_FLOATING_POINT_LITERAL = 87
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 HEX_LITERAL = 82
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 HOOK = 104
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 IDENTIFIER = 139
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 IF = 49
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 INCR = 112
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 INT = 50
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 INTEGER_LITERAL = 80
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 INTERFACE = 51
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 INTERNAL = 52
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 IN_FORMAL_COMMENT = 3
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 IN_MULTI_LINE_COMMENT = 4
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 IN_SINGLE_LINE_COMMENT = 2
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 IS = 53
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 LANGLE = 101
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 LBRACE = 93
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 LBRACKET = 95
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 LE = 107
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 LETTER = 140
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 LOCK = 54
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 LONG = 55
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 LPAREN = 91
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 LT = 101
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 MINUS = 115
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 MINUSASSIGN = 123
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 MULTI_LINE_COMMENT = 25
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 NAMESPACE = 56
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 NE = 109
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 NEW = 57
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 NULL = 58
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 OCTAL_LITERAL = 83
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 ORASSIGN = 127
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 OVERRIDE = 59
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 PART_LETTER = 141
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 PLUS = 114
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 PLUSASSIGN = 122
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 PRIVATE = 60
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 PROTECTED = 61
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 PUBLIC = 62
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 RANGLE = 131
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 RBRACE = 94
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 RBRACKET = 96
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 READONLY = 63
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 REM = 121
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 REMASSIGN = 129
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 RETURN = 64
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 RPAREN = 92
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 RSIGNEDSHIFT = 130
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 SC_AND = 111
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 SC_OR = 110
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 SEALED = 65
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 SEMICOLON = 97
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 SHORT = 66
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 SINGLE_LINE_COMMENT = 23
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 SLASH = 117
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 SLASHASSIGN = 125
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 STAR = 116
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 STARASSIGN = 124
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 STATIC = 67
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 STRING_LITERAL = 90
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 SWITCH = 68
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 THIS = 69
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 THROW = 70
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 TILDE = 103
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 TRANSIENT = 71
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 TRUE = 72
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 TRY = 73
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 USING = 74
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 VAR = 75
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 VIRTUAL = 76
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 VOID = 77
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 VOLATILE = 78
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 WHILE = 79
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 XOR = 120
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 XORASSIGN = 128
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 _CODE = 5
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 _DEFAULT = 38
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 _EOF = 11
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 _IGNORE_CASE = 2
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 _LOOKAHEAD = 1
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 _MORE = 8
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 _PARSER_BEGIN = 3
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 _PARSER_END = 4
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 _SKIP = 9
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 _SPECIAL_TOKEN = 7
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 _TOKEN = 6
+Deveel.CSharpCC.Parser.CSharpCCParserConstants.Field: Public, Static, Literal, HasDefault Int32 _TOKEN_MGR_DECLS = 10
+Deveel.CSharpCC.Parser.CSharpCCParserConstants: Public, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.CSharpCCParserInternals.Method: Public, Static, HideBySig Boolean hexchar(Char) (ch None )
+Deveel.CSharpCC.Parser.CSharpCCParserInternals.Method: Public, Static, HideBySig Char character_descriptor_assign(Deveel.CSharpCC.Parser.Token, System.String) (t None ,s None )
+Deveel.CSharpCC.Parser.CSharpCCParserInternals.Method: Public, Static, HideBySig Char character_descriptor_assign(Deveel.CSharpCC.Parser.Token, System.String, System.String) (t None ,s None ,left None )
+Deveel.CSharpCC.Parser.CSharpCCParserInternals.Method: Public, Static, HideBySig Int32 hexval(Char) (ch None )
+Deveel.CSharpCC.Parser.CSharpCCParserInternals.Method: Public, Static, HideBySig System.String remove_escapes_and_quotes(Deveel.CSharpCC.Parser.Token, System.String) (t None ,str None )
+Deveel.CSharpCC.Parser.CSharpCCParserInternals.Method: Public, Static, HideBySig Void add_inline_regexpr(Deveel.CSharpCC.Parser.RegularExpression) (r None )
+Deveel.CSharpCC.Parser.CSharpCCParserInternals.Method: Public, Static, HideBySig Void add_token_manager_decls(Deveel.CSharpCC.Parser.Token, System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token]) (t None ,decls None )
+Deveel.CSharpCC.Parser.CSharpCCParserInternals.Method: Public, Static, HideBySig Void addcuname(System.String) (id None )
+Deveel.CSharpCC.Parser.CSharpCCParserInternals.Method: Public, Static, HideBySig Void addproduction(Deveel.CSharpCC.Parser.NormalProduction) (p None )
+Deveel.CSharpCC.Parser.CSharpCCParserInternals.Method: Public, Static, HideBySig Void addregexpr(Deveel.CSharpCC.Parser.TokenProduction) (p None )
+Deveel.CSharpCC.Parser.CSharpCCParserInternals.Method: Public, Static, HideBySig Void compare(Deveel.CSharpCC.Parser.Token, System.String, System.String) (t None ,id1 None ,id2 None )
+Deveel.CSharpCC.Parser.CSharpCCParserInternals.Method: Public, Static, HideBySig Void insertionpointerrors(Deveel.CSharpCC.Parser.Token) (t None )
+Deveel.CSharpCC.Parser.CSharpCCParserInternals.Method: Public, Static, HideBySig Void makeTryBlock(Deveel.CSharpCC.Parser.Token, Deveel.CSharpCC.Parser.Container, Deveel.CSharpCC.Parser.Container, System.Collections.Generic.IList`1[System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token]], System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token], System.Collections.Generic.IList`1[System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token]], System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token]) (tryLoc None ,result None ,nestedExp None ,types None ,ids None ,catchblks None ,finallyblk None )
+Deveel.CSharpCC.Parser.CSharpCCParserInternals.Method: Public, Static, HideBySig Void production_addexpansion(Deveel.CSharpCC.Parser.BnfProduction, Deveel.CSharpCC.Parser.Expansion) (p None ,e None )
+Deveel.CSharpCC.Parser.CSharpCCParserInternals.Method: Public, Static, HideBySig Void reInit() ()
+Deveel.CSharpCC.Parser.CSharpCCParserInternals.Method: Public, Static, HideBySig Void set_initial_cu_token(Deveel.CSharpCC.Parser.Token) (t None )
+Deveel.CSharpCC.Parser.CSharpCCParserInternals.Method: Public, Static, HideBySig Void setinsertionpoint(Deveel.CSharpCC.Parser.Token, Int32) (t None ,no None )
+Deveel.CSharpCC.Parser.CSharpCCParserInternals: Public, Abstract, Sealed, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.CSharpCCParserTokenManager.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(Deveel.CSharpCC.Parser.CSharpCharStream) (stream None )
+Deveel.CSharpCC.Parser.CSharpCCParserTokenManager.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(Deveel.CSharpCC.Parser.CSharpCharStream, Int32) (stream None ,lexState None )
+Deveel.CSharpCC.Parser.CSharpCCParserTokenManager.Field: Family Char curChar
+Deveel.CSharpCC.Parser.CSharpCCParserTokenManager.Field: Family Deveel.CSharpCC.Parser.CSharpCharStream input_stream
+Deveel.CSharpCC.Parser.CSharpCCParserTokenManager.Field: Public System.IO.TextWriter debugStream
+Deveel.CSharpCC.Parser.CSharpCCParserTokenManager.Field: Public, Static, InitOnly Int32[] mccnewLexState
+Deveel.CSharpCC.Parser.CSharpCCParserTokenManager.Field: Public, Static, InitOnly System.String[] lexStateNames
+Deveel.CSharpCC.Parser.CSharpCCParserTokenManager.Field: Public, Static, InitOnly System.String[] mccstrLiteralImages
+Deveel.CSharpCC.Parser.CSharpCCParserTokenManager.Method: Family, HideBySig Deveel.CSharpCC.Parser.Token mccFillToken() ()
+Deveel.CSharpCC.Parser.CSharpCCParserTokenManager.Method: Public, HideBySig Deveel.CSharpCC.Parser.Token GetNextToken() ()
+Deveel.CSharpCC.Parser.CSharpCCParserTokenManager.Method: Public, HideBySig Void ReInit(Deveel.CSharpCC.Parser.CSharpCharStream) (stream None )
+Deveel.CSharpCC.Parser.CSharpCCParserTokenManager.Method: Public, HideBySig Void ReInit(Deveel.CSharpCC.Parser.CSharpCharStream, Int32) (stream None ,lexState None )
+Deveel.CSharpCC.Parser.CSharpCCParserTokenManager.Method: Public, HideBySig Void SetDebugStream(System.IO.TextWriter) (ds None )
+Deveel.CSharpCC.Parser.CSharpCCParserTokenManager.Method: Public, HideBySig Void SwitchTo(Int32) (lexState None )
+Deveel.CSharpCC.Parser.CSharpCCParserTokenManager: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.CSharpCCParserConstants; interfaces: 
+Deveel.CSharpCC.Parser.CSharpCharStream.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(System.IO.Stream) (dstream None )
+Deveel.CSharpCC.Parser.CSharpCharStream.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(System.IO.Stream, Int32, Int32) (dstream None ,startline None ,startcolumn None )
+Deveel.CSharpCC.Parser.CSharpCharStream.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(System.IO.Stream, Int32, Int32, Int32) (dstream None ,startline None ,startcolumn None ,buffersize None )
+Deveel.CSharpCC.Parser.CSharpCharStream.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(System.IO.TextReader) (dstream None )
+Deveel.CSharpCC.Parser.CSharpCharStream.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(System.IO.TextReader, Int32, Int32) (dstream None ,startline None ,startcolumn None )
+Deveel.CSharpCC.Parser.CSharpCharStream.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(System.IO.TextReader, Int32, Int32, Int32) (dstream None ,startline None ,startcolumn None ,buffersize None )
+Deveel.CSharpCC.Parser.CSharpCharStream.Field: Family Boolean prevCharIsCR
+Deveel.CSharpCC.Parser.CSharpCharStream.Field: Family Boolean prevCharIsLF
+Deveel.CSharpCC.Parser.CSharpCharStream.Field: Family Char[] buffer
+Deveel.CSharpCC.Parser.CSharpCharStream.Field: Family Char[] nextCharBuf
+Deveel.CSharpCC.Parser.CSharpCharStream.Field: Family Int32 column
+Deveel.CSharpCC.Parser.CSharpCharStream.Field: Family Int32 inBuf
+Deveel.CSharpCC.Parser.CSharpCharStream.Field: Family Int32 line
+Deveel.CSharpCC.Parser.CSharpCharStream.Field: Family Int32 maxNextCharInd
+Deveel.CSharpCC.Parser.CSharpCharStream.Field: Family Int32 nextCharInd
+Deveel.CSharpCC.Parser.CSharpCharStream.Field: Family Int32[] bufcolumn
+Deveel.CSharpCC.Parser.CSharpCharStream.Field: Family Int32[] bufline
+Deveel.CSharpCC.Parser.CSharpCharStream.Field: Family System.IO.TextReader inputStream
+Deveel.CSharpCC.Parser.CSharpCharStream.Field: Public Int32 bufpos
+Deveel.CSharpCC.Parser.CSharpCharStream.Field: Public, Static, InitOnly Boolean staticFlag
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Family, HideBySig Char ReadByte() ()
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Family, HideBySig Void AdjustBuffSize() ()
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Family, HideBySig Void ExpandBuff(Boolean) (wrapAround None )
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Family, HideBySig Void FillBuff() ()
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Family, HideBySig Void UpdateLineColumn(Char) (c None )
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Public, HideBySig Char BeginToken() ()
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Public, HideBySig Char ReadChar() ()
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Public, HideBySig Char[] GetSuffix(Int32) (len None )
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Public, HideBySig System.String GetImage() ()
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Public, HideBySig Void AdjustBeginLineColumn(Int32, Int32) (newLine None ,newCol None )
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Public, HideBySig Void Backup(Int32) (amount None )
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Public, HideBySig Void Done() ()
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Public, HideBySig Void ReInit(System.IO.Stream) (dstream None )
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Public, HideBySig Void ReInit(System.IO.Stream, Int32, Int32) (dstream None ,startline None ,startcolumn None )
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Public, HideBySig Void ReInit(System.IO.Stream, Int32, Int32, Int32) (dstream None ,startline None ,startcolumn None ,buffersize None )
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Public, HideBySig Void ReInit(System.IO.TextReader) (dstream None )
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Public, HideBySig Void ReInit(System.IO.TextReader, Int32, Int32) (dstream None ,startline None ,startcolumn None )
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Public, HideBySig Void ReInit(System.IO.TextReader, Int32, Int32, Int32) (dstream None ,startline None ,startcolumn None ,buffersize None )
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Public, HideBySig, SpecialName Int32 get_BeginColumn() ()
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Public, HideBySig, SpecialName Int32 get_BeginLine() ()
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Public, HideBySig, SpecialName Int32 get_Column() ()
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Public, HideBySig, SpecialName Int32 get_EndColumn() ()
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Public, HideBySig, SpecialName Int32 get_EndLine() ()
+Deveel.CSharpCC.Parser.CSharpCharStream.Method: Public, HideBySig, SpecialName Int32 get_Line() ()
+Deveel.CSharpCC.Parser.CSharpCharStream.Property: None Int32 BeginColumn
+Deveel.CSharpCC.Parser.CSharpCharStream.Property: None Int32 BeginLine
+Deveel.CSharpCC.Parser.CSharpCharStream.Property: None Int32 Column
+Deveel.CSharpCC.Parser.CSharpCharStream.Property: None Int32 EndColumn
+Deveel.CSharpCC.Parser.CSharpCharStream.Property: None Int32 EndLine
+Deveel.CSharpCC.Parser.CSharpCharStream.Property: None Int32 Line
+Deveel.CSharpCC.Parser.CSharpCharStream: Public, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.CSharpFiles.Method: Public, Static, HideBySig Void GenerateICharStream() ()
+Deveel.CSharpCC.Parser.CSharpFiles.Method: Public, Static, HideBySig Void GenerateITokenManager() ()
+Deveel.CSharpCC.Parser.CSharpFiles.Method: Public, Static, HideBySig Void GenerateParseException() ()
+Deveel.CSharpCC.Parser.CSharpFiles.Method: Public, Static, HideBySig Void GenerateSimpleCharStream() ()
+Deveel.CSharpCC.Parser.CSharpFiles.Method: Public, Static, HideBySig Void GenerateToken() ()
+Deveel.CSharpCC.Parser.CSharpFiles.Method: Public, Static, HideBySig Void GenerateTokenManagerError() ()
+Deveel.CSharpCC.Parser.CSharpFiles.Method: Public, Static, HideBySig Void GenerateUnicodeCharStream() ()
+Deveel.CSharpCC.Parser.CSharpFiles: Public, Abstract, Sealed, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.CharacterRange.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.CharacterRange.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(Char, Char) (left None ,right None )
+Deveel.CSharpCC.Parser.CharacterRange.Method: Public, HideBySig, SpecialName Char get_Left() ()
+Deveel.CSharpCC.Parser.CharacterRange.Method: Public, HideBySig, SpecialName Char get_Right() ()
+Deveel.CSharpCC.Parser.CharacterRange.Method: Public, HideBySig, SpecialName Int32 get_Column() ()
+Deveel.CSharpCC.Parser.CharacterRange.Method: Public, HideBySig, SpecialName Int32 get_Line() ()
+Deveel.CSharpCC.Parser.CharacterRange.Property: None Char Left
+Deveel.CSharpCC.Parser.CharacterRange.Property: None Char Right
+Deveel.CSharpCC.Parser.CharacterRange.Property: None Int32 Column
+Deveel.CSharpCC.Parser.CharacterRange.Property: None Int32 Line
+Deveel.CSharpCC.Parser.CharacterRange: Public, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.Choice.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.Choice.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(Deveel.CSharpCC.Parser.Expansion) (expansion None )
+Deveel.CSharpCC.Parser.Choice.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(Deveel.CSharpCC.Parser.Token) (token None )
+Deveel.CSharpCC.Parser.Choice.Method: Public, HideBySig, SpecialName System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Expansion] get_Choices() ()
+Deveel.CSharpCC.Parser.Choice.Method: Public, Virtual, HideBySig System.Text.StringBuilder Dump(Int32, System.Collections.IList) (indent None ,alreadyDumped None )
+Deveel.CSharpCC.Parser.Choice.Property: None System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Expansion] Choices
+Deveel.CSharpCC.Parser.Choice: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.Expansion; interfaces: 
+Deveel.CSharpCC.Parser.CodeProduction.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.CodeProduction.Method: Public, HideBySig, SpecialName System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token] get_CodeTokens() ()
+Deveel.CSharpCC.Parser.CodeProduction.Property: None System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token] CodeTokens
+Deveel.CSharpCC.Parser.CodeProduction: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.NormalProduction; interfaces: 
+Deveel.CSharpCC.Parser.Container.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.Container.Field: Public System.Object member
+Deveel.CSharpCC.Parser.Container: Public, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.Expansion.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.Expansion.Method: Family, HideBySig System.Text.StringBuilder DumpPrefix(Int32) (indent None )
+Deveel.CSharpCC.Parser.Expansion.Method: Public, HideBySig, SpecialName Boolean get_IsMinimumSize() ()
+Deveel.CSharpCC.Parser.Expansion.Method: Public, HideBySig, SpecialName Int32 get_Column() ()
+Deveel.CSharpCC.Parser.Expansion.Method: Public, HideBySig, SpecialName Int32 get_Line() ()
+Deveel.CSharpCC.Parser.Expansion.Method: Public, HideBySig, SpecialName Int64 get_MyGeneration() ()
+Deveel.CSharpCC.Parser.Expansion.Method: Public, HideBySig, SpecialName System.Object get_Parent() ()
+Deveel.CSharpCC.Parser.Expansion.Method: Public, Static, HideBySig Void reInit() ()
+Deveel.CSharpCC.Parser.Expansion.Method: Public, Virtual, HideBySig Int32 GetHashCode() ()
+Deveel.CSharpCC.Parser.Expansion.Method: Public, Virtual, HideBySig, VtableLayoutMask System.Text.StringBuilder Dump(Int32, System.Collections.IList) (indent None ,alreadyDumped None )
+Deveel.CSharpCC.Parser.Expansion.Property: None Boolean IsMinimumSize
+Deveel.CSharpCC.Parser.Expansion.Property: None Int32 Column
+Deveel.CSharpCC.Parser.Expansion.Property: None Int32 Line
+Deveel.CSharpCC.Parser.Expansion.Property: None Int64 MyGeneration
+Deveel.CSharpCC.Parser.Expansion.Property: None System.Object Parent
+Deveel.CSharpCC.Parser.Expansion: Public, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.ILocationInfo.Method: Public, Virtual, HideBySig, VtableLayoutMask, Abstract, SpecialName Int32 get_Column() ()
+Deveel.CSharpCC.Parser.ILocationInfo.Method: Public, Virtual, HideBySig, VtableLayoutMask, Abstract, SpecialName Int32 get_Line() ()
+Deveel.CSharpCC.Parser.ILocationInfo.Property: None Int32 Column
+Deveel.CSharpCC.Parser.ILocationInfo.Property: None Int32 Line
+Deveel.CSharpCC.Parser.ILocationInfo: Public, ClassSemanticsMask, Abstract, BeforeFieldInit : ; interfaces: 
+Deveel.CSharpCC.Parser.LexGen.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Boolean hasEmptyMatch
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Boolean hasLoop
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Boolean keepLineCol
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Boolean[] canLoop
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Boolean[] canReachOnMore
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Boolean[] hasNfa
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Boolean[] ignoreCase
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Boolean[] mixed
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Boolean[] stateHasActions
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Deveel.CSharpCC.Parser.Action[] actions
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Deveel.CSharpCC.Parser.NfaState initialState
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Deveel.CSharpCC.Parser.RegularExpression curRE
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Deveel.CSharpCC.Parser.RegularExpression[] rexprs
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Int32 curKind
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Int32 defaultLexState
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Int32 lexStateIndex
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Int32 maxLexStates
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Int32 maxOrdinal
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Int32 stateSetSize
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Int32[] canMatchAnyChar
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Int32[] initMatch
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Int32[] lexStates
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Int32[] maxLongsReqd
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Int64[] toMore
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Int64[] toSkip
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Int64[] toSpecial
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static Int64[] toToken
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static System.Collections.Generic.IDictionary`2[System.String,Deveel.CSharpCC.Parser.NfaState] initStates
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static System.String lexStateSuffix
+Deveel.CSharpCC.Parser.LexGen.Field: Public, Static System.String[] lexStateName
+Deveel.CSharpCC.Parser.LexGen.Method: Public, Static, HideBySig Void AddCharToSkip(Char, Int32) (c None ,kind None )
+Deveel.CSharpCC.Parser.LexGen.Method: Public, Static, HideBySig Void DumpMoreActions() ()
+Deveel.CSharpCC.Parser.LexGen.Method: Public, Static, HideBySig Void DumpSkipActions() ()
+Deveel.CSharpCC.Parser.LexGen.Method: Public, Static, HideBySig Void DumpTokenActions() ()
+Deveel.CSharpCC.Parser.LexGen.Method: Public, Static, HideBySig Void reInit() ()
+Deveel.CSharpCC.Parser.LexGen.Method: Public, Static, HideBySig Void start() ()
+Deveel.CSharpCC.Parser.LexGen: Public, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.Lookahead.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.Lookahead.Method: Public, HideBySig, SpecialName Boolean get_IsExplicit() ()
+Deveel.CSharpCC.Parser.Lookahead.Method: Public, HideBySig, SpecialName Deveel.CSharpCC.Parser.Expansion get_Expansion() ()
+Deveel.CSharpCC.Parser.Lookahead.Method: Public, HideBySig, SpecialName Int32 get_Amount() ()
+Deveel.CSharpCC.Parser.Lookahead.Method: Public, HideBySig, SpecialName System.Collections.Generic.List`1[Deveel.CSharpCC.Parser.Token] get_ActionTokens() ()
+Deveel.CSharpCC.Parser.Lookahead.Method: Public, Virtual, HideBySig System.Text.StringBuilder Dump(Int32, System.Collections.IList) (indent None ,alreadyDumped None )
+Deveel.CSharpCC.Parser.Lookahead.Property: None Boolean IsExplicit
+Deveel.CSharpCC.Parser.Lookahead.Property: None Deveel.CSharpCC.Parser.Expansion Expansion
+Deveel.CSharpCC.Parser.Lookahead.Property: None Int32 Amount
+Deveel.CSharpCC.Parser.Lookahead.Property: None System.Collections.Generic.List`1[Deveel.CSharpCC.Parser.Token] ActionTokens
+Deveel.CSharpCC.Parser.Lookahead: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.Expansion; interfaces: 
+Deveel.CSharpCC.Parser.LookaheadWalk.Field: Public, Static Boolean considerSemanticLA
+Deveel.CSharpCC.Parser.LookaheadWalk.Field: Public, Static System.Collections.Generic.List`1[Deveel.CSharpCC.Parser.MatchInfo] sizeLimitedMatches
+Deveel.CSharpCC.Parser.LookaheadWalk.Method: Public, Static, HideBySig System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.MatchInfo] genFirstSet(System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.MatchInfo], Deveel.CSharpCC.Parser.Expansion) (partialMatches None ,exp None )
+Deveel.CSharpCC.Parser.LookaheadWalk.Method: Public, Static, HideBySig System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.MatchInfo] genFollowSet(System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.MatchInfo], Deveel.CSharpCC.Parser.Expansion, Int64) (partialMatches None ,exp None ,generation None )
+Deveel.CSharpCC.Parser.LookaheadWalk.Method: Public, Static, HideBySig Void reInit() ()
+Deveel.CSharpCC.Parser.LookaheadWalk: Public, Abstract, Sealed, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.MatchInfo.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.MatchInfo.Field: Public, Static Int32 laLimit
+Deveel.CSharpCC.Parser.MatchInfo.Method: Public, Static, HideBySig Void reInit() ()
+Deveel.CSharpCC.Parser.MatchInfo: Public, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.MetaParseException.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.MetaParseException: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.ParseException; interfaces: System.Runtime.Serialization.ISerializable
+Deveel.CSharpCC.Parser.Nfa.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.Nfa: Public, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.NfaState.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.NfaState.Field: Public, Static Boolean unicodeWarningGiven
+Deveel.CSharpCC.Parser.NfaState.Field: Public, Static Int32 generatedStates
+Deveel.CSharpCC.Parser.NfaState.Method: Public, HideBySig Boolean HasTransitions() ()
+Deveel.CSharpCC.Parser.NfaState.Method: Public, HideBySig Int32 MoveFrom(Char, System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.NfaState]) (c None ,newStates None )
+Deveel.CSharpCC.Parser.NfaState.Method: Public, HideBySig Int32 getFirstValidPos(System.String, Int32, Int32) (s None ,i None ,len None )
+Deveel.CSharpCC.Parser.NfaState.Method: Public, HideBySig Void GenerateInitMoves(System.IO.TextWriter) (ostr None )
+Deveel.CSharpCC.Parser.NfaState.Method: Public, Static, HideBySig Boolean CanStartNfaUsingAscii(Char) (c None )
+Deveel.CSharpCC.Parser.NfaState.Method: Public, Static, HideBySig Int32 MoveFromSet(Char, System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.NfaState], System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.NfaState]) (c None ,states None ,newStates None )
+Deveel.CSharpCC.Parser.NfaState.Method: Public, Static, HideBySig Int32 moveFromSetForRegEx(Char, Deveel.CSharpCC.Parser.NfaState[], Deveel.CSharpCC.Parser.NfaState[], Int32) (c None ,states None ,newStates None ,round None )
+Deveel.CSharpCC.Parser.NfaState.Method: Public, Static, HideBySig Void ComputeClosures() ()
+Deveel.CSharpCC.Parser.NfaState.Method: Public, Static, HideBySig Void DumpCharAndRangeMoves(System.IO.TextWriter) (ostr None )
+Deveel.CSharpCC.Parser.NfaState.Method: Public, Static, HideBySig Void DumpMoveNfa(System.IO.TextWriter) (ostr None )
+Deveel.CSharpCC.Parser.NfaState.Method: Public, Static, HideBySig Void DumpNonAsciiMoveMethods(System.IO.TextWriter) (ostr None )
+Deveel.CSharpCC.Parser.NfaState.Method: Public, Static, HideBySig Void DumpStateSets(System.IO.TextWriter) (ostr None )
+Deveel.CSharpCC.Parser.NfaState.Method: Public, Static, HideBySig Void DumpStatesForKind(System.IO.TextWriter) (ostr None )
+Deveel.CSharpCC.Parser.NfaState.Method: Public, Static, HideBySig Void DumpStatesForState(System.IO.TextWriter) (ostr None )
+Deveel.CSharpCC.Parser.NfaState.Method: Public, Static, HideBySig Void ReInit() ()
+Deveel.CSharpCC.Parser.NfaState.Method: Public, Static, HideBySig Void reInit() ()
+Deveel.CSharpCC.Parser.NfaState: Public, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.NonTerminal.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.NonTerminal.Method: Public, HideBySig, SpecialName Deveel.CSharpCC.Parser.NormalProduction get_Production() ()
+Deveel.CSharpCC.Parser.NonTerminal.Method: Public, HideBySig, SpecialName System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token] get_ArgumentTokens() ()
+Deveel.CSharpCC.Parser.NonTerminal.Method: Public, HideBySig, SpecialName System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token] get_LhsTokens() ()
+Deveel.CSharpCC.Parser.NonTerminal.Method: Public, HideBySig, SpecialName System.String get_Name() ()
+Deveel.CSharpCC.Parser.NonTerminal.Method: Public, Virtual, HideBySig System.Text.StringBuilder Dump(Int32, System.Collections.IList) (indent None ,alreadyDumped None )
+Deveel.CSharpCC.Parser.NonTerminal.Property: None Deveel.CSharpCC.Parser.NormalProduction Production
+Deveel.CSharpCC.Parser.NonTerminal.Property: None System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token] ArgumentTokens
+Deveel.CSharpCC.Parser.NonTerminal.Property: None System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token] LhsTokens
+Deveel.CSharpCC.Parser.NonTerminal.Property: None System.String Name
+Deveel.CSharpCC.Parser.NonTerminal: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.Expansion; interfaces: 
+Deveel.CSharpCC.Parser.NormalProduction.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.NormalProduction.Method: Family, HideBySig System.Text.StringBuilder DumpPrefix(Int32) (indent None )
+Deveel.CSharpCC.Parser.NormalProduction.Method: Public, HideBySig, SpecialName Deveel.CSharpCC.Parser.Expansion get_Expansion() ()
+Deveel.CSharpCC.Parser.NormalProduction.Method: Public, HideBySig, SpecialName Int32 get_Column() ()
+Deveel.CSharpCC.Parser.NormalProduction.Method: Public, HideBySig, SpecialName Int32 get_Line() ()
+Deveel.CSharpCC.Parser.NormalProduction.Method: Public, HideBySig, SpecialName System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token] get_ParameterTokens() ()
+Deveel.CSharpCC.Parser.NormalProduction.Method: Public, HideBySig, SpecialName System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token] get_ReturnTypeTokens() ()
+Deveel.CSharpCC.Parser.NormalProduction.Method: Public, HideBySig, SpecialName System.String get_AccessModifier() ()
+Deveel.CSharpCC.Parser.NormalProduction.Method: Public, HideBySig, SpecialName System.String get_Lhs() ()
+Deveel.CSharpCC.Parser.NormalProduction.Method: Public, Virtual, HideBySig, VtableLayoutMask System.Text.StringBuilder Dump(Int32, System.Collections.IList) (indent None ,alreadyDumped None )
+Deveel.CSharpCC.Parser.NormalProduction.Property: None Deveel.CSharpCC.Parser.Expansion Expansion
+Deveel.CSharpCC.Parser.NormalProduction.Property: None Int32 Column
+Deveel.CSharpCC.Parser.NormalProduction.Property: None Int32 Line
+Deveel.CSharpCC.Parser.NormalProduction.Property: None System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token] ParameterTokens
+Deveel.CSharpCC.Parser.NormalProduction.Property: None System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token] ReturnTypeTokens
+Deveel.CSharpCC.Parser.NormalProduction.Property: None System.String AccessModifier
+Deveel.CSharpCC.Parser.NormalProduction.Property: None System.String Lhs
+Deveel.CSharpCC.Parser.NormalProduction: Public, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.OneOrMore.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(Deveel.CSharpCC.Parser.Token, Deveel.CSharpCC.Parser.Expansion) (token None ,expansion None )
+Deveel.CSharpCC.Parser.OneOrMore.Method: Public, HideBySig, SpecialName Deveel.CSharpCC.Parser.Expansion get_Expansion() ()
+Deveel.CSharpCC.Parser.OneOrMore.Method: Public, Virtual, HideBySig System.Text.StringBuilder Dump(Int32, System.Collections.IList) (indent None ,alreadyDumped None )
+Deveel.CSharpCC.Parser.OneOrMore.Property: None Deveel.CSharpCC.Parser.Expansion Expansion
+Deveel.CSharpCC.Parser.OneOrMore: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.Expansion; interfaces: 
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean IsOption(System.String) (opt None )
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean clrVersionAtLeast(Double) (version None )
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getBuildParser() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getBuildTokenManager() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getCacheTokens() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getCommonTokenAction() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getDebugLookahead() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getDebugParser() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getDebugTokenManager() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getErrorReporting() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getForceLaCheck() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getGenerateAnnotations() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getGenerateChainedException() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getGenerateGenerics() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getGenerateStringBuilder() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getIgnoreCase() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getKeepLineColumn() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getSanityCheck() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getStatic() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getSupportClassVisibilityPublic() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getTokenManagerUsesParser() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getUnicodeEscape() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getUnicodeInput() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getUserCharStream() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Boolean getUserTokenManager() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Int32 getChoiceAmbiguityCheck() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Int32 getLookahead() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Int32 getOtherAmbiguityCheck() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig System.Collections.Generic.IDictionary`2[System.String,System.Object] getOptions() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig System.IO.DirectoryInfo getOutputDirectory() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig System.Object UpgradeValue(System.String, System.Object) (name None ,value None )
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig System.String GetOptionsString(System.String[]) (interestingOptions None )
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig System.String getClrVersion() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig System.String getGrammarEncoding() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig System.String getTokenExtends() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig System.String getTokenFactory() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig System.String stringBufOrBuild() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Void Normalize() ()
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Void SetCmdLineOption(System.String) (arg None )
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Void SetInputFileOption(System.Object, System.Object, System.String, System.Object) (nameloc None ,valueloc None ,name None ,value None )
+Deveel.CSharpCC.Parser.Options.Method: Public, Static, HideBySig Void init() ()
+Deveel.CSharpCC.Parser.Options: Public, Abstract, Sealed, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.OtherFilesGen.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.OtherFilesGen.Field: Public, Static Boolean keepLineCol
+Deveel.CSharpCC.Parser.OtherFilesGen.Method: Public, Static, HideBySig Void reInit() ()
+Deveel.CSharpCC.Parser.OtherFilesGen.Method: Public, Static, HideBySig Void start() ()
+Deveel.CSharpCC.Parser.OtherFilesGen: Public, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.ParseEngine.Method: Public, Static, HideBySig Void reInit() ()
+Deveel.CSharpCC.Parser.ParseEngine: Public, Abstract, Sealed, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.ParseException.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.ParseException.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(Deveel.CSharpCC.Parser.Token, Int32[][], System.String[]) (currentTokenVal None ,expectedTokenSequencesVal None ,tokenImageVal None )
+Deveel.CSharpCC.Parser.ParseException.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(System.String) (message None )
+Deveel.CSharpCC.Parser.ParseException.Field: Family Boolean specialConstructor
+Deveel.CSharpCC.Parser.ParseException.Field: Family System.String eol
+Deveel.CSharpCC.Parser.ParseException.Field: Public Deveel.CSharpCC.Parser.Token currentToken
+Deveel.CSharpCC.Parser.ParseException.Field: Public Int32[][] expectedTokenSequences
+Deveel.CSharpCC.Parser.ParseException.Field: Public System.String[] tokenImage
+Deveel.CSharpCC.Parser.ParseException.Method: Family, HideBySig System.String AddEscapes(System.String) (str None )
+Deveel.CSharpCC.Parser.ParseException.Method: Public, Virtual, HideBySig, SpecialName System.String get_Message() ()
+Deveel.CSharpCC.Parser.ParseException.Property: None System.String Message
+Deveel.CSharpCC.Parser.ParseException: Public, BeforeFieldInit : System.Exception; interfaces: System.Runtime.Serialization.ISerializable
+Deveel.CSharpCC.Parser.ParseGen.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.ParseGen.Method: Public, Static, HideBySig Void reInit() ()
+Deveel.CSharpCC.Parser.ParseGen.Method: Public, Static, HideBySig Void start() ()
+Deveel.CSharpCC.Parser.ParseGen: Public, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.RCharacterList.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.RCharacterList.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(Char) (c None )
+Deveel.CSharpCC.Parser.RCharacterList.Method: Public, HideBySig, SpecialName Boolean get_Negated() ()
+Deveel.CSharpCC.Parser.RCharacterList.Method: Public, HideBySig, SpecialName System.Collections.Generic.IList`1[System.Object] get_Descriptors() ()
+Deveel.CSharpCC.Parser.RCharacterList.Method: Public, Virtual, HideBySig Deveel.CSharpCC.Parser.Nfa GenerateNfa(Boolean) (ignoreCase None )
+Deveel.CSharpCC.Parser.RCharacterList.Property: None Boolean Negated
+Deveel.CSharpCC.Parser.RCharacterList.Property: None System.Collections.Generic.IList`1[System.Object] Descriptors
+Deveel.CSharpCC.Parser.RCharacterList: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.RegularExpression; interfaces: 
+Deveel.CSharpCC.Parser.RChoice.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.RChoice.Method: Public, HideBySig Void CheckUnmatchability() ()
+Deveel.CSharpCC.Parser.RChoice.Method: Public, HideBySig, SpecialName System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.RegularExpression] get_Choices() ()
+Deveel.CSharpCC.Parser.RChoice.Method: Public, Virtual, HideBySig Deveel.CSharpCC.Parser.Nfa GenerateNfa(Boolean) (ignoreCase None )
+Deveel.CSharpCC.Parser.RChoice.Property: None System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.RegularExpression] Choices
+Deveel.CSharpCC.Parser.RChoice: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.RegularExpression; interfaces: 
+Deveel.CSharpCC.Parser.REndOfFile.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.REndOfFile.Method: Public, Virtual, HideBySig Deveel.CSharpCC.Parser.Nfa GenerateNfa(Boolean) (ignoreCase None )
+Deveel.CSharpCC.Parser.REndOfFile: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.RegularExpression; interfaces: 
+Deveel.CSharpCC.Parser.RJustName.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(Deveel.CSharpCC.Parser.Token, System.String) (token None ,image None )
+Deveel.CSharpCC.Parser.RJustName.Method: Public, HideBySig, SpecialName Deveel.CSharpCC.Parser.RegularExpression get_RegularExpression() ()
+Deveel.CSharpCC.Parser.RJustName.Method: Public, Virtual, HideBySig Deveel.CSharpCC.Parser.Nfa GenerateNfa(Boolean) (ignoreCase None )
+Deveel.CSharpCC.Parser.RJustName.Property: None Deveel.CSharpCC.Parser.RegularExpression RegularExpression
+Deveel.CSharpCC.Parser.RJustName: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.RegularExpression; interfaces: 
+Deveel.CSharpCC.Parser.ROneOrMore.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(Deveel.CSharpCC.Parser.Token, Deveel.CSharpCC.Parser.RegularExpression) (token None ,expression None )
+Deveel.CSharpCC.Parser.ROneOrMore.Method: Public, HideBySig, SpecialName Deveel.CSharpCC.Parser.RegularExpression get_RegularExpression() ()
+Deveel.CSharpCC.Parser.ROneOrMore.Method: Public, Virtual, HideBySig Deveel.CSharpCC.Parser.Nfa GenerateNfa(Boolean) (ignoreCase None )
+Deveel.CSharpCC.Parser.ROneOrMore.Property: None Deveel.CSharpCC.Parser.RegularExpression RegularExpression
+Deveel.CSharpCC.Parser.ROneOrMore: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.RegularExpression; interfaces: 
+Deveel.CSharpCC.Parser.RRepetitionRange.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.RRepetitionRange.Method: Public, HideBySig, SpecialName Boolean get_HasMax() ()
+Deveel.CSharpCC.Parser.RRepetitionRange.Method: Public, HideBySig, SpecialName Deveel.CSharpCC.Parser.RegularExpression get_RegularExpression() ()
+Deveel.CSharpCC.Parser.RRepetitionRange.Method: Public, HideBySig, SpecialName Int32 get_Max() ()
+Deveel.CSharpCC.Parser.RRepetitionRange.Method: Public, HideBySig, SpecialName Int32 get_Min() ()
+Deveel.CSharpCC.Parser.RRepetitionRange.Method: Public, Virtual, HideBySig Deveel.CSharpCC.Parser.Nfa GenerateNfa(Boolean) (ignoreCase None )
+Deveel.CSharpCC.Parser.RRepetitionRange.Property: None Boolean HasMax
+Deveel.CSharpCC.Parser.RRepetitionRange.Property: None Deveel.CSharpCC.Parser.RegularExpression RegularExpression
+Deveel.CSharpCC.Parser.RRepetitionRange.Property: None Int32 Max
+Deveel.CSharpCC.Parser.RRepetitionRange.Property: None Int32 Min
+Deveel.CSharpCC.Parser.RRepetitionRange: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.RegularExpression; interfaces: 
+Deveel.CSharpCC.Parser.RSequence.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.RSequence.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.RegularExpression]) (seq None )
+Deveel.CSharpCC.Parser.RSequence.Method: Public, HideBySig, SpecialName System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.RegularExpression] get_Units() ()
+Deveel.CSharpCC.Parser.RSequence.Method: Public, Virtual, HideBySig Deveel.CSharpCC.Parser.Nfa GenerateNfa(Boolean) (ignoreCase None )
+Deveel.CSharpCC.Parser.RSequence.Property: None System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.RegularExpression] Units
+Deveel.CSharpCC.Parser.RSequence: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.RegularExpression; interfaces: 
+Deveel.CSharpCC.Parser.RStringLiteral.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(Deveel.CSharpCC.Parser.Token, System.String) (token None ,image None )
+Deveel.CSharpCC.Parser.RStringLiteral.Field: Public, Static System.String[] allImages
+Deveel.CSharpCC.Parser.RStringLiteral.Method: Public, HideBySig Void GenerateDfa(System.IO.TextWriter, Int32) (ostr None ,kind None )
+Deveel.CSharpCC.Parser.RStringLiteral.Method: Public, HideBySig, SpecialName System.String get_Image() ()
+Deveel.CSharpCC.Parser.RStringLiteral.Method: Public, Static, HideBySig Void DumpStrLiteralImages(System.IO.TextWriter) (ostr None )
+Deveel.CSharpCC.Parser.RStringLiteral.Method: Public, Static, HideBySig Void ReInit() ()
+Deveel.CSharpCC.Parser.RStringLiteral.Method: Public, Static, HideBySig Void reInit() ()
+Deveel.CSharpCC.Parser.RStringLiteral.Method: Public, Virtual, HideBySig Deveel.CSharpCC.Parser.Nfa GenerateNfa(Boolean) (ignoreCase None )
+Deveel.CSharpCC.Parser.RStringLiteral.Method: Public, Virtual, HideBySig System.Text.StringBuilder Dump(Int32, System.Collections.IList) (indent None ,alreadyDumped None )
+Deveel.CSharpCC.Parser.RStringLiteral.Property: None System.String Image
+Deveel.CSharpCC.Parser.RStringLiteral: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.RegularExpression; interfaces: 
+Deveel.CSharpCC.Parser.RZeroOrMore.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.RZeroOrMore.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(Deveel.CSharpCC.Parser.Token, Deveel.CSharpCC.Parser.RegularExpression) (t None ,r None )
+Deveel.CSharpCC.Parser.RZeroOrMore.Method: Public, HideBySig, SpecialName Deveel.CSharpCC.Parser.RegularExpression get_RegularExpression() ()
+Deveel.CSharpCC.Parser.RZeroOrMore.Method: Public, Virtual, HideBySig Deveel.CSharpCC.Parser.Nfa GenerateNfa(Boolean) (ignoreCase None )
+Deveel.CSharpCC.Parser.RZeroOrMore.Property: None Deveel.CSharpCC.Parser.RegularExpression RegularExpression
+Deveel.CSharpCC.Parser.RZeroOrMore: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.RegularExpression; interfaces: 
+Deveel.CSharpCC.Parser.RZeroOrOne.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.RZeroOrOne.Method: Public, HideBySig, SpecialName Deveel.CSharpCC.Parser.RegularExpression get_RegularExpression() ()
+Deveel.CSharpCC.Parser.RZeroOrOne.Method: Public, Virtual, HideBySig Deveel.CSharpCC.Parser.Nfa GenerateNfa(Boolean) (ignoreCase None )
+Deveel.CSharpCC.Parser.RZeroOrOne.Property: None Deveel.CSharpCC.Parser.RegularExpression RegularExpression
+Deveel.CSharpCC.Parser.RZeroOrOne: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.RegularExpression; interfaces: 
+Deveel.CSharpCC.Parser.RegExprSpec.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.RegExprSpec.Method: Public, HideBySig, SpecialName Deveel.CSharpCC.Parser.Action get_Action() ()
+Deveel.CSharpCC.Parser.RegExprSpec.Method: Public, HideBySig, SpecialName Deveel.CSharpCC.Parser.RegularExpression get_RegularExpression() ()
+Deveel.CSharpCC.Parser.RegExprSpec.Method: Public, HideBySig, SpecialName Deveel.CSharpCC.Parser.Token get_NextStateToken() ()
+Deveel.CSharpCC.Parser.RegExprSpec.Method: Public, HideBySig, SpecialName System.String get_NextState() ()
+Deveel.CSharpCC.Parser.RegExprSpec.Property: None Deveel.CSharpCC.Parser.Action Action
+Deveel.CSharpCC.Parser.RegExprSpec.Property: None Deveel.CSharpCC.Parser.RegularExpression RegularExpression
+Deveel.CSharpCC.Parser.RegExprSpec.Property: None Deveel.CSharpCC.Parser.Token NextStateToken
+Deveel.CSharpCC.Parser.RegExprSpec.Property: None System.String NextState
+Deveel.CSharpCC.Parser.RegExprSpec: Public, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.RegularExpression.Constructor: Family, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.RegularExpression.Method: Public, HideBySig, SpecialName Boolean get_IsPrivate() ()
+Deveel.CSharpCC.Parser.RegularExpression.Method: Public, HideBySig, SpecialName Deveel.CSharpCC.Parser.Token get_RhsToken() ()
+Deveel.CSharpCC.Parser.RegularExpression.Method: Public, HideBySig, SpecialName Deveel.CSharpCC.Parser.TokenProduction get_TokenProductionContext() ()
+Deveel.CSharpCC.Parser.RegularExpression.Method: Public, HideBySig, SpecialName System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token] get_LhsTokens() ()
+Deveel.CSharpCC.Parser.RegularExpression.Method: Public, HideBySig, SpecialName System.String get_Label() ()
+Deveel.CSharpCC.Parser.RegularExpression.Method: Public, Virtual, HideBySig System.Text.StringBuilder Dump(Int32, System.Collections.IList) (indent None ,alreadyDumped None )
+Deveel.CSharpCC.Parser.RegularExpression.Method: Public, Virtual, HideBySig, VtableLayoutMask, Abstract Deveel.CSharpCC.Parser.Nfa GenerateNfa(Boolean) (ignoreCase None )
+Deveel.CSharpCC.Parser.RegularExpression.Method: Public, Virtual, HideBySig, VtableLayoutMask, SpecialName Boolean get_CanMatchAnyChar() ()
+Deveel.CSharpCC.Parser.RegularExpression.Property: None Boolean CanMatchAnyChar
+Deveel.CSharpCC.Parser.RegularExpression.Property: None Boolean IsPrivate
+Deveel.CSharpCC.Parser.RegularExpression.Property: None Deveel.CSharpCC.Parser.Token RhsToken
+Deveel.CSharpCC.Parser.RegularExpression.Property: None Deveel.CSharpCC.Parser.TokenProduction TokenProductionContext
+Deveel.CSharpCC.Parser.RegularExpression.Property: None System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token] LhsTokens
+Deveel.CSharpCC.Parser.RegularExpression.Property: None System.String Label
+Deveel.CSharpCC.Parser.RegularExpression: Public, Abstract, BeforeFieldInit : Deveel.CSharpCC.Parser.Expansion; interfaces: 
+Deveel.CSharpCC.Parser.Semanticize.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.Semanticize.Field: Public, Static Deveel.CSharpCC.Parser.RegularExpression other
+Deveel.CSharpCC.Parser.Semanticize.Method: Public, Static, HideBySig Boolean EmptyExpansionExists(Deveel.CSharpCC.Parser.Expansion) (expansion None )
+Deveel.CSharpCC.Parser.Semanticize.Method: Public, Static, HideBySig Boolean hasIgnoreCase(System.Collections.Generic.IDictionary`2[System.String,Deveel.CSharpCC.Parser.RegularExpression], System.String) (table None ,str None )
+Deveel.CSharpCC.Parser.Semanticize.Method: Public, Static, HideBySig Boolean hasIgnoreCase(System.Collections.Hashtable, System.String) (table None ,str None )
+Deveel.CSharpCC.Parser.Semanticize.Method: Public, Static, HideBySig Void reInit() ()
+Deveel.CSharpCC.Parser.Semanticize.Method: Public, Static, HideBySig Void start() ()
+Deveel.CSharpCC.Parser.Semanticize: Public, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.Sequence.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.Sequence.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(Deveel.CSharpCC.Parser.Token, Deveel.CSharpCC.Parser.Lookahead) (token None ,la None )
+Deveel.CSharpCC.Parser.Sequence.Method: Public, HideBySig, SpecialName System.Collections.Generic.List`1[Deveel.CSharpCC.Parser.Expansion] get_Units() ()
+Deveel.CSharpCC.Parser.Sequence.Method: Public, Virtual, HideBySig System.Text.StringBuilder Dump(Int32, System.Collections.IList) (indent None ,alreadyDumped None )
+Deveel.CSharpCC.Parser.Sequence.Property: None System.Collections.Generic.List`1[Deveel.CSharpCC.Parser.Expansion] Units
+Deveel.CSharpCC.Parser.Sequence: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.Expansion; interfaces: 
+Deveel.CSharpCC.Parser.SingleCharacter.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.SingleCharacter.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(Char) (c None )
+Deveel.CSharpCC.Parser.SingleCharacter.Method: Public, HideBySig, SpecialName Char get_Character() ()
+Deveel.CSharpCC.Parser.SingleCharacter.Method: Public, HideBySig, SpecialName Int32 get_Column() ()
+Deveel.CSharpCC.Parser.SingleCharacter.Method: Public, HideBySig, SpecialName Int32 get_Line() ()
+Deveel.CSharpCC.Parser.SingleCharacter.Property: None Char Character
+Deveel.CSharpCC.Parser.SingleCharacter.Property: None Int32 Column
+Deveel.CSharpCC.Parser.SingleCharacter.Property: None Int32 Line
+Deveel.CSharpCC.Parser.SingleCharacter: Public, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.Token+GTToken.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(Int32, System.String) (kind None ,image None )
+Deveel.CSharpCC.Parser.Token+GTToken: NestedPublic, BeforeFieldInit : Deveel.CSharpCC.Parser.Token; interfaces: 
+Deveel.CSharpCC.Parser.Token.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.Token.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(Int32) (kind None )
+Deveel.CSharpCC.Parser.Token.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(Int32, System.String) (kind None ,image None )
+Deveel.CSharpCC.Parser.Token.Field: Public Deveel.CSharpCC.Parser.Token next
+Deveel.CSharpCC.Parser.Token.Field: Public Deveel.CSharpCC.Parser.Token specialToken
+Deveel.CSharpCC.Parser.Token.Field: Public Int32 beginColumn
+Deveel.CSharpCC.Parser.Token.Field: Public Int32 beginLine
+Deveel.CSharpCC.Parser.Token.Field: Public Int32 endColumn
+Deveel.CSharpCC.Parser.Token.Field: Public Int32 endLine
+Deveel.CSharpCC.Parser.Token.Field: Public Int32 kind
+Deveel.CSharpCC.Parser.Token.Field: Public System.String image
+Deveel.CSharpCC.Parser.Token.Method: Public, Static, HideBySig Deveel.CSharpCC.Parser.Token NewToken(Int32) (ofKind None )
+Deveel.CSharpCC.Parser.Token.Method: Public, Static, HideBySig Deveel.CSharpCC.Parser.Token NewToken(Int32, System.String) (ofKind None ,image None )
+Deveel.CSharpCC.Parser.Token.Method: Public, Virtual, HideBySig System.String ToString() ()
+Deveel.CSharpCC.Parser.Token: Public, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.TokenMgrError.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.TokenMgrError.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(Boolean, Int32, Int32, Int32, System.String, Char, Int32) (EOFSeen None ,lexState None ,errorLine None ,errorColumn None ,errorAfter None ,curChar None ,reason None )
+Deveel.CSharpCC.Parser.TokenMgrError.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(System.String, Int32) (message None ,reason None )
+Deveel.CSharpCC.Parser.TokenMgrError.Method: Family, Static, HideBySig System.String AddEscapes(System.String) (str None )
+Deveel.CSharpCC.Parser.TokenMgrError.Method: Family, Static, HideBySig System.String GetLexicalError(Boolean, Int32, Int32, Int32, System.String, Char) (EOFSeen None ,lexState None ,errorLine None ,errorColumn None ,errorAfter None ,curChar None )
+Deveel.CSharpCC.Parser.TokenMgrError.Method: Public, Virtual, HideBySig, SpecialName System.String get_Message() ()
+Deveel.CSharpCC.Parser.TokenMgrError.Property: None System.String Message
+Deveel.CSharpCC.Parser.TokenMgrError: Public, BeforeFieldInit : System.SystemException; interfaces: System.Runtime.Serialization.ISerializable
+Deveel.CSharpCC.Parser.TokenProduction.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.TokenProduction.Field: Public, Static, InitOnly System.String[] kindImage
+Deveel.CSharpCC.Parser.TokenProduction.Field: Public, Static, Literal, HasDefault Int32 MORE = 2
+Deveel.CSharpCC.Parser.TokenProduction.Field: Public, Static, Literal, HasDefault Int32 SKIP = 1
+Deveel.CSharpCC.Parser.TokenProduction.Field: Public, Static, Literal, HasDefault Int32 SPECIAL = 3
+Deveel.CSharpCC.Parser.TokenProduction.Field: Public, Static, Literal, HasDefault Int32 TOKEN = 0
+Deveel.CSharpCC.Parser.TokenProduction.Method: Public, HideBySig, SpecialName Boolean get_IgnoreCase() ()
+Deveel.CSharpCC.Parser.TokenProduction.Method: Public, HideBySig, SpecialName Boolean get_IsExplicit() ()
+Deveel.CSharpCC.Parser.TokenProduction.Method: Public, HideBySig, SpecialName Deveel.CSharpCC.Parser.Token get_FirstToken() ()
+Deveel.CSharpCC.Parser.TokenProduction.Method: Public, HideBySig, SpecialName Deveel.CSharpCC.Parser.Token get_LastToken() ()
+Deveel.CSharpCC.Parser.TokenProduction.Method: Public, HideBySig, SpecialName Int32 get_Column() ()
+Deveel.CSharpCC.Parser.TokenProduction.Method: Public, HideBySig, SpecialName Int32 get_Kind() ()
+Deveel.CSharpCC.Parser.TokenProduction.Method: Public, HideBySig, SpecialName Int32 get_Line() ()
+Deveel.CSharpCC.Parser.TokenProduction.Method: Public, HideBySig, SpecialName System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.RegExprSpec] get_RegexSpecs() ()
+Deveel.CSharpCC.Parser.TokenProduction.Method: Public, HideBySig, SpecialName System.String[] get_LexStates() ()
+Deveel.CSharpCC.Parser.TokenProduction.Property: None Boolean IgnoreCase
+Deveel.CSharpCC.Parser.TokenProduction.Property: None Boolean IsExplicit
+Deveel.CSharpCC.Parser.TokenProduction.Property: None Deveel.CSharpCC.Parser.Token FirstToken
+Deveel.CSharpCC.Parser.TokenProduction.Property: None Deveel.CSharpCC.Parser.Token LastToken
+Deveel.CSharpCC.Parser.TokenProduction.Property: None Int32 Column
+Deveel.CSharpCC.Parser.TokenProduction.Property: None Int32 Kind
+Deveel.CSharpCC.Parser.TokenProduction.Property: None Int32 Line
+Deveel.CSharpCC.Parser.TokenProduction.Property: None System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.RegExprSpec] RegexSpecs
+Deveel.CSharpCC.Parser.TokenProduction.Property: None System.String[] LexStates
+Deveel.CSharpCC.Parser.TokenProduction: Public, BeforeFieldInit : System.Object; interfaces: 
+Deveel.CSharpCC.Parser.TryBlock.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.TryBlock.Method: Public, HideBySig, SpecialName Deveel.CSharpCC.Parser.Expansion get_Expansion() ()
+Deveel.CSharpCC.Parser.TryBlock.Method: Public, HideBySig, SpecialName System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token] get_FinallyBlocks() ()
+Deveel.CSharpCC.Parser.TryBlock.Method: Public, HideBySig, SpecialName System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token] get_Ids() ()
+Deveel.CSharpCC.Parser.TryBlock.Method: Public, HideBySig, SpecialName System.Collections.Generic.IList`1[System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token]] get_CatchBlocks() ()
+Deveel.CSharpCC.Parser.TryBlock.Method: Public, HideBySig, SpecialName System.Collections.Generic.IList`1[System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token]] get_Types() ()
+Deveel.CSharpCC.Parser.TryBlock.Method: Public, Virtual, HideBySig System.Text.StringBuilder Dump(Int32, System.Collections.IList) (indent None ,alreadyDumped None )
+Deveel.CSharpCC.Parser.TryBlock.Property: None Deveel.CSharpCC.Parser.Expansion Expansion
+Deveel.CSharpCC.Parser.TryBlock.Property: None System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token] FinallyBlocks
+Deveel.CSharpCC.Parser.TryBlock.Property: None System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token] Ids
+Deveel.CSharpCC.Parser.TryBlock.Property: None System.Collections.Generic.IList`1[System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token]] CatchBlocks
+Deveel.CSharpCC.Parser.TryBlock.Property: None System.Collections.Generic.IList`1[System.Collections.Generic.IList`1[Deveel.CSharpCC.Parser.Token]] Types
+Deveel.CSharpCC.Parser.TryBlock: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.Expansion; interfaces: 
+Deveel.CSharpCC.Parser.ZeroOrMore.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(Deveel.CSharpCC.Parser.Token, Deveel.CSharpCC.Parser.Expansion) (token None ,expansion None )
+Deveel.CSharpCC.Parser.ZeroOrMore.Method: Public, HideBySig, SpecialName Deveel.CSharpCC.Parser.Expansion get_Expansion() ()
+Deveel.CSharpCC.Parser.ZeroOrMore.Method: Public, Virtual, HideBySig System.Text.StringBuilder Dump(Int32, System.Collections.IList) (indent None ,alreadyDumped None )
+Deveel.CSharpCC.Parser.ZeroOrMore.Property: None Deveel.CSharpCC.Parser.Expansion Expansion
+Deveel.CSharpCC.Parser.ZeroOrMore: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.Expansion; interfaces: 
+Deveel.CSharpCC.Parser.ZeroOrOne.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor() ()
+Deveel.CSharpCC.Parser.ZeroOrOne.Constructor: Public, HideBySig, SpecialName, RTSpecialName Void .ctor(Deveel.CSharpCC.Parser.Token, Deveel.CSharpCC.Parser.Expansion) (token None ,expansion None )
+Deveel.CSharpCC.Parser.ZeroOrOne.Method: Public, HideBySig, SpecialName Deveel.CSharpCC.Parser.Expansion get_Expansion() ()
+Deveel.CSharpCC.Parser.ZeroOrOne.Method: Public, Virtual, HideBySig System.Text.StringBuilder Dump(Int32, System.Collections.IList) (indent None ,alreadyDumped None )
+Deveel.CSharpCC.Parser.ZeroOrOne.Property: None Deveel.CSharpCC.Parser.Expansion Expansion
+Deveel.CSharpCC.Parser.ZeroOrOne: Public, BeforeFieldInit : Deveel.CSharpCC.Parser.Expansion; interfaces: 
