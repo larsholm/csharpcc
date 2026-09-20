@@ -24,7 +24,10 @@ namespace Deveel.CSharpCC.Parser {
 
         public int Line { get; internal set; }
 
-        public string[]? LexStates { get; internal set; }
+        internal string[] ResolvedLexStates => LexStates ??
+            throw new InvalidOperationException("Lexical state wildcards have not been resolved.");
+
+		public string[]? LexStates { get; internal set; }
 
         public int Kind { get; internal set; }
 

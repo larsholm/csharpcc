@@ -13,8 +13,8 @@ namespace Deveel.CSharpCC.Parser {
         private static int lohiByteCnt;
         private static int dummyStateIndex = -1;
         private static bool done;
-        private static bool[] mark;
-        private static bool[] stateDone;
+        private static bool[] mark = [];
+        private static bool[] stateDone = [];
 
         private static IList<NfaState> allStates = new List<NfaState>();
         private static IList<NfaState> indexedAllStates = new List<NfaState>();
@@ -35,8 +35,8 @@ namespace Deveel.CSharpCC.Parser {
             idCnt = 0;
             dummyStateIndex = -1;
             done = false;
-            mark = null;
-            stateDone = null;
+            mark = [];
+            stateDone = [];
 
             allStates.Clear();
             indexedAllStates.Clear();
@@ -49,13 +49,15 @@ namespace Deveel.CSharpCC.Parser {
         }
 
         internal long[] asciiMoves = new long[2];
-	    internal char[] charMoves = null;
-        private char[] rangeMoves = null;
-	    internal NfaState next = null;
-        private NfaState stateForCase;
+	    internal char[]? charMoves;
+        private char[]? rangeMoves;
+	    internal NfaState? next;
+        internal NfaState RequiredNext => next ?? throw new InvalidOperationException("The NFA transition has no destination.");
+        private string RequiredEpsilonMovesString => epsilonMovesString ?? throw new InvalidOperationException("The epsilon transition set has not been generated.");
+        private NfaState? stateForCase;
 	    internal IList<NfaState> epsilonMoves = new List<NfaState>();
-        private String epsilonMovesString;
-        private NfaState[] epsilonMoveArray;
+        private string? epsilonMovesString;
+        private NfaState[] epsilonMoveArray = [];
 
         private int id;
 	    internal int stateName = -1;
@@ -68,10 +70,10 @@ namespace Deveel.CSharpCC.Parser {
         private int kindToPrint = Int32.MaxValue;
         internal bool dummy;
         private bool isComposite;
-        private int[] compositeStates;
+        private int[]? compositeStates;
         internal bool isFinal;
-        private IList<int> loByteVec;
-        private int[] nonAsciiMoveIndices;
+        private IList<int>? loByteVec;
+        private int[]? nonAsciiMoveIndices;
         private int round ;
         private int onlyChar;
         private char matchSingleChar;
@@ -237,7 +239,7 @@ namespace Deveel.CSharpCC.Parser {
 
         // From hereon down all the functions are used for code generation
 
-        private static bool EqualCharArr(char[] arr1, char[] arr2) {
+        private static bool EqualCharArr(char[]? arr1, char[]? arr2) {
             if (arr1 == arr2)
                 return true;
 
@@ -355,7 +357,7 @@ namespace Deveel.CSharpCC.Parser {
 
             newState.next = new NfaState();
 
-            InsertInOrder(newState.next.epsilonMoves, states[0].next);
+            InsertInOrder(newState.next.epsilonMoves, states[0].RequiredNext);
 
             for (int i = 1; i < states.Count; i++) {
                 var tmp2 = states[i];
@@ -365,13 +367,13 @@ namespace Deveel.CSharpCC.Parser {
 
                 newState.isFinal |= tmp2.isFinal;
 
-                InsertInOrder(newState.next.epsilonMoves, tmp2.next);
+                InsertInOrder(newState.next.epsilonMoves, tmp2.RequiredNext);
             }
 
             return newState;
         }
 
-        private NfaState GetEquivalentRunTimeState() {
+        private NfaState? GetEquivalentRunTimeState() {
             for (int i = allStates.Count; i-- > 0;) {
                 var other = allStates[i];
 
@@ -413,7 +415,7 @@ namespace Deveel.CSharpCC.Parser {
             }
 
             if (stateName == -1 && HasTransitions()) {
-                NfaState tmp = GetEquivalentRunTimeState();
+                NfaState? tmp = GetEquivalentRunTimeState();
 
                 if (tmp != null) {
                     stateName = tmp.stateName;
@@ -458,7 +460,7 @@ namespace Deveel.CSharpCC.Parser {
             // First do epsilon closure
             done = false;
             while (!done) {
-                if (mark == null || mark.Length < allStates.Count)
+                if (mark.Length < allStates.Count)
                     mark = new bool[allStates.Count];
 
                 for (i = allStates.Count; i-- > 0;)
@@ -476,10 +478,10 @@ namespace Deveel.CSharpCC.Parser {
 
             bool sometingOptimized = true;
 
-            NfaState newState = null;
+            NfaState? newState = null;
             NfaState tmp1, tmp2;
             int j;
-            IList<NfaState> equivStates = null;
+            IList<NfaState>? equivStates = null;
 
             while (sometingOptimized) {
                 sometingOptimized = false;
@@ -563,11 +565,12 @@ namespace Deveel.CSharpCC.Parser {
         }
 
         private void GenerateNextStatesCode() {
-            if (next.usefulEpsilonMoves > 0)
-                next.GetEpsilonMovesString();
+            var destination = RequiredNext;
+            if (destination.usefulEpsilonMoves > 0)
+                destination.GetEpsilonMovesString();
         }
 
-        private String GetEpsilonMovesString() {
+        private string? GetEpsilonMovesString() {
             int[] stateNames = new int[usefulEpsilonMoves];
             int cnt = 0;
 
@@ -610,7 +613,7 @@ namespace Deveel.CSharpCC.Parser {
             if (c >= 128)
                 throw new InvalidOperationException("CSharpCC Bug: Please send mail to sankar@cs.stanford.edu");
 
-            String s = LexGen.initialState.GetEpsilonMovesString();
+            string? s = LexGen.RequiredInitialState.GetEpsilonMovesString();
 
             if (s == null || s.Equals("null;"))
                 return false;
@@ -678,8 +681,9 @@ namespace Deveel.CSharpCC.Parser {
 
         public int MoveFrom(char c, IList<NfaState> newStates) {
             if (CanMoveUsingChar(c)) {
-                for (int i = next.epsilonMoves.Count; i-- > 0;)
-                    InsertInOrder(newStates, next.epsilonMoves[i]);
+                var destination = RequiredNext;
+                for (int i = destination.epsilonMoves.Count; i-- > 0;)
+                    InsertInOrder(newStates, destination.epsilonMoves[i]);
 
                 return kindToPrint;
             }
@@ -699,12 +703,13 @@ namespace Deveel.CSharpCC.Parser {
             return retVal;
         }
 
-        public static int moveFromSetForRegEx(char c, NfaState[] states, NfaState[] newStates, int round) {
+        public static int moveFromSetForRegEx(char c, NfaState?[] states, NfaState?[] newStates, int round) {
             int start = 0;
             int sz = states.Length;
 
             for (int i = 0; i < sz; i++) {
-                NfaState tmp1, tmp2;
+                NfaState? tmp1;
+                NfaState tmp2;
 
                 if ((tmp1 = states[i]) == null)
                     break;
@@ -715,7 +720,7 @@ namespace Deveel.CSharpCC.Parser {
                         return 1;
                     }
 
-                    NfaState[] v = tmp1.next.epsilonMoveArray;
+                    NfaState[] v = tmp1.RequiredNext.epsilonMoveArray;
                     for (int j = v.Length; j-- > 0;) {
                         if ((tmp2 = v[j]).round != round) {
                             tmp2.round = round;
@@ -795,7 +800,7 @@ namespace Deveel.CSharpCC.Parser {
                 }
             }
 
-            long[] common = null;
+            long[]? common = null;
             bool[] done = new bool[256];
 
             for (i = 0; i <= 255; i++) {
@@ -910,7 +915,7 @@ namespace Deveel.CSharpCC.Parser {
             nonAsciiTableForMethod.Add(this);
         }
 
-        private static bool EqualLoByteVectors(IList<int> vec1, IList<int> vec2) {
+        private static bool EqualLoByteVectors(IList<int>? vec1, IList<int>? vec2) {
             if (vec1 == null || vec2 == null)
                 return false;
 
@@ -928,7 +933,7 @@ namespace Deveel.CSharpCC.Parser {
             return true;
         }
 
-        private static bool EqualNonAsciiMoveIndices(int[] moves1, int[] moves2) {
+        private static bool EqualNonAsciiMoveIndices(int[]? moves1, int[]? moves2) {
             if (moves1 == moves2)
                 return true;
 
@@ -968,7 +973,7 @@ namespace Deveel.CSharpCC.Parser {
                 return stateNameToReturn;
 
             int toRet = 0;
-            int[] nameSet;
+            int[]? nameSet;
 
             if (!starts)
                 stateBlockTable.Add(stateSetString);
@@ -1028,10 +1033,10 @@ namespace Deveel.CSharpCC.Parser {
         }
 
 	    internal static int InitStateName() {
-            String s = LexGen.initialState.GetEpsilonMovesString();
+            string? s = LexGen.RequiredInitialState.GetEpsilonMovesString();
 
-            if (LexGen.initialState.usefulEpsilonMoves != 0)
-                return StateNameForComposite(s);
+            if (LexGen.RequiredInitialState.usefulEpsilonMoves != 0)
+                return StateNameForComposite(s ?? throw new InvalidOperationException("The initial epsilon state set has not been generated."));
             return -1;
         }
 
@@ -1050,7 +1055,7 @@ namespace Deveel.CSharpCC.Parser {
         private static int lastIndex = 0;
 
         private static int[] GetStateSetIndicesForUse(String arrayString) {
-            int[] ret;
+            int[]? ret;
             int[] set = allNextStates[arrayString];
 
             if (!tableToDump.TryGetValue(arrayString, out ret)) {
@@ -1150,10 +1155,10 @@ namespace Deveel.CSharpCC.Parser {
             if (next == null || next.usefulEpsilonMoves <= 1)
                 return false;
 
-            if (stateDone == null)
+            if (stateDone.Length != generatedStates)
                 stateDone = new bool[generatedStates];
 
-            String set = next.epsilonMovesString;
+            string set = next.RequiredEpsilonMovesString;
 
             int[] nameSet = allNextStates[set];
 
@@ -1273,7 +1278,7 @@ namespace Deveel.CSharpCC.Parser {
             if (next == null || next.usefulEpsilonMoves <= 1)
                 return true;
 
-            String set = next.epsilonMovesString;
+            string set = next.RequiredEpsilonMovesString;
 
             int[] nameSet = allNextStates[set];
 
@@ -1334,7 +1339,7 @@ namespace Deveel.CSharpCC.Parser {
             }
 
             next.usefulEpsilonMoves = 1;
-            AddCompositeStateSet(next.epsilonMovesString, false);
+            AddCompositeStateSet(next.RequiredEpsilonMovesString, false);
             return true;
         }
 
@@ -1361,26 +1366,26 @@ namespace Deveel.CSharpCC.Parser {
 
             for (i = 0; i < allStates.Count; i++) {
                 NfaState tmpState = allStates[i];
-                int[] newSet;
+                int[]? newSet;
 
                 if (tmpState.next == null || tmpState.next.usefulEpsilonMoves == 0)
                     continue;
 
-                if (fixedSets.TryGetValue(tmpState.next.epsilonMovesString, out newSet))
+                if (fixedSets.TryGetValue(tmpState.next.RequiredEpsilonMovesString, out newSet))
                     tmpState.FixNextStates(newSet);
             }
         }
 
         private void FixNextStates(int[] newSet) {
-            next.usefulEpsilonMoves = newSet.Length;
+            RequiredNext.usefulEpsilonMoves = newSet.Length;
         }
 
-        private static bool Intersect(String set1, String set2) {
+        private static bool Intersect(string? set1, string? set2) {
             if (set1 == null || set2 == null)
                 return false;
 
-            int[] nameSet1;
-            int[] nameSet2;
+            int[]? nameSet1;
+            int[]? nameSet2;
 
             if (!allNextStates.TryGetValue(set1, out nameSet1) || 
                 !allNextStates.TryGetValue(set2, out nameSet2))
@@ -1505,10 +1510,10 @@ namespace Deveel.CSharpCC.Parser {
             if (nameSet.Length == 1 || dumped[StateNameForComposite(key)])
                 return;
 
-            NfaState toBePrinted = null;
+            NfaState? toBePrinted = null;
             int neededStates = 0;
             NfaState tmp;
-            NfaState stateForCase = null;
+            NfaState? stateForCase = null;
             String toPrint = "";
             bool stateBlock = stateBlockTable.Contains(key);
 
@@ -1541,6 +1546,8 @@ namespace Deveel.CSharpCC.Parser {
             }
 
             if (neededStates == 1) {
+                if (toBePrinted == null)
+                    throw new InvalidOperationException("The selected NFA state has not been recorded.");
                 if (!toPrint.Equals(""))
                     ostr.Write(toPrint);
 
@@ -1586,7 +1593,7 @@ namespace Deveel.CSharpCC.Parser {
             if (next == null || next.epsilonMovesString == null)
                 return false;
 
-            int[] set = allNextStates[next.epsilonMovesString];
+            int[] set = allNextStates[next.RequiredEpsilonMovesString];
             return ElemOccurs(stateName, set) >= 0;
         }
 
@@ -1600,8 +1607,8 @@ namespace Deveel.CSharpCC.Parser {
                     stateName == temp1.stateName || temp1.asciiMoves[byteNum] == 0L)
                     continue;
 
-                if (!nextIntersects && Intersect(temp1.next.epsilonMovesString,
-                    next.epsilonMovesString)) {
+                if (!nextIntersects && Intersect(temp1.RequiredNext.epsilonMovesString,
+                    RequiredNext.epsilonMovesString)) {
                     nextIntersects = true;
                     break;
                 }
@@ -1631,7 +1638,7 @@ namespace Deveel.CSharpCC.Parser {
             }
 
             if (next != null && next.usefulEpsilonMoves > 0) {
-                int[] stateNames = allNextStates[next.epsilonMovesString];
+                int[] stateNames = allNextStates[next.RequiredEpsilonMovesString];
                 if (next.usefulEpsilonMoves == 1) {
                     int name = stateNames[0];
 
@@ -1642,7 +1649,7 @@ namespace Deveel.CSharpCC.Parser {
                 } else if (next.usefulEpsilonMoves == 2 && nextIntersects) {
                     ostr.WriteLine(prefix + "                  ccCheckNAddTwoStates(" + stateNames[0] + ", " + stateNames[1] + ");");
                 } else {
-                    int[] indices = GetStateSetIndicesForUse(next.epsilonMovesString);
+                    int[] indices = GetStateSetIndicesForUse(next.RequiredEpsilonMovesString);
                     bool notTwo = (indices[0] + 1 != indices[1]);
 
                     if (nextIntersects) {
@@ -1678,17 +1685,14 @@ namespace Deveel.CSharpCC.Parser {
                 if (onlyState && (asciiMoves[byteNum] & temp1.asciiMoves[byteNum]) != 0L)
                     onlyState = false;
 
-                if (!nextIntersects && Intersect(temp1.next.epsilonMovesString,
-                    next.epsilonMovesString))
+                if (!nextIntersects && Intersect(temp1.RequiredNext.epsilonMovesString,
+                    RequiredNext.epsilonMovesString))
                     nextIntersects = true;
 
                 if (!dumped[temp1.stateName] && !temp1.isComposite &&
                     asciiMoves[byteNum] == temp1.asciiMoves[byteNum] &&
                     kindToPrint == temp1.kindToPrint &&
-                    (next.epsilonMovesString == temp1.next.epsilonMovesString ||
-                     (next.epsilonMovesString != null &&
-                      temp1.next.epsilonMovesString != null &&
-                      next.epsilonMovesString.Equals(temp1.next.epsilonMovesString)))) {
+                    (RequiredNext.epsilonMovesString == temp1.RequiredNext.epsilonMovesString)) {
                     dumped[temp1.stateName] = true;
                     ostr.WriteLine("               case " + temp1.stateName + ":");
                 }
@@ -1752,7 +1756,7 @@ namespace Deveel.CSharpCC.Parser {
             }
 
             if (next != null && next.usefulEpsilonMoves > 0) {
-                int[] stateNames = allNextStates[next.epsilonMovesString];
+                int[] stateNames = allNextStates[next.RequiredEpsilonMovesString];
                 if (next.usefulEpsilonMoves == 1) {
                     int name = stateNames[0];
                     if (nextIntersects)
@@ -1762,7 +1766,7 @@ namespace Deveel.CSharpCC.Parser {
                 } else if (next.usefulEpsilonMoves == 2 && nextIntersects) {
                     ostr.WriteLine(prefix + "                  ccCheckNAddTwoStates(" + stateNames[0] + ", " + stateNames[1] + ");");
                 } else {
-                    int[] indices = GetStateSetIndicesForUse(next.epsilonMovesString);
+                    int[] indices = GetStateSetIndicesForUse(next.RequiredEpsilonMovesString);
                     bool notTwo = (indices[0] + 1 != indices[1]);
 
                     if (nextIntersects) {
@@ -1843,10 +1847,10 @@ namespace Deveel.CSharpCC.Parser {
             if (nameSet.Length == 1 || dumped[StateNameForComposite(key)])
                 return;
 
-            NfaState toBePrinted = null;
+            NfaState? toBePrinted = null;
             int neededStates = 0;
             NfaState tmp;
-            NfaState stateForCase = null;
+            NfaState? stateForCase = null;
             String toPrint = "";
             bool stateBlock = stateBlockTable.Contains(key);
 
@@ -1880,6 +1884,8 @@ namespace Deveel.CSharpCC.Parser {
             }
 
             if (neededStates == 1) {
+                if (toBePrinted == null)
+                    throw new InvalidOperationException("The selected NFA state has not been recorded.");
                 if (!toPrint.Equals(""))
                     ostr.Write(toPrint);
 
@@ -1926,8 +1932,8 @@ namespace Deveel.CSharpCC.Parser {
                     stateName == temp1.stateName || (temp1.nonAsciiMethod == -1))
                     continue;
 
-                if (!nextIntersects && Intersect(temp1.next.epsilonMovesString,
-                    next.epsilonMovesString)) {
+                if (!nextIntersects && Intersect(temp1.RequiredNext.epsilonMovesString,
+                    RequiredNext.epsilonMovesString)) {
                     nextIntersects = true;
                     break;
                 }
@@ -1947,7 +1953,7 @@ namespace Deveel.CSharpCC.Parser {
             }
 
             if (next != null && next.usefulEpsilonMoves > 0) {
-                int[] stateNames = (int[]) allNextStates[next.epsilonMovesString];
+                int[] stateNames = (int[]) allNextStates[next.RequiredEpsilonMovesString];
                 if (next.usefulEpsilonMoves == 1) {
                     int name = stateNames[0];
                     if (nextIntersects)
@@ -1957,7 +1963,7 @@ namespace Deveel.CSharpCC.Parser {
                 } else if (next.usefulEpsilonMoves == 2 && nextIntersects) {
                     ostr.WriteLine("                     ccCheckNAddTwoStates(" + stateNames[0] + ", " + stateNames[1] + ");");
                 } else {
-                    int[] indices = GetStateSetIndicesForUse(next.epsilonMovesString);
+                    int[] indices = GetStateSetIndicesForUse(next.RequiredEpsilonMovesString);
                     bool notTwo = (indices[0] + 1 != indices[1]);
 
                     if (nextIntersects) {
@@ -1988,17 +1994,14 @@ namespace Deveel.CSharpCC.Parser {
                     stateName == temp1.stateName || (temp1.nonAsciiMethod == -1))
                     continue;
 
-                if (!nextIntersects && Intersect(temp1.next.epsilonMovesString,
-                    next.epsilonMovesString))
+                if (!nextIntersects && Intersect(temp1.RequiredNext.epsilonMovesString,
+                    RequiredNext.epsilonMovesString))
                     nextIntersects = true;
 
                 if (!dumped[temp1.stateName] && !temp1.isComposite &&
                     nonAsciiMethod == temp1.nonAsciiMethod &&
                     kindToPrint == temp1.kindToPrint &&
-                    (next.epsilonMovesString == temp1.next.epsilonMovesString ||
-                     (next.epsilonMovesString != null &&
-                      temp1.next.epsilonMovesString != null &&
-                      next.epsilonMovesString.Equals(temp1.next.epsilonMovesString)))) {
+                    (RequiredNext.epsilonMovesString == temp1.RequiredNext.epsilonMovesString)) {
                     dumped[temp1.stateName] = true;
                     ostr.WriteLine("               case " + temp1.stateName + ":");
                 }
@@ -2041,7 +2044,7 @@ namespace Deveel.CSharpCC.Parser {
             }
 
             if (next != null && next.usefulEpsilonMoves > 0) {
-                int[] stateNames = allNextStates[next.epsilonMovesString];
+                int[] stateNames = allNextStates[next.RequiredEpsilonMovesString];
                 if (next.usefulEpsilonMoves == 1) {
                     int name = stateNames[0];
                     if (nextIntersects)
@@ -2051,7 +2054,7 @@ namespace Deveel.CSharpCC.Parser {
                 } else if (next.usefulEpsilonMoves == 2 && nextIntersects) {
                     ostr.WriteLine(prefix + "                  ccCheckNAddTwoStates(" + stateNames[0] + ", " + stateNames[1] + ");");
                 } else {
-                    int[] indices = GetStateSetIndicesForUse(next.epsilonMovesString);
+                    int[] indices = GetStateSetIndicesForUse(next.RequiredEpsilonMovesString);
                     bool notTwo = (indices[0] + 1 != indices[1]);
 
                     if (nextIntersects) {
@@ -2175,20 +2178,16 @@ namespace Deveel.CSharpCC.Parser {
         }
 
         private static void ReArrange() {
-            IList<NfaState> v = allStates;
-            allStates = new List<NfaState>();
-            for (int i = 0; i < generatedStates; i++) {
-                allStates.Add(null);
+            var byName = new NfaState?[generatedStates];
+            foreach (var state in allStates) {
+                if (state.stateName != -1 && !state.dummy)
+                    byName[state.stateName] = state;
             }
 
-            if (allStates.Count != generatedStates)
-                throw new InvalidOperationException("What??");
-
-            for (int j = 0; j < v.Count; j++) {
-                NfaState tmp = v[j];
-                if (tmp.stateName != -1 && !tmp.dummy)
-                    allStates[tmp.stateName] = tmp;
-            }
+            var arranged = new List<NfaState>(generatedStates);
+            foreach (var state in byName)
+                arranged.Add(state ?? throw new InvalidOperationException("A generated NFA state has no definition."));
+            allStates = arranged;
         }
 
         //private static bool boilerPlateDumped = false;
@@ -2242,14 +2241,14 @@ namespace Deveel.CSharpCC.Parser {
             int i, j, foundAt = 0;
 
             for (j = 0; j < allStates.Count; j++) {
-                NfaState stateForCase = null;
+                NfaState? stateForCase = null;
                 NfaState tmpState = allStates[j];
 
                 if (tmpState.stateName == -1 || tmpState.dummy || !tmpState.UsefulState() ||
                     tmpState.next == null || tmpState.next.usefulEpsilonMoves < 1)
                     continue;
 
-                String s = tmpState.next.epsilonMovesString;
+                string s = tmpState.next.RequiredEpsilonMovesString;
 
                 if (compositeStateTable.ContainsKey(s) || 
                     printed.ContainsKey(s))
@@ -2328,8 +2327,8 @@ namespace Deveel.CSharpCC.Parser {
             }
         }
 
-        private static int[][] kinds;
-        private static int[][][] statesForState;
+        private static int[]?[]? kinds;
+        private static int[]?[]?[]? statesForState;
 
         public static void DumpMoveNfa(TextWriter ostr) {
             //if (!boilerPlateDumped)
@@ -2337,13 +2336,15 @@ namespace Deveel.CSharpCC.Parser {
 
             //boilerPlateDumped = true;
             int i;
-            int[] kindsForStates = null;
+            int[]? kindsForStates = null;
 
             if (kinds == null) {
                 kinds = new int[LexGen.maxLexStates][];
                 statesForState = new int[LexGen.maxLexStates][][];
             }
 
+            var stateTables = statesForState ?? throw new InvalidOperationException("The NFA state tables have not been initialized.");
+            var stateRow = new int[]?[Math.Max(generatedStates, dummyStateIndex + 1)];
             ReArrange();
 
             for (i = 0; i < allStates.Count; i++) {
@@ -2356,11 +2357,11 @@ namespace Deveel.CSharpCC.Parser {
 
                 if (kindsForStates == null) {
                     kindsForStates = new int[generatedStates];
-                    statesForState[LexGen.lexStateIndex] = new int[Math.Max(generatedStates, dummyStateIndex + 1)][];
+                    stateTables[LexGen.lexStateIndex] = stateRow;
                 }
 
                 kindsForStates[temp.stateName] = temp.lookingFor;
-                statesForState[LexGen.lexStateIndex][temp.stateName] = temp.compositeStates;
+                stateRow[temp.stateName] = temp.compositeStates;
 
                 temp.GenerateNonAsciiMoves(ostr);
             }
@@ -2369,7 +2370,7 @@ namespace Deveel.CSharpCC.Parser {
                 int state = entry.Value;
 
                 if (state >= generatedStates)
-                    statesForState[LexGen.lexStateIndex][state] = allNextStates[entry.Key];
+                    stateRow[state] = allNextStates[entry.Key];
             }
 
             if (stateSetsToFix.Count != 0)
@@ -2409,7 +2410,7 @@ namespace Deveel.CSharpCC.Parser {
                 ostr.WriteLine("      debugStream.WriteLine(" + (LexGen.maxLexStates > 1
                     ? "\"<\" + lexStateNames[curLexState] + \">\" + "
                     : "") + "\"Current character : \" + " +
-                               "TokenMgrError.AddEscapes(curChar.ToString()) + \" (\" + (int)curChar + \") " +
+                               "TokenManagerError.AddEscapes(curChar.ToString()) + \" (\" + (int)curChar + \") " +
                                "at line \" + " + CSharpCCGlobals.CharStreamReference + ".EndLine + \" column \" + " + CSharpCCGlobals.CharStreamReference + ".EndColumn);");
 
             ostr.WriteLine("   int kind = Int32.MaxValue;");
@@ -2451,7 +2452,7 @@ namespace Deveel.CSharpCC.Parser {
                 ostr.WriteLine("      if (ccMatchedKind != 0 && ccMatchedKind != Int32.MaxValue)");
                 ostr.WriteLine("         debugStream.WriteLine(" +
                                "\"   Currently matched the first \" + (ccMatchedPos + 1) + \" characters as" +
-                               " a \" + tokenImage[ccMatchedKind] + \" token.\");");
+                               " a \" + TokenImage[ccMatchedKind] + \" token.\");");
             }
 
             ostr.WriteLine("      if ((i = ccNewStateCnt) == (startsAt = " + generatedStates + " - (ccNewStateCnt = startsAt)))");
@@ -2474,7 +2475,7 @@ namespace Deveel.CSharpCC.Parser {
                 ostr.WriteLine("      debugStream.WriteLine(" + (LexGen.maxLexStates > 1
                     ? "\"<\" + lexStateNames[curLexState] + \">\" + "
                     : "") + "\"Current character : \" + " +
-                               "TokenMgrError.AddEscapes(curChar.ToString()) + \" (\" + (int)curChar + \") " +
+                               "TokenManagerError.AddEscapes(curChar.ToString()) + \" (\" + (int)curChar + \") " +
                                "at line \" + " + CSharpCCGlobals.CharStreamReference + ".EndLine + \" column \" + " + CSharpCCGlobals.CharStreamReference + ".EndColumn);");
 
             ostr.WriteLine("   }");
@@ -2517,22 +2518,22 @@ namespace Deveel.CSharpCC.Parser {
 
             for (int i = 0; i < statesForState.Length; i++) {
 
-                if (statesForState[i] == null) {
+                if (statesForState[i] is not { } stateRow) {
                     ostr.WriteLine(" null,");
                     continue;
                 }
 
-                ostr.WriteLine(" {");
+                ostr.WriteLine(" new int[][] {");
 
-                for (int j = 0; j < statesForState[i].Length; j++) {
-                    int[] stateSet = statesForState[i][j];
+                for (int j = 0; j < stateRow.Length; j++) {
+                    int[]? stateSet = stateRow[j];
 
                     if (stateSet == null) {
-                        ostr.WriteLine("   { " + j + " },");
+                        ostr.WriteLine("   new int[] { " + j + " },");
                         continue;
                     }
 
-                    ostr.Write("   { ");
+                    ostr.Write("   new int[] { ");
 
                     for (int k = 0; k < stateSet.Length; k++)
                         ostr.Write(stateSet[k] + ", ");
@@ -2562,12 +2563,12 @@ namespace Deveel.CSharpCC.Parser {
                     ostr.WriteLine(",");
                 moreThanOne = true;
 
-                if (kinds[i] == null)
+                if (kinds[i] is not { } kindsForState)
                     ostr.WriteLine("null");
                 else {
                     cnt = 0;
-                    ostr.Write("{ ");
-                    for (int j = 0; j < kinds[i].Length; j++) {
+                    ostr.Write("new int[] { ");
+                    for (int j = 0; j < kindsForState.Length; j++) {
                         if (cnt++ > 0)
                             ostr.Write(",");
 
@@ -2576,7 +2577,7 @@ namespace Deveel.CSharpCC.Parser {
                         else if (cnt > 1)
                             ostr.Write(" ");
 
-                        ostr.Write(kinds[i][j]);
+                        ostr.Write(kindsForState[j]);
                     }
                     ostr.Write("}");
                 }
@@ -2591,8 +2592,8 @@ namespace Deveel.CSharpCC.Parser {
             lohiByteCnt = 0;
             dummyStateIndex = -1;
             done = false;
-            mark = null;
-            stateDone = null;
+            mark = [];
+            stateDone = [];
             allStates = new List<NfaState>();
             indexedAllStates = new List<NfaState>();
             nonAsciiTableForMethod = new List<NfaState>();

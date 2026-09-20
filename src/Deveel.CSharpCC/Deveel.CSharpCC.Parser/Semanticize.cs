@@ -227,9 +227,18 @@ namespace Deveel.CSharpCC.Parser {
                                 // The above "put" may override an existing entry (that is not IGNORE_CASE) and that's
                                 // the desired behavior.
                             } else {
-                                // The rest of the cases do not involve IGNORE_CASE.
+                                // No production-local IGNORE_CASE rule matched above.
                                 RegularExpression? re;
-                                if (!table2.TryGetValue(sl.Image, out re)) {
+                                table2.TryGetValue(sl.Image, out re);
+                                if (re == null && Options.getIgnoreCase()) {
+                                    // The global option also applies to inline literals. Reuse the
+                                    // token kind already assigned to this case-insensitive spelling.
+                                    foreach (var candidate in table2.Values) {
+                                        re = candidate;
+                                        break;
+                                    }
+                                }
+                                if (re == null) {
                                     if (sl.Ordinal == 0)
                                         sl.Ordinal = CSharpCCGlobals.tokenCount++;
                                     table2[sl.Image] = sl;

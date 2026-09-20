@@ -644,8 +644,8 @@ namespace Deveel.CSharpCC.Parser {
 					ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + "private void trace_token(Token t, string loc) {");
 					ostr.WriteLine("    if (trace_enabled) {");
 					ostr.WriteLine("      for (int i = 0; i < trace_indent; i++) { Console.Out.Write(\" \"); }");
-					ostr.WriteLine("      Console.Out.Write(\"Consumed token: <\" + tokenImage[t.Kind]);");
-					ostr.WriteLine("      if (t.Kind != 0 && !tokenImage[t.Kind].Equals(\"\\\"\" + t.Image + \"\\\"\")) {");
+					ostr.WriteLine("      Console.Out.Write(\"Consumed token: <\" + TokenImage[t.Kind]);");
+					ostr.WriteLine("      if (t.Kind != 0 && !TokenImage[t.Kind].Equals(\"\\\"\" + t.Image + \"\\\"\")) {");
 					ostr.WriteLine("        Console.Out.Write(\": \\\"\" + t.Image + \"\\\"\");");
 					ostr.WriteLine("      }");
 					ostr.WriteLine("      Console.Out.WriteLine(\" at line \" + t.BeginLine + " +
@@ -656,12 +656,12 @@ namespace Deveel.CSharpCC.Parser {
 					ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + "private void trace_scan(Token t1, int t2) {");
 					ostr.WriteLine("    if (trace_enabled) {");
 					ostr.WriteLine("      for (int i = 0; i < trace_indent; i++) { Console.Out.Write(\" \"); }");
-					ostr.WriteLine("      Console.Out.Write(\"Visited token: <\" + tokenImage[t1.kind]);");
-					ostr.WriteLine("      if (t1.Kind != 0 && !tokenImage[t1.Kind].Equals(\"\\\"\" + t1.Image + \"\\\"\")) {");
+					ostr.WriteLine("      Console.Out.Write(\"Visited token: <\" + TokenImage[t1.Kind]);");
+					ostr.WriteLine("      if (t1.Kind != 0 && !TokenImage[t1.Kind].Equals(\"\\\"\" + t1.Image + \"\\\"\")) {");
 					ostr.WriteLine("        Console.Out.Write(\": \\\"\" + t1.Image + \"\\\"\");");
 					ostr.WriteLine("      }");
 					ostr.WriteLine("      Console.Out.WriteLine(\" at line \" + t1.BeginLine + \"" +
-							" column \" + t1.BeginColumn + \">; Expected token: <\" + tokenImage[t2] + \">\");");
+							" column \" + t1.BeginColumn + \">; Expected token: <\" + TokenImage[t2] + \">\");");
 					ostr.WriteLine("    }");
 					ostr.WriteLine("  }");
 					ostr.WriteLine("");

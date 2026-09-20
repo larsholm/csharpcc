@@ -55,6 +55,37 @@ public class GenerationRegressionTest {
         await Expect(fixture, "aa", "parse-error");
     }
 
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task LookaheadCanExpandCallsToOtherProductions(bool isStatic) {
+        const string production = """
+            void Input() : {} { ( LOOKAHEAD(3) Entry() "c" | Entry() ) <EOF> }
+            void Entry() : {} { "a" "b" }
+            """;
+        using var fixture = new ParserFixture();
+        await fixture.GenerateAndBuild(Header + production, Driver(isStatic), $"STATIC={isStatic}");
+        await Expect(fixture, "ab", "ok");
+        await Expect(fixture, "abc", "ok");
+        await Expect(fixture, "ac", "parse-error");
+        await Expect(fixture, "abcc", "parse-error");
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task DebugOutputSupportsNfaTablesAndLookahead(bool isStatic) {
+        const string production = """
+            TOKEN: { < WORD: (["a"-"z"])+ > }
+            void Input() : {} { ( LOOKAHEAD(2) Entry() ":" Entry() | Entry() ) <EOF> }
+            void Entry() : {} { <WORD> }
+            """;
+        using var fixture = new ParserFixture();
+        await fixture.GenerateAndBuild(Header + production, Driver(isStatic), $"STATIC={isStatic}",
+            "DEBUG_LOOKAHEAD=true", "DEBUG_TOKEN_MANAGER=true");
+        await Expect(fixture, "one", "ok");
+        await Expect(fixture, "one:two", "ok");
+        await Expect(fixture, "one:", "parse-error");
+    }
+
     private static string Driver(bool isStatic) => $$"""
         using System;
         using System.IO;
@@ -63,6 +94,8 @@ public class GenerationRegressionTest {
             static void Main(string[] args) {
                 try {
                     var parser = new FixtureParser(new StringReader(args[0]));
+                    {{(isStatic ? "FixtureParser" : "parser")}}.disable_tracing();
+                    {{(isStatic ? "FixtureParserTokenManager" : "parser.tokenSource")}}.SetDebugStream(TextWriter.Null);
                     {{(isStatic ? "FixtureParser" : "parser")}}.Input();
                     Console.Write("ok");
                 } catch (ParseException) { Console.Write("parse-error"); }

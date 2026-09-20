@@ -4,43 +4,49 @@ using System.IO;
 
 namespace Deveel.CSharpCC.Parser {
 	public class LexGen {
-        private static TextWriter ostr;
-        private static String staticString;
-        private static String tokMgrClassName;
+        private static TextWriter? outputWriter;
+        private static TextWriter ostr {
+            get => outputWriter ?? throw new InvalidOperationException("The lexer output writer has not been initialized.");
+            set => outputWriter = value;
+        }
+        private static string staticString = "";
+        private static string tokMgrClassName = "";
 	    private static bool namespaceInserted;
 
         // Token productions grouped by lexical state.
         private static IDictionary<string, IList<TokenProduction>> allTpsForState = new Dictionary<string, IList<TokenProduction>>();
         public static int lexStateIndex = 0;
-        private static int[] kinds;
+        private static int[] kinds = [];
         public static int maxOrdinal = 1;
-        public static String lexStateSuffix;
-        internal static String[] newLexState;
-        public static int[] lexStates;
-        public static bool[] ignoreCase;
-        public static Action[] actions;
+        public static string lexStateSuffix = "";
+        internal static string?[] newLexState = [];
+        public static int[] lexStates = [];
+        public static bool[] ignoreCase = [];
+        public static Action?[] actions = [];
         public static IDictionary<string, NfaState> initStates = new Dictionary<string, NfaState>();
         public static int stateSetSize;
         public static int maxLexStates;
-        public static String[] lexStateName;
-        private static NfaState[] singlesToSkip;
-        public static long[] toSkip;
-        public static long[] toSpecial;
-        public static long[] toMore;
-        public static long[] toToken;
+        public static String[] lexStateName = [];
+        private static NfaState?[] singlesToSkip = [];
+        public static long[] toSkip = [];
+        public static long[] toSpecial = [];
+        public static long[] toMore = [];
+        public static long[] toToken = [];
         public static int defaultLexState;
-        public static RegularExpression[] rexprs;
-        public static int[] maxLongsReqd;
-        public static int[] initMatch;
-        public static int[] canMatchAnyChar;
+        public static RegularExpression?[] rexprs = [];
+        public static int[] maxLongsReqd = [];
+        public static int[] initMatch = [];
+        public static int[] canMatchAnyChar = [];
         public static bool hasEmptyMatch;
-        public static bool[] canLoop;
-        public static bool[] stateHasActions;
+        public static bool[] canLoop = [];
+        public static bool[] stateHasActions = [];
         public static bool hasLoop = false;
-        public static bool[] canReachOnMore;
-        public static bool[] hasNfa;
-        public static bool[] mixed;
-        public static NfaState initialState;
+        public static bool[] canReachOnMore = [];
+        public static bool[] hasNfa = [];
+        public static bool[] mixed = [];
+        public static NfaState? initialState;
+        internal static NfaState RequiredInitialState => initialState ??
+            throw new InvalidOperationException("The lexical state has not been initialized.");
         public static int curKind;
         private static bool hasSkipActions = false;
         private static bool hasMoreActions = false;
@@ -48,8 +54,11 @@ namespace Deveel.CSharpCC.Parser {
         private static bool hasSpecial = false;
         private static bool hasSkip = false;
         private static bool hasMore = false;
-        public static RegularExpression curRE;
+        public static RegularExpression? curRE;
         public static bool keepLineCol;
+
+        internal static RegularExpression RequiredTokenExpression(int kind) => rexprs[kind] ??
+            throw new InvalidOperationException("No regular expression exists for token kind " + kind + ".");
 
         // Assumes l != 0L
         static int MaxChar(long l)
@@ -62,8 +71,9 @@ namespace Deveel.CSharpCC.Parser {
         }
 
         public static void AddCharToSkip(char c, int kind) {
-            singlesToSkip[lexStateIndex].AddChar(c);
-            singlesToSkip[lexStateIndex].kind = kind;
+            var skipState = singlesToSkip[lexStateIndex] ?? throw new InvalidOperationException("The skip state has not been initialized.");
+            skipState.AddChar(c);
+            skipState.kind = kind;
         }
 
         private static void PrintClassHead() {
@@ -190,7 +200,7 @@ namespace Deveel.CSharpCC.Parser {
             ostr.WriteLine("             retVal += \", \";");
             ostr.WriteLine("          if (kindCnt % 5 == 0)");
             ostr.WriteLine("             retVal += \"\\n     \";");
-            ostr.WriteLine("          retVal += tokenImage[i * 64 + j];");
+            ostr.WriteLine("          retVal += TokenImage[i * 64 + j];");
             ostr.WriteLine("       }");
             ostr.WriteLine("    }");
             ostr.WriteLine("    return retVal;");
@@ -206,7 +216,7 @@ namespace Deveel.CSharpCC.Parser {
             ostr.WriteLine("     if (vec[i] == -1)");
             ostr.WriteLine("       continue;");
             ostr.WriteLine("     int[] stateSet = statesForState[curLexState][vec[i]];");
-            ostr.WriteLine("     for (int j = 0; j < stateSet.length; j++) {");
+            ostr.WriteLine("     for (int j = 0; j < stateSet.Length; j++) {");
             ostr.WriteLine("       int state = stateSet[j];");
             ostr.WriteLine("       if (!kindDone[kindForState[lexState][state]]) {");
             ostr.WriteLine("          kindDone[kindForState[lexState][state]] = true;");
@@ -214,7 +224,7 @@ namespace Deveel.CSharpCC.Parser {
             ostr.WriteLine("             retVal += \", \";");
             ostr.WriteLine("          if (cnt % 5 == 0)");
             ostr.WriteLine("             retVal += \"\\n     \";");
-            ostr.WriteLine("          retVal += tokenImage[kindForState[lexState][state]];");
+            ostr.WriteLine("          retVal += TokenImage[kindForState[lexState][state]];");
             ostr.WriteLine("       }");
             ostr.WriteLine("     }");
             ostr.WriteLine("    }");
@@ -232,12 +242,12 @@ namespace Deveel.CSharpCC.Parser {
             String[] tmpLexStateName = new String[CSharpCCGlobals.lexstate_I2S.Count];
             foreach (var tp in CSharpCCGlobals.rexprlist) {
                 IList<RegExprSpec> respecs = tp.RegexSpecs;
-                IList<TokenProduction> tps;
+                IList<TokenProduction>? tps;
 
-                for (i = 0; i < tp.LexStates.Length; i++) {
-                    if (!allTpsForState.TryGetValue(tp.LexStates[i], out tps)) {
-                        tmpLexStateName[maxLexStates++] = tp.LexStates[i];
-                        allTpsForState[tp.LexStates[i]] = tps = new List<TokenProduction>();
+                for (i = 0; i < tp.ResolvedLexStates.Length; i++) {
+                    if (!allTpsForState.TryGetValue(tp.ResolvedLexStates[i], out tps)) {
+                        tmpLexStateName[maxLexStates++] = tp.ResolvedLexStates[i];
+                        allTpsForState[tp.ResolvedLexStates[i]] = tps = new List<TokenProduction>();
                     }
 
                     tps.Add(tp);
@@ -248,7 +258,7 @@ namespace Deveel.CSharpCC.Parser {
 
                 RegularExpression re;
                 for (i = 0; i < respecs.Count; i++)
-                    if (maxOrdinal <= (re = respecs[i].RegularExpression).Ordinal)
+                    if (maxOrdinal <= (re = respecs[i].RequiredExpression).Ordinal)
                         maxOrdinal = re.Ordinal + 1;
             }
 
@@ -266,7 +276,7 @@ namespace Deveel.CSharpCC.Parser {
             toMore = new long[maxOrdinal/64 + 1];
             toToken = new long[maxOrdinal/64 + 1];
             toToken[0] = 1L;
-            actions = new Action[maxOrdinal];
+            actions = new Action?[maxOrdinal];
             actions[0] = CSharpCCGlobals.actForEof;
             hasTokenActions = CSharpCCGlobals.actForEof != null;
             initStates = new Dictionary<string, NfaState>();
@@ -274,7 +284,7 @@ namespace Deveel.CSharpCC.Parser {
             canLoop = new bool[maxLexStates];
             stateHasActions = new bool[maxLexStates];
             lexStateName = new String[maxLexStates];
-            singlesToSkip = new NfaState[maxLexStates];
+            singlesToSkip = new NfaState?[maxLexStates];
             Array.Copy(tmpLexStateName, 0, lexStateName, 0, maxLexStates);
 
             for (i = 0; i < maxLexStates; i++)
@@ -284,12 +294,12 @@ namespace Deveel.CSharpCC.Parser {
             mixed = new bool[maxLexStates];
             maxLongsReqd = new int[maxLexStates];
             initMatch = new int[maxLexStates];
-            newLexState = new String[maxOrdinal];
+            newLexState = new string?[maxOrdinal];
             newLexState[0] = CSharpCCGlobals.nextStateForEof;
             hasEmptyMatch = false;
             lexStates = new int[maxOrdinal];
             ignoreCase = new bool[maxOrdinal];
-            rexprs = new RegularExpression[maxOrdinal];
+            rexprs = new RegularExpression?[maxOrdinal];
             RStringLiteral.allImages = new String[maxOrdinal];
             canReachOnMore = new bool[maxLexStates];
         }
@@ -312,9 +322,9 @@ namespace Deveel.CSharpCC.Parser {
                 GenerateTokenManager();
             } finally {
                 try {
-                    ostr?.Dispose();
+                    outputWriter?.Dispose();
                 } finally {
-                    ostr = null;
+                    outputWriter = null;
                 }
             }
         }
@@ -343,8 +353,7 @@ namespace Deveel.CSharpCC.Parser {
 				initStates[key] = initialState = new NfaState();
 				ignoring = false;
 
-				singlesToSkip[lexStateIndex] = new NfaState();
-				singlesToSkip[lexStateIndex].dummy = true;
+				singlesToSkip[lexStateIndex] = new NfaState { dummy = true };
 
 				if (key.Equals("DEFAULT"))
 					defaultLexState = lexStateIndex;
@@ -360,7 +369,7 @@ namespace Deveel.CSharpCC.Parser {
 
 					for (j = 0; j < rexps.Count; j++) {
 						RegExprSpec respec = rexps[j];
-						curRE = respec.RegularExpression;
+						curRE = respec.RequiredExpression;
 
 						rexprs[curKind = curRE.Ordinal] = curRE;
 						lexStates[curRE.Ordinal] = lexStateIndex;
@@ -386,7 +395,7 @@ namespace Deveel.CSharpCC.Parser {
 							if (curRE is RChoice)
 								choices.Add(curRE);
 
-							temp = curRE.GenerateNfa(ignore);
+							temp = curRE.GenerateRequiredNfa(ignore);
 							temp.End.isFinal = true;
 							temp.End.kind = curRE.Ordinal;
 							initialState.AddMove(temp.Start);
@@ -428,8 +437,8 @@ namespace Deveel.CSharpCC.Parser {
 								hasMore = true;
 								toMore[curRE.Ordinal/64] |= 1L << (curRE.Ordinal%64);
 
-								if (newLexState[curRE.Ordinal] != null)
-									canReachOnMore[GetIndex(newLexState[curRE.Ordinal])] = true;
+								if (newLexState[curRE.Ordinal] is string nextStateName)
+									canReachOnMore[GetIndex(nextStateName)] = true;
 								else
 									canReachOnMore[lexStateIndex] = true;
 
@@ -545,9 +554,9 @@ namespace Deveel.CSharpCC.Parser {
                 j = i;
                 seen[i] = true;
                 cycle += lexStateName[j] + "-->";
-                while (newLexState[initMatch[j]] != null) {
+                while (newLexState[initMatch[j]] is string nextStateName) {
                     cycle += newLexState[initMatch[j]];
-                    if (seen[j = GetIndex(newLexState[initMatch[j]])])
+                    if (seen[j = GetIndex(nextStateName)])
                         break;
 
                     cycle += "-->";
@@ -558,8 +567,8 @@ namespace Deveel.CSharpCC.Parser {
                         goto Outer;
                     if (len != 0)
                         reList += "; ";
-                    reList += "line " + rexprs[initMatch[j]].Line + ", column " +
-                              rexprs[initMatch[j]].Column;
+                    reList += "line " + RequiredTokenExpression(initMatch[j]).Line + ", column " +
+                              RequiredTokenExpression(initMatch[j]).Column;
                     len++;
                 }
 
@@ -572,17 +581,17 @@ namespace Deveel.CSharpCC.Parser {
                 hasLoop = true;
                 if (len == 0)
                     CSharpCCErrors.Warning(rexprs[initMatch[i]],
-                        "Regular expression" + ((rexprs[initMatch[i]].Label.Equals(""))
+                        "Regular expression" + ((RequiredTokenExpression(initMatch[i]).Label.Equals(""))
                             ? ""
-                            : (" for " + rexprs[initMatch[i]].Label)) +
+                            : (" for " + RequiredTokenExpression(initMatch[i]).Label)) +
                         " can be matched by the empty string (\"\") in lexical state " +
                         lexStateName[i] + ". This can result in an endless loop of " +
                         "empty string matches.");
                 else {
                     CSharpCCErrors.Warning(rexprs[initMatch[i]],
-                        "Regular expression" + ((rexprs[initMatch[i]].Label.Equals(""))
+                        "Regular expression" + ((RequiredTokenExpression(initMatch[i]).Label.Equals(""))
                             ? ""
-                            : (" for " + rexprs[initMatch[i]].Label)) +
+                            : (" for " + RequiredTokenExpression(initMatch[i]).Label)) +
                         " can be matched by the empty string (\"\") in lexical state " +
                         lexStateName[i] + ". This regular expression along with the " +
                         "regular expressions at " + reList + " forms the cycle \n   " +
@@ -618,10 +627,10 @@ namespace Deveel.CSharpCC.Parser {
                     if (i%25 == 0)
                         ostr.WriteLine("   ");
 
-                    if (newLexState[i] == null)
+                    if (newLexState[i] is not string nextStateName)
                         ostr.Write("-1, ");
                     else
-                        ostr.Write(GetIndex(newLexState[i]) + ", ");
+                        ostr.Write(GetIndex(nextStateName) + ", ");
                 }
                 ostr.WriteLine("};");
             }
@@ -932,23 +941,24 @@ namespace Deveel.CSharpCC.Parser {
                 if (maxLexStates > 1)
                     ostr.WriteLine(caseStr + i + ":");
 
-                if (singlesToSkip[i].HasTransitions()) {
+                var skipState = singlesToSkip[i] ?? throw new InvalidOperationException("The skip state has not been initialized.");
+                if (skipState.HasTransitions()) {
                     // added the backup(0) to make JIT happy
                     ostr.WriteLine(prefix + "try { " + CSharpCCGlobals.CharStreamReference + ".Backup(0);");
-                    if (singlesToSkip[i].asciiMoves[0] != 0L &&
-                        singlesToSkip[i].asciiMoves[1] != 0L) {
+                    if (skipState.asciiMoves[0] != 0L &&
+                        skipState.asciiMoves[1] != 0L) {
                         ostr.WriteLine(prefix + "   while ((curChar < 64 && ({0}L & (1L << curChar)) != 0L) ||",
-                            (singlesToSkip[i].asciiMoves[0]));
+                            (skipState.asciiMoves[0]));
                         ostr.WriteLine(prefix + "          (curChar >> 6) == 1 && ({0}L & (1L << (curChar & 63))) != 0L)",
-                            (singlesToSkip[i].asciiMoves[1]));
-                    } else if (singlesToSkip[i].asciiMoves[1] == 0L) {
+                            (skipState.asciiMoves[1]));
+                    } else if (skipState.asciiMoves[1] == 0L) {
                         ostr.WriteLine(prefix + "   while (curChar <= {0} && ({1}L & (1L << curChar)) != 0L)",
-                            MaxChar(singlesToSkip[i].asciiMoves[0]),
-                            singlesToSkip[i].asciiMoves[0]);
-                    } else if (singlesToSkip[i].asciiMoves[0] == 0L) {
+                            MaxChar(skipState.asciiMoves[0]),
+                            skipState.asciiMoves[0]);
+                    } else if (skipState.asciiMoves[0] == 0L) {
                         ostr.WriteLine(prefix + "   while (curChar > 63 && curChar <= {0}  && ({1}L & (1L << (curChar & 63))) != 0L)",
-                            (MaxChar(singlesToSkip[i].asciiMoves[1]) + 64),
-                            (singlesToSkip[i].asciiMoves[1]));
+                            (MaxChar(skipState.asciiMoves[1]) + 64),
+                            (skipState.asciiMoves[1]));
                     }
 
                     if (Options.getDebugTokenManager()) {
@@ -971,7 +981,7 @@ namespace Deveel.CSharpCC.Parser {
 
                 if (initMatch[i] != Int32.MaxValue && initMatch[i] != 0) {
                     if (Options.getDebugTokenManager())
-                        ostr.WriteLine("      debugStream.WriteLine(\"   Matched the empty string as \" + tokenImage[" + initMatch[i] +"] + \" token.\");");
+                        ostr.WriteLine("      debugStream.WriteLine(\"   Matched the empty string as \" + TokenImage[" + initMatch[i] +"] + \" token.\");");
 
                     ostr.WriteLine(prefix + "ccMatchedKind = " + initMatch[i] + ";");
                     ostr.WriteLine(prefix + "ccMatchedPos = -1;");
@@ -998,7 +1008,7 @@ namespace Deveel.CSharpCC.Parser {
                     ostr.WriteLine(prefix + "{");
 
                     if (Options.getDebugTokenManager())
-                        ostr.WriteLine("           debugStream.WriteLine(\"   Current character matched as a \" + tokenImage[" +
+                        ostr.WriteLine("           debugStream.WriteLine(\"   Current character matched as a \" + TokenImage[" +
                                        canMatchAnyChar[i] + "] + \" token.\");");
                     ostr.WriteLine(prefix + "   ccMatchedKind = " + canMatchAnyChar[i] + ";");
 
@@ -1042,12 +1052,12 @@ namespace Deveel.CSharpCC.Parser {
                     if (Options.getUnicodeEscape() ||
                         Options.getUserCharStream())
                         ostr.WriteLine("    debugStream.WriteLine(" +
-                                       "\"****** FOUND A \" + tokenImage[ccMatchedKind] + \" MATCH " +
+                                       "\"****** FOUND A \" + TokenImage[ccMatchedKind] + \" MATCH " +
                                        "(\" + TokenManagerError.AddEscapes(new String(" + CSharpCCGlobals.CharStreamReference + ".GetSuffix(ccMatchedPos + 1))) + " +
                                        "\") ******\\n\");");
                     else
                         ostr.WriteLine("    debugStream.WriteLine(" +
-                                       "\"****** FOUND A \" + tokenImage[ccMatchedKind] + \" MATCH " +
+                                       "\"****** FOUND A \" + TokenImage[ccMatchedKind] + \" MATCH " +
                                        "(\" + TokenManagerError.AddEscapes(new String(" + CSharpCCGlobals.CharStreamReference + ".GetSuffix(ccMatchedPos + 1))) + " +
                                        "\") ******\\n\");");
                 }
@@ -1187,7 +1197,7 @@ namespace Deveel.CSharpCC.Parser {
         }
 
         public static void DumpSkipActions() {
-            Action act;
+            Action? act;
 
             ostr.WriteLine(staticString + "void SkipLexicalActions(Token matchedToken)");
             ostr.WriteLine("{");
@@ -1256,7 +1266,7 @@ namespace Deveel.CSharpCC.Parser {
         }
 
         public static void DumpMoreActions() {
-            Action act;
+            Action? act;
 
             ostr.WriteLine(staticString + "void MoreLexicalActions()");
             ostr.WriteLine("{");
@@ -1330,7 +1340,7 @@ namespace Deveel.CSharpCC.Parser {
         }
 
         public static void DumpTokenActions() {
-            Action act;
+            Action? act;
             int i;
 
             ostr.WriteLine(staticString + "void TokenLexicalActions(Token matchedToken)");
@@ -1367,7 +1377,7 @@ namespace Deveel.CSharpCC.Parser {
                         ostr.WriteLine("         }");
                     }
 
-                    if ((act = (Action) actions[i]) == null ||
+                    if ((act = actions[i]) == null ||
                         act.ActionTokens.Count == 0)
                         break;
 
@@ -1408,39 +1418,39 @@ namespace Deveel.CSharpCC.Parser {
         }
 
         public static void reInit() {
-            ostr = null;
-            staticString = null;
-            tokMgrClassName = null;
+            outputWriter = null;
+            staticString = "";
+            tokMgrClassName = "";
             allTpsForState = new Dictionary<string, IList<TokenProduction>>();
             lexStateIndex = 0;
-            kinds = null;
+            kinds = [];
             maxOrdinal = 1;
-            lexStateSuffix = null;
-            newLexState = null;
-            lexStates = null;
-            ignoreCase = null;
-            actions = null;
+            lexStateSuffix = "";
+            newLexState = [];
+            lexStates = [];
+            ignoreCase = [];
+            actions = [];
             initStates = new Dictionary<string, NfaState>();
             stateSetSize = 0;
             maxLexStates = 0;
-            lexStateName = null;
-            singlesToSkip = null;
-            toSkip = null;
-            toSpecial = null;
-            toMore = null;
-            toToken = null;
+            lexStateName = [];
+            singlesToSkip = [];
+            toSkip = [];
+            toSpecial = [];
+            toMore = [];
+            toToken = [];
             defaultLexState = 0;
-            rexprs = null;
-            maxLongsReqd = null;
-            initMatch = null;
-            canMatchAnyChar = null;
+            rexprs = [];
+            maxLongsReqd = [];
+            initMatch = [];
+            canMatchAnyChar = [];
             hasEmptyMatch = false;
-            canLoop = null;
-            stateHasActions = null;
+            canLoop = [];
+            stateHasActions = [];
             hasLoop = false;
-            canReachOnMore = null;
-            hasNfa = null;
-            mixed = null;
+            canReachOnMore = [];
+            hasNfa = [];
+            mixed = [];
             initialState = null;
             curKind = 0;
             hasSkipActions = false;

@@ -13,14 +13,14 @@ namespace Deveel.CSharpCC.Parser {
 		private static IList<IDictionary<string, KindInfo>>  charPosKind = new List<IDictionary<string, KindInfo>>(); // Elements are hashtables
 		// with single char keys;
 		private static int[] maxLenForActive = new int[100]; // 6400 tokens
-		public static String[] allImages;
-		private static int[][] intermediateKinds;
-		private static int[][] intermediateMatchedPos;
+		public static string?[] allImages = [];
+		private static int[]?[]? intermediateKinds;
+		private static int[]?[]? intermediateMatchedPos;
 
 		private static int startStateCnt = 0;
-		private static bool[] subString;
-		private static bool[] subStringAtPos;
-		private static IDictionary<string, long[]>[] statesForPos;
+		private static bool[] subString = [];
+		private static bool[] subStringAtPos = [];
+		private static IDictionary<string, long[]>?[] statesForPos = [];
 
 		public RStringLiteral(Token token, string image) {
 			Line = token.beginLine;
@@ -33,7 +33,7 @@ namespace Deveel.CSharpCC.Parser {
 		public void GenerateDfa(TextWriter ostr, int kind) {
 			String s;
 			IDictionary<string, KindInfo> temp;
-			KindInfo info;
+			KindInfo? info;
 			int len;
 
 			if (maxStrKind <= Ordinal)
@@ -121,7 +121,7 @@ namespace Deveel.CSharpCC.Parser {
 
 			NfaState startState = new NfaState();
 			NfaState theStartState = startState;
-			NfaState finalState = null;
+			NfaState finalState = startState;
 
 			if (Image.Length == 0)
 				return new Nfa(theStartState, theStartState);
@@ -154,13 +154,13 @@ namespace Deveel.CSharpCC.Parser {
 			intermediateKinds = null;
 			intermediateMatchedPos = null;
 			startStateCnt = 0;
-			subString = null;
-			subStringAtPos = null;
-			statesForPos = null;
+			subString = [];
+			subStringAtPos = [];
+			statesForPos = [];
 		}
 
 		public static void DumpStrLiteralImages(TextWriter ostr) {
-			String image;
+			string? image;
 			int i;
 			charCnt = 0; // Set to zero in reInit() but just to be sure
 
@@ -248,7 +248,7 @@ namespace Deveel.CSharpCC.Parser {
 			if (LexGen.mixed[LexGen.lexStateIndex] || NfaState.generatedStates == 0)
 				return -1;
 
-			IDictionary<string, long[]> allStateSets = statesForPos[pos];
+			IDictionary<string, long[]>? allStateSets = statesForPos[pos];
 
 			if (allStateSets == null)
 				return -1;
@@ -272,8 +272,11 @@ namespace Deveel.CSharpCC.Parser {
 			return -1;
 		}
 
+		private static string RequiredImage(int kind) => allImages[kind] ??
+            throw new InvalidOperationException("The string token image has not been recorded.");
+
 		private static String GetLabel(int kind) {
-			RegularExpression re = LexGen.rexprs[kind];
+			RegularExpression re = LexGen.RequiredTokenExpression(kind);
 
 			if (re is RStringLiteral)
 				return " \"" + CSharpCCGlobals.AddEscapes(((RStringLiteral) re).Image) + "\"";
@@ -284,11 +287,11 @@ namespace Deveel.CSharpCC.Parser {
 		}
 
 		private static int GetLine(int kind) {
-			return LexGen.rexprs[kind].Line;
+			return LexGen.RequiredTokenExpression(kind).Line;
 		}
 
 		private static int GetColumn(int kind) {
-			return LexGen.rexprs[kind].Column;
+			return LexGen.RequiredTokenExpression(kind).Column;
 		}
 
 		private static bool StartsWithIgnoreCase(String s1, String s2) {
@@ -307,7 +310,7 @@ namespace Deveel.CSharpCC.Parser {
 		}
 
 	    internal static void FillSubString() {
-			String image;
+			string? image;
 			subString = new bool[maxStrKind + 1];
 			subStringAtPos = new bool[maxLen];
 
@@ -327,13 +330,13 @@ namespace Deveel.CSharpCC.Parser {
 
 				for (int j = 0; j < maxStrKind; j++) {
 					if (j != i && LexGen.lexStates[j] == LexGen.lexStateIndex &&
-					    allImages[j] != null) {
-						if (allImages[j].IndexOf(image) == 0) {
+					    allImages[j] is string otherImage) {
+						if (otherImage.IndexOf(image) == 0) {
 							subString[i] = true;
 							subStringAtPos[image.Length - 1] = true;
 							break;
 						} else if (Options.getIgnoreCase() &&
-						           StartsWithIgnoreCase(allImages[j], image)) {
+						           StartsWithIgnoreCase(otherImage, image)) {
 							subString[i] = true;
 							subStringAtPos[image.Length - 1] = true;
 							break;
@@ -353,7 +356,7 @@ namespace Deveel.CSharpCC.Parser {
 			if (Options.getDebugTokenManager()) {
 				ostr.WriteLine("   debugStream.WriteLine(\"   No more string literal token matches are possible.\");");
 				ostr.WriteLine("   debugStream.WriteLine(\"   Currently matched the first \" " +
-				             "+ (ccMatchedPos + 1) + \" characters as a \" + tokenImage[ccMatchedKind] + \" token.\");");
+				             "+ (ccMatchedPos + 1) + \" characters as a \" + TokenImage[ccMatchedKind] + \" token.\");");
 			}
 
 			ostr.WriteLine("   try { curChar = " + CSharpCCGlobals.CharStreamReference + ".ReadChar(); }");
@@ -363,7 +366,7 @@ namespace Deveel.CSharpCC.Parser {
 				ostr.WriteLine("   debugStream.WriteLine(" +
 				             (LexGen.maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "") +
 				             "\"Current character : \" + " +
-				             "TokenMgrError.AddEscapes(curChar.ToString()) + \" (\" + (int)curChar + \") " +
+				             "TokenManagerError.AddEscapes(curChar.ToString()) + \" (\" + (int)curChar + \") " +
 				             "at line \" + " + CSharpCCGlobals.CharStreamReference + ".EndLine + \" column \" + " + CSharpCCGlobals.CharStreamReference + ".EndColumn);");
 
 			ostr.WriteLine("   return ccMoveNfa" + LexGen.lexStateSuffix + "(state, pos + 1);");
@@ -381,7 +384,7 @@ namespace Deveel.CSharpCC.Parser {
 			if (Options.getDebugTokenManager()) {
 				ostr.WriteLine("   debugStream.WriteLine(\"   No more string literal token matches are possible.\");");
 				ostr.WriteLine("   debugStream.WriteLine(\"   Currently matched the first \" + (ccMatchedPos + 1) + " +
-				             "\" characters as a \" + tokenImage[ccMatchedKind] + \" token.\");");
+				             "\" characters as a \" + TokenImage[ccMatchedKind] + \" token.\");");
 			}
 
 			ostr.WriteLine("   return pos + 1;");
@@ -413,7 +416,7 @@ namespace Deveel.CSharpCC.Parser {
 	    internal static void DumpDfaCode(TextWriter ostr) {
 			IDictionary<string, KindInfo> tab;
 			String key;
-			KindInfo info;
+			KindInfo? info;
 			int maxLongsReqd = maxStrKind/64 + 1;
 			int i, j, k;
 			bool ifGenerated;
@@ -520,7 +523,7 @@ namespace Deveel.CSharpCC.Parser {
 					if (i != 0 && Options.getDebugTokenManager()) {
 						ostr.WriteLine("   if (ccMatchedKind != 0 && ccMatchedKind != Int32.MaxValue)");
 						ostr.WriteLine("      debugStream.WriteLine(\"   Currently matched the first \" + " +
-						             "(ccMatchedPos + 1) + \" characters as a \" + tokenImage[ccMatchedKind] + \" token.\");");
+						             "(ccMatchedPos + 1) + \" characters as a \" + TokenImage[ccMatchedKind] + \" token.\");");
 
 						ostr.WriteLine("   debugStream.WriteLine(\"   Possible string literal matches : { \"");
 
@@ -555,7 +558,7 @@ namespace Deveel.CSharpCC.Parser {
 						if (i != 0 && Options.getDebugTokenManager()) {
 							ostr.WriteLine("      if (ccMatchedKind != 0 && ccMatchedKind != Int32.MaxValue)");
 							ostr.WriteLine("         debugStream.WriteLine(\"   Currently matched the first \" + " +
-							             "(ccMatchedPos + 1) + \" characters as a \" + tokenImage[ccMatchedKind] + \" token.\");");
+							             "(ccMatchedPos + 1) + \" characters as a \" + TokenImage[ccMatchedKind] + \" token.\");");
 						}
 						ostr.WriteLine("      return " + i + ";");
 					} else if (NfaState.generatedStates != 0)
@@ -571,7 +574,7 @@ namespace Deveel.CSharpCC.Parser {
 					ostr.WriteLine("   debugStream.WriteLine(" +
 					             (LexGen.maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "") +
 					             "\"Current character : \" + " +
-					             "TokenMgrError.AddEscapes(curChar.ToString()) + \" (\" + (int)curChar + \") " +
+					             "TokenManagerError.AddEscapes(curChar.ToString()) + \" (\" + (int)curChar + \") " +
 					             "at line \" + " + CSharpCCGlobals.CharStreamReference + ".EndLine + \" column \" + " + CSharpCCGlobals.CharStreamReference + ".EndColumn);");
 
 				ostr.Write("   switch((int)curChar)");
@@ -594,10 +597,10 @@ namespace Deveel.CSharpCC.Parser {
 							if ((info.finalKinds[j] & (1L << k)) != 0L &&
 							    !subString[kind = (j*64 + k)]) {
 								if ((intermediateKinds != null &&
-								     intermediateKinds[(j*64 + k)] != null &&
-								     intermediateKinds[(j*64 + k)][i] < (j*64 + k) &&
+								     intermediateKinds[(j*64 + k)] is int[] matchedKinds &&
+								     matchedKinds[i] < (j*64 + k) &&
 								     intermediateMatchedPos != null &&
-								     intermediateMatchedPos[(j*64 + k)][i] == i) ||
+								     intermediateMatchedPos[(j*64 + k)] is int[] matchedPositions && matchedPositions[i] == i) ||
 								    (LexGen.canMatchAnyChar[LexGen.lexStateIndex] >= 0 &&
 								     LexGen.canMatchAnyChar[LexGen.lexStateIndex] < (j*64 + k)))
 									break;
@@ -655,22 +658,22 @@ namespace Deveel.CSharpCC.Parser {
 								}
 
 								if (intermediateKinds != null &&
-								    intermediateKinds[(j*64 + k)] != null &&
-								    intermediateKinds[(j*64 + k)][i] < (j*64 + k) &&
+								    intermediateKinds[(j*64 + k)] is int[] matchedKinds &&
+								    matchedKinds[i] < (j*64 + k) &&
 								    intermediateMatchedPos != null &&
-								    intermediateMatchedPos[(j*64 + k)][i] == i) {
+								    intermediateMatchedPos[(j*64 + k)] is int[] matchedPositions && matchedPositions[i] == i) {
 									CSharpCCErrors.Warning(" \"" +
-									                     CSharpCCGlobals.AddEscapes(allImages[j*64 + k]) +
+									                     CSharpCCGlobals.AddEscapes(RequiredImage(j*64 + k)) +
 									                     "\" cannot be matched as a string literal token " +
 									                     "at line " + GetLine(j*64 + k) + ", column " + GetColumn(j*64 + k) +
 									                     ". It will be matched as " +
-									                     GetLabel(intermediateKinds[(j*64 + k)][i]) + ".");
-									kindToPrint = intermediateKinds[(j*64 + k)][i];
+									                     GetLabel(matchedKinds[i]) + ".");
+									kindToPrint = matchedKinds[i];
 								} else if (i == 0 &&
 								           LexGen.canMatchAnyChar[LexGen.lexStateIndex] >= 0 &&
 								           LexGen.canMatchAnyChar[LexGen.lexStateIndex] < (j*64 + k)) {
 									CSharpCCErrors.Warning(" \"" +
-									                     CSharpCCGlobals.AddEscapes(allImages[j*64 + k]) +
+									                     CSharpCCGlobals.AddEscapes(RequiredImage(j*64 + k)) +
 									                     "\" cannot be matched as a string literal token " +
 									                     "at line " + GetLine(j*64 + k) + ", column " + GetColumn(j*64 + k) +
 									                     ". It will be matched as " +
@@ -839,7 +842,7 @@ namespace Deveel.CSharpCC.Parser {
 				if (LexGen.lexStates[i] != LexGen.lexStateIndex)
 					continue;
 
-				String image = allImages[i];
+				string? image = allImages[i];
 				if (image != null && image.Equals(str))
 					return i;
 			}
@@ -853,9 +856,9 @@ namespace Deveel.CSharpCC.Parser {
 			String stateSetString = "";
 			int i, j, kind, jjmatchedPos = 0;
 			int maxKindsReqd = maxStrKind/64 + 1;
-			long[] actives;
+			long[]? actives;
 			IList<NfaState> newStates = new List<NfaState>();
-			IList<NfaState> oldStates = null, jjtmpStates;
+			IList<NfaState> oldStates = new List<NfaState>(), jjtmpStates;
 
 			statesForPos = new IDictionary<string, long[]>[maxLen];
 			intermediateKinds = new int[maxStrKind + 1][];
@@ -865,7 +868,7 @@ namespace Deveel.CSharpCC.Parser {
 				if (LexGen.lexStates[i] != LexGen.lexStateIndex)
 					continue;
 
-				String image = allImages[i];
+				string? image = allImages[i];
 
 				if (image == null || image.Length < 1)
 					continue;
@@ -879,16 +882,16 @@ namespace Deveel.CSharpCC.Parser {
 					CSharpCCErrors.SemanticError("Error cloning state vector");
 				}
 
-				intermediateKinds[i] = new int[image.Length];
-				intermediateMatchedPos[i] = new int[image.Length];
+				int[] kindsForImage = intermediateKinds[i] = new int[image.Length];
+				int[] positionsForImage = intermediateMatchedPos[i] = new int[image.Length];
 				jjmatchedPos = 0;
 				kind = Int32.MaxValue;
 
 				for (j = 0; j < image.Length; j++) {
-					if (oldStates == null || oldStates.Count <= 0) {
+					if (oldStates.Count <= 0) {
 						// Here, j > 0
-						kind = intermediateKinds[i][j] = intermediateKinds[i][j - 1];
-						jjmatchedPos = intermediateMatchedPos[i][j] = intermediateMatchedPos[i][j - 1];
+						kind = kindsForImage[j] = kindsForImage[j - 1];
+						jjmatchedPos = positionsForImage[j] = positionsForImage[j - 1];
 					} else {
 						kind = NfaState.MoveFromSet(image[j], oldStates, newStates);
 						oldStates.Clear();
@@ -899,23 +902,23 @@ namespace Deveel.CSharpCC.Parser {
 							kind = LexGen.canMatchAnyChar[LexGen.lexStateIndex];
 
 						if (GetStrKind(image.Substring(0, j + 1)) < kind) {
-							intermediateKinds[i][j] = kind = Int32.MaxValue;
+							kindsForImage[j] = kind = Int32.MaxValue;
 							jjmatchedPos = 0;
 						} else if (kind != Int32.MaxValue) {
-							intermediateKinds[i][j] = kind;
-							jjmatchedPos = intermediateMatchedPos[i][j] = j;
+							kindsForImage[j] = kind;
+							jjmatchedPos = positionsForImage[j] = j;
 						} else if (j == 0)
-							kind = intermediateKinds[i][j] = Int32.MaxValue;
+							kind = kindsForImage[j] = Int32.MaxValue;
 						else {
-							kind = intermediateKinds[i][j] = intermediateKinds[i][j - 1];
-							jjmatchedPos = intermediateMatchedPos[i][j] = intermediateMatchedPos[i][j - 1];
+							kind = kindsForImage[j] = kindsForImage[j - 1];
+							jjmatchedPos = positionsForImage[j] = positionsForImage[j - 1];
 						}
 
 						stateSetString = NfaState.GetStateSetString(newStates);
 					}
 
 					if (kind == Int32.MaxValue &&
-					    (newStates == null || newStates.Count == 0))
+					    (newStates.Count == 0))
 						continue;
 
 					int p;
@@ -936,12 +939,11 @@ namespace Deveel.CSharpCC.Parser {
 					oldStates = newStates;
 					(newStates = jjtmpStates).Clear();
 
-					if (statesForPos[j] == null)
-						statesForPos[j] = new Dictionary<string, long[]>();
+					var statesAtPosition = statesForPos[j] ??= new Dictionary<string, long[]>();
 
-					if (!(statesForPos[j].TryGetValue(kind + ", " + jjmatchedPos + ", " + stateSetString, out actives))) {
+					if (!(statesAtPosition.TryGetValue(kind + ", " + jjmatchedPos + ", " + stateSetString, out actives))) {
 						actives = new long[maxKindsReqd];
-						statesForPos[j][kind + ", " + jjmatchedPos + ", " + stateSetString] = actives;
+						statesAtPosition[kind + ", " + jjmatchedPos + ", " + stateSetString] = actives;
 					}
 
 					actives[i/64] |= 1L << (i%64);
@@ -952,7 +954,7 @@ namespace Deveel.CSharpCC.Parser {
 			DumpNfaStartStatesCode(statesForPos, ostr);
 		}
 
-		private static void DumpNfaStartStatesCode(IDictionary<string, long[]>[] statesForPos, TextWriter ostr) {
+		private static void DumpNfaStartStatesCode(IDictionary<string, long[]>?[] statesForPos, TextWriter ostr) {
 			if (maxStrKind == 0) {
 				// No need to generate this function
 				return;
@@ -973,12 +975,12 @@ namespace Deveel.CSharpCC.Parser {
 			ostr.WriteLine("   switch (pos)\n   {");
 
 			for (i = 0; i < maxLen - 1; i++) {
-				if (statesForPos[i] == null)
+				if (statesForPos[i] is not { } statesAtPosition)
 					continue;
 
 				ostr.WriteLine("      case " + i + ":");
 
-				foreach (KeyValuePair<string, long[]> entry in statesForPos[i]) {
+				foreach (KeyValuePair<string, long[]> entry in statesAtPosition) {
 					String stateSetString = entry.Key;
 					long[] actives = entry.Value;
 
@@ -1088,7 +1090,7 @@ namespace Deveel.CSharpCC.Parser {
 			ReInit();
 
 			charCnt = 0;
-			allImages = null;
+			allImages = [];
 			boilerPlateDumped = false;
 		}
 

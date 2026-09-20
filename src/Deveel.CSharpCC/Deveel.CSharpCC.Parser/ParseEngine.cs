@@ -523,7 +523,7 @@ namespace Deveel.CSharpCC.Parser {
                 } else {
                     la = new Lookahead();
                     la.Amount = Options.getLookahead();
-                    la.RequiredExpansion = nested_e;
+                    la.Expansion = nested_e;
                 }
                 retval += "\n";
                 int labelIndex = ++gensymindex;
@@ -545,7 +545,7 @@ namespace Deveel.CSharpCC.Parser {
                 } else {
                     la = new Lookahead();
                     la.Amount = Options.getLookahead();
-                    la.RequiredExpansion = nested_e;
+                    la.Expansion = nested_e;
                 }
                 retval += "\n";
                 int labelIndex = ++gensymindex;
@@ -567,7 +567,7 @@ namespace Deveel.CSharpCC.Parser {
                 } else {
                     la = new Lookahead();
                     la.Amount = Options.getLookahead();
-                    la.RequiredExpansion = nested_e;
+                    la.Expansion = nested_e;
                 }
                 conds = new Lookahead[1];
                 conds[0] = la;
@@ -992,8 +992,9 @@ namespace Deveel.CSharpCC.Parser {
                 buildPhase2Routine(lookahead);
             }
 
-            foreach (var phase3Data in phase3list) {
-                setupPhase3Builds(phase3Data);
+            // Expanding a production can append further lookahead routines to this work list.
+            for (int i = 0; i < phase3list.Count; i++) {
+                setupPhase3Builds(phase3list[i]);
             }
 
             foreach (var phase3Data in phase3table) {

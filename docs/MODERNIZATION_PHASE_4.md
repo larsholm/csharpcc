@@ -1,16 +1,17 @@
-# Phase 4 progress: nullable analysis and resource ownership
+# Phase 4: nullable analysis and resource ownership
 
-Status: the utility/CLI and ownership batch and the grammar-model, semantic, and
-lookahead batch are implemented. Phase 4 remains in progress until the generation
-engine and shared state have been migrated and nullable analysis can be enabled
-across the core project with an explicit bootstrap-source policy.
+Status: implemented and verified locally on Linux. All 52 handwritten core source
+files and the CLI participate in nullable analysis, with nullable warnings treated
+as errors. The seven legacy bootstrap sources use the explicit policy below.
+Cross-platform validation remains part of the final CI verification phase.
 
 ## Nullable contracts
 
 Nullable analysis is enabled for all three utility files (`OutputFile`,
 `CSharpFileGenerator`, and `ListUtil`), `Options`, `CSharpCCErrors`, `CSharpFiles`,
 and the CLI. These files build without nullable warnings. Nullable warnings are
-errors in the core and CLI projects; the core currently opts in file by file.
+errors in the core and CLI projects. This batch started with file-by-file opt-in;
+the completed engine batch enables nullable analysis across the core project.
 No warning suppressions or null-forgiving operators were added to production code.
 
 Optional locations, option inputs, template lines, and output-writer state are
@@ -76,16 +77,21 @@ dotnet test src/CSharpCC.sln -c Release --no-build
 dotnet test src/CSharpCC.sln -c Debug
 ```
 
-## Remaining phase 4 work
+## Bootstrap-source policy
 
-The initial whole-solution nullable audit found roughly 300 warnings in
-handwritten code, many involving state initialized in several parser passes.
-The grammar-model batch below handles optional links, staged initialization,
-semantic analysis, and lookahead. Next, migrate the generation engine and shared
-state without changing token identity or emission order, starting with the
-confirmed generation defects listed below. Bootstrap and emitted parser sources
-need an explicit nullable policy before enabling analysis across the core
-project. They have not been edited or silently excluded by these batches.
+`src/Deveel.CSharpCC/.editorconfig` marks only these checked-in bootstrap files as
+generated: `CSharpCCParser.cs`, `CSharpCCParserConstants.cs`,
+`CSharpCCParserTokenManager.cs`, `CSharpCharStream.cs`, `Token.cs`,
+`ParseException.cs`, and `TokenMgrError.cs`. Their generated nullable context stays
+disabled until the reproducible bootstrap migration. Handwritten files, including
+`CSharpCCParserInternals.cs`, have no exclusion or nullable-disable directive.
+The files themselves were not edited.
+
+This uses the compiler's documented generated-code policy rather than warning
+suppression. Generated sources can opt in later with `#nullable enable`.
+See [Microsoft's nullable migration guidance](https://learn.microsoft.com/en-us/dotnet/csharp/nullable-migration-strategies).
+Legacy emitted parsers keep their existing context; nullable-aware modern output
+belongs to phase 5, and bootstrap regeneration belongs to phase 6.
 
 ## Grammar-model, semantic, and lookahead batch
 
@@ -134,10 +140,10 @@ Verification against the preceding ownership batch, commit `34a7157`:
   `git diff --check` passes. Validation is local to Linux; cross-platform execution
   remains assigned to the existing CI matrix.
 
-### Confirmed generation defects for the next batch
+### Generation defects reproduced before the engine migration
 
 The broader fixtures exposed three separate defects, reproduced with the
-unmodified `34a7157` CLI. These remain open and are not nullable regressions.
+unmodified `34a7157` CLI. The engine batch below fixes them.
 Each fragment below follows this common header and uses `STATIC=false`:
 
 ```text
@@ -156,5 +162,50 @@ PARSER_END(FixtureParser)
 - `void Input() : {} { ("a" | "a" "b") <EOF> }` emits the expected ambiguity
   warning, then crashes in `ParseEngine.GenFirstSet` while indexing the token set.
 
-Turn these into generation/compilation regression tests and repair them as part
-of the generation-engine work before extending the emitted-language modes.
+## Generation-engine and shared-state batch
+
+The core project now enables nullable analysis by default. Lexer scratch arrays
+start and reset empty; sparse token/action/state tables annotate missing entries.
+Optional NFA destinations remain nullable, with checked access at the passes that
+require a destination. Epsilon-set generation and output writers have explicit
+initialization checks. Indexed state reconstruction builds and validates a local
+array before exposing a complete list. Token-printing helpers handle empty token
+lists without inventing dummy tokens. No null-forgiving operators were added.
+
+The following behavioral repairs accompany the migration:
+
+- Generated switches terminate default sections, including defaults containing
+  nested lookahead branches. This fixes optional branches that failed with CS8070.
+- Lexer state initialization includes states with no character-token rules, so
+  EOF-only grammars generate, compile, accept empty input, and reject characters.
+- Regular expressions have a token-kind ordinal separate from the inherited
+  expansion-position ordinal. Inline literals no longer overwrite token numbering,
+  and lookahead/follow-set walks use the appropriate identity.
+- Globally case-insensitive inline literals reuse the existing token kind. The
+  sample's uppercase grammar references now resolve to its lowercase declarations
+  explicitly rather than relying on accidentally matching sequence positions.
+- Lookahead follows resolved production links instead of an unpopulated private
+  dictionary. Its work list uses an index loop so discovering more routines during
+  traversal does not invalidate an enumerator.
+- Debug parser/lexer output uses the actual C# member names and explicit nested
+  array construction. Previously those modes emitted Java-style names and invalid
+  jagged-array initializers.
+
+Engine-batch verification on .NET SDK 10.0.111:
+
+- 116 tests pass in Release and Debug. Ten new cases compile and run standalone
+  static and instance parsers for optional branches, EOF-only lexers, inline token
+  numbering, lookahead across productions, and debug tracing with NFA state tables.
+  The original six generation reproductions failed before their fixes; the new
+  production-lookahead and debug-output cases also reproduced their defects.
+- The 11 baseline CLI scenarios retain their exit codes and diagnostics. Of their
+  62 files, 54 remain byte-for-byte identical. Seven parser files gain a switch
+  termination statement, and the sample constants file loses three unused duplicate
+  inline token images. These differences are deliberate consequences of the fixes.
+- All 864 public/protected CLR API snapshot entries still match `34a7157`.
+  Nullable metadata describes optional entries without changing CLR signatures.
+- A full Release rebuild has zero errors and 16 existing warnings. The two fewer
+  analyzer warnings are from marking the legacy-generated `CSharpCharStream.cs`
+  as generated, not from claiming to have repaired that bootstrap output.
+- `git diff --check` passes. No performance optimization is claimed; final
+  performance measurements and cross-platform runs remain in phase 7.
