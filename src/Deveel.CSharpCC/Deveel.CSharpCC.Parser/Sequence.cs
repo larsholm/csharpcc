@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Deveel.CSharpCC.Parser {
 	public class Sequence : Expansion {
-		private readonly List<Expansion> units = new List<Expansion>();
+		private readonly List<Expansion> units = [];
 
 		public Sequence() {
 		}
@@ -16,9 +16,7 @@ namespace Deveel.CSharpCC.Parser {
 			Units.Add(la);
 		}
 
-		public List<Expansion> Units {
-			get { return units; }
-		}
+		public List<Expansion> Units => units;
 
 		public override StringBuilder Dump(int indent, IList alreadyDumped) {
 			if (alreadyDumped.Contains(this)) {

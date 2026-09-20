@@ -12,16 +12,16 @@ namespace Deveel.CSharpCC.Parser {
 		}
 
 		public static IList<MatchInfo> genFirstSet(IList<MatchInfo> partialMatches, Expansion exp) {
-			if (exp is RegularExpression) {
-				IList<MatchInfo> retval = new List<MatchInfo>();
+			if (exp is RegularExpression regularExpression) {
+				IList<MatchInfo> retval = [];
 				for (int i = 0; i < partialMatches.Count; i++) {
-					MatchInfo m = (MatchInfo) partialMatches[i];
-					MatchInfo mnew = new MatchInfo();
+					MatchInfo m = partialMatches[i];
+					MatchInfo mnew = new();
 					for (int j = 0; j < m.firstFreeLoc; j++) {
 						mnew.match[j] = m.match[j];
 					}
 					mnew.firstFreeLoc = m.firstFreeLoc;
-					mnew.match[mnew.firstFreeLoc++] = ((RegularExpression) exp).Ordinal;
+					mnew.match[mnew.firstFreeLoc++] = regularExpression.Ordinal;
 					if (mnew.firstFreeLoc == MatchInfo.laLimit) {
 						sizeLimitedMatches.Add(mnew);
 					} else {
@@ -29,34 +29,31 @@ namespace Deveel.CSharpCC.Parser {
 					}
 				}
 				return retval;
-			} else if (exp is NonTerminal) {
-				NormalProduction prod = ((NonTerminal) exp).Production;
+			} else if (exp is NonTerminal nonTerminal) {
+				NormalProduction prod = nonTerminal.Production;
 				if (prod is CodeProduction) {
-					return new List<MatchInfo>();
+					return [];
 				} else {
 					return genFirstSet(partialMatches, prod.Expansion);
 				}
-			} else if (exp is Choice) {
-				IList<MatchInfo> retval = new List<MatchInfo>();
-				Choice ch = (Choice) exp;
+			} else if (exp is Choice ch) {
+				IList<MatchInfo> retval = [];
 				foreach (Expansion e in ch.Choices) {
 					IList<MatchInfo> v = genFirstSet(partialMatches, e);
 					listAppend(retval, v);
 				}
 				return retval;
-			} else if (exp is Sequence) {
+			} else if (exp is Sequence seq) {
 				IList<MatchInfo> v = partialMatches;
-				Sequence seq = (Sequence) exp;
 				foreach (Expansion unit in seq.Units) {
 					v = genFirstSet(v, unit);
 					if (v.Count == 0)
 						break;
 				}
 				return v;
-			} else if (exp is OneOrMore) {
-				IList<MatchInfo> retval = new List<MatchInfo>();
+			} else if (exp is OneOrMore om) {
+				IList<MatchInfo> retval = [];
 				IList<MatchInfo> v = partialMatches;
-				OneOrMore om = (OneOrMore) exp;
 				while (true) {
 					v = genFirstSet(v, om.Expansion);
 					if (v.Count == 0)
@@ -65,11 +62,10 @@ namespace Deveel.CSharpCC.Parser {
 					listAppend(retval, v);
 				}
 				return retval;
-			} else if (exp is ZeroOrMore) {
-				IList<MatchInfo> retval = new List<MatchInfo>();
+			} else if (exp is ZeroOrMore zm) {
+				IList<MatchInfo> retval = [];
 				listAppend(retval, partialMatches);
 				IList<MatchInfo> v = partialMatches;
-				ZeroOrMore zm = (ZeroOrMore) exp;
 				while (true) {
 					v = genFirstSet(v, zm.Expansion);
 					if (v.Count == 0)
@@ -78,20 +74,18 @@ namespace Deveel.CSharpCC.Parser {
 					listAppend(retval, v);
 				}
 				return retval;
-			} else if (exp is ZeroOrOne) {
-				IList<MatchInfo> retval = new List<MatchInfo>();
+			} else if (exp is ZeroOrOne zeroOrOne) {
+				IList<MatchInfo> retval = [];
 				listAppend(retval, partialMatches);
-				listAppend(retval, genFirstSet(partialMatches, ((ZeroOrOne) exp).Expansion));
+				listAppend(retval, genFirstSet(partialMatches, zeroOrOne.Expansion));
 				return retval;
-			} else if (exp is TryBlock) {
-				return genFirstSet(partialMatches, ((TryBlock) exp).Expansion);
+			} else if (exp is TryBlock tryBlock) {
+				return genFirstSet(partialMatches, tryBlock.Expansion);
 			} else if (considerSemanticLA &&
-			           exp is Lookahead &&
-			           ((Lookahead) exp).ActionTokens.Count != 0
-				) {
-				return new List<MatchInfo>();
+			           exp is Lookahead { ActionTokens.Count: not 0 }) {
+				return [];
 			} else {
-				IList<MatchInfo> retval = new List<MatchInfo>();
+				IList<MatchInfo> retval = [];
 				listAppend(retval, partialMatches);
 				return retval;
 			}
@@ -99,25 +93,24 @@ namespace Deveel.CSharpCC.Parser {
 
 		public static IList<MatchInfo> genFollowSet(IList<MatchInfo> partialMatches, Expansion exp, long generation) {
 			if (exp.MyGeneration == generation) {
-				return new List<MatchInfo>();
+				return [];
 			}
 
 			exp.MyGeneration = generation;
 			if (exp.Parent == null) {
-				IList<MatchInfo> retval = new List<MatchInfo>();
+				IList<MatchInfo> retval = [];
 				listAppend(retval, partialMatches);
 				return retval;
-			} else if (exp.Parent is NormalProduction) {
-				IList<NonTerminal> parents = ((NormalProduction) exp.Parent).Parents;
-				IList<MatchInfo> retval = new List<MatchInfo>();
+			} else if (exp.Parent is NormalProduction parentNormalProduction) {
+				IList<NonTerminal> parents = parentNormalProduction.Parents;
+				IList<MatchInfo> retval = [];
 				//System.out.println("1; gen: " + generation + "; exp: " + exp);
 				for (int i = 0; i < parents.Count; i++) {
 					IList<MatchInfo> v = genFollowSet(partialMatches, parents[i], generation);
 					listAppend(retval, v);
 				}
 				return retval;
-			} else if (exp.Parent is Sequence) {
-				Sequence seq = (Sequence) exp.Parent;
+			} else if (exp.Parent is Sequence seq) {
 				IList<MatchInfo> v = partialMatches;
 				for (int i = exp.Ordinal + 1; i < seq.Units.Count; i++) {
 					v = genFirstSet(v, seq.Units[i]);
@@ -125,8 +118,8 @@ namespace Deveel.CSharpCC.Parser {
 						return v;
 				}
 
-				IList<MatchInfo> v1 = new List<MatchInfo>();
-				IList<MatchInfo> v2 = new List<MatchInfo>();
+				IList<MatchInfo> v1 = [];
+				IList<MatchInfo> v2 = [];
 				listSplit(v, partialMatches, v1, v2);
 				if (v1.Count != 0) {
 					//System.out.println("2; gen: " + generation + "; exp: " + exp);
@@ -138,9 +131,8 @@ namespace Deveel.CSharpCC.Parser {
 				}
 				listAppend(v2, v1);
 				return v2;
-			} else if (exp.Parent is OneOrMore || 
-				exp.Parent is ZeroOrMore) {
-				IList<MatchInfo> moreMatches = new List<MatchInfo>();
+			} else if (exp.Parent is OneOrMore or ZeroOrMore) {
+				IList<MatchInfo> moreMatches = [];
 				listAppend(moreMatches, partialMatches);
 				IList<MatchInfo> v = partialMatches;
 				while (true) {
@@ -150,8 +142,8 @@ namespace Deveel.CSharpCC.Parser {
 					listAppend(moreMatches, v);
 				}
 
-				IList<MatchInfo> v1 = new List<MatchInfo>();
-				IList<MatchInfo> v2 = new List<MatchInfo>();
+				IList<MatchInfo> v1 = [];
+				IList<MatchInfo> v2 = [];
 				listSplit(moreMatches, partialMatches, v1, v2);
 				if (v1.Count != 0) {
 					//System.out.println("4; gen: " + generation + "; exp: " + exp);

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Deveel.CSharpCC.Parser {
 	public class ZeroOrMore : Expansion {
-		public Expansion Expansion { get; private set; }
+		public Expansion Expansion { get; }
 
 		public ZeroOrMore(Token token, Expansion expansion) {
 			Line = token.beginLine;

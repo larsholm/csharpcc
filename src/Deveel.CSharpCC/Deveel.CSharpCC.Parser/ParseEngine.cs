@@ -12,21 +12,20 @@ namespace Deveel.CSharpCC.Parser {
         private static bool cc2LA;
 
         private static IDictionary<Expansion, Phase3Data> phase3table = new Dictionary<Expansion, Phase3Data>();
-        private static IList<Phase3Data> phase3list = new List<Phase3Data>();
+        private static IList<Phase3Data> phase3list = [];
 
         private static IDictionary<string, NormalProduction> productionTable = new Dictionary<string, NormalProduction>();
 
         private static bool CodeCheck(Expansion exp) {
             if (exp is RegularExpression)
                 return false;
-            if (exp is NonTerminal) {
-                NormalProduction prod = ((NonTerminal) exp).Production;
+            if (exp is NonTerminal nonTerminal) {
+                NormalProduction prod = nonTerminal.Production;
                 if (prod is CodeProduction)
                     return true;
                 return CodeCheck(prod.Expansion);
             }
-            if (exp is Choice) {
-                Choice ch = (Choice) exp;
+            if (exp is Choice ch) {
                 foreach (var choice in ch.Choices) {
                     if (CodeCheck(choice)) {
                         return true;
@@ -34,10 +33,9 @@ namespace Deveel.CSharpCC.Parser {
                 }
                 return false;
             }
-            if (exp is Sequence) {
-                Sequence seq = (Sequence) exp;
+            if (exp is Sequence seq) {
                 foreach (var unit in seq.Units) {
-                    if (unit is Lookahead && ((Lookahead) unit).IsExplicit) {
+                    if (unit is Lookahead { IsExplicit: true }) {
                         // An explicit lookahead (rather than one generated implicitly). Assume
                         // the user knows what he / she is doing, e.g.
                         //    "A" ( "B" | LOOKAHEAD("X") jcode() | "C" )* "D"
@@ -50,23 +48,13 @@ namespace Deveel.CSharpCC.Parser {
                 }
                 return false;
             }
-            if (exp is OneOrMore) {
-                OneOrMore om = (OneOrMore) exp;
-                return CodeCheck(om.Expansion);
-            }
-            if (exp is ZeroOrMore) {
-                ZeroOrMore zm = (ZeroOrMore) exp;
-                return CodeCheck(zm.Expansion);
-            }
-            if (exp is ZeroOrOne) {
-                ZeroOrOne zo = (ZeroOrOne) exp;
-                return CodeCheck(zo.Expansion);
-            }
-            if (exp is TryBlock) {
-                TryBlock tb = (TryBlock) exp;
-                return CodeCheck(tb.Expansion);
-            }
-            return false;
+            return exp switch {
+                OneOrMore oneOrMore => CodeCheck(oneOrMore.Expansion),
+                ZeroOrMore zeroOrMore => CodeCheck(zeroOrMore.Expansion),
+                ZeroOrOne zeroOrOne => CodeCheck(zeroOrOne.Expansion),
+                TryBlock tryBlock => CodeCheck(tryBlock.Expansion),
+                _ => false
+            };
         }
 
         private static bool[] firstSet;
@@ -79,21 +67,18 @@ namespace Deveel.CSharpCC.Parser {
          */
 
         private static void GenFirstSet(Expansion exp) {
-            if (exp is RegularExpression) {
-                firstSet[((RegularExpression) exp).Ordinal] = true;
-            } else if (exp is NonTerminal) {
-                if (!(((NonTerminal) exp).Production is CodeProduction)) {
-                    GenFirstSet(((NonTerminal) exp).Production.Expansion);
+            if (exp is RegularExpression regularExpression) {
+                firstSet[regularExpression.Ordinal] = true;
+            } else if (exp is NonTerminal nonTerminal) {
+                if (nonTerminal.Production is not CodeProduction) {
+                    GenFirstSet(nonTerminal.Production.Expansion);
                 }
-            } else if (exp is Choice) {
-                Choice ch = (Choice) exp;
+            } else if (exp is Choice ch) {
                 foreach (var expansion in ch.Choices) {
                     GenFirstSet(expansion);
                 }
-            } else if (exp is Sequence) {
-                Sequence seq = (Sequence) exp;
-                Object obj = seq.Units[0];
-                if ((obj is Lookahead) && (((Lookahead) obj).ActionTokens.Count != 0)) {
+            } else if (exp is Sequence seq) {
+                if (seq.Units[0] is Lookahead { ActionTokens.Count: not 0 }) {
                     cc2LA = true;
                 }
                 for (int i = 0; i < seq.Units.Count; i++) {
@@ -101,9 +86,8 @@ namespace Deveel.CSharpCC.Parser {
                     // Javacode productions can not have FIRST sets. Instead we generate the FIRST set
                     // for the preceding LOOKAHEAD (the semantic checks should have made sure that
                     // the LOOKAHEAD is suitable).
-                    if (unit is NonTerminal && ((NonTerminal) unit).Production is CodeProduction) {
-                        if (i > 0 && seq.Units[i - 1] is Lookahead) {
-                            Lookahead la = (Lookahead) seq.Units[i - 1];
+                    if (unit is NonTerminal { Production: CodeProduction }) {
+                        if (i > 0 && seq.Units[i - 1] is Lookahead la) {
                             GenFirstSet(la.Expansion);
                         }
                     } else {
@@ -113,17 +97,13 @@ namespace Deveel.CSharpCC.Parser {
                         break;
                     }
                 }
-            } else if (exp is OneOrMore) {
-                OneOrMore om = (OneOrMore) exp;
+            } else if (exp is OneOrMore om) {
                 GenFirstSet(om.Expansion);
-            } else if (exp is ZeroOrMore) {
-                ZeroOrMore zm = (ZeroOrMore) exp;
+            } else if (exp is ZeroOrMore zm) {
                 GenFirstSet(zm.Expansion);
-            } else if (exp is ZeroOrOne) {
-                ZeroOrOne zo = (ZeroOrOne) exp;
+            } else if (exp is ZeroOrOne zo) {
                 GenFirstSet(zo.Expansion);
-            } else if (exp is TryBlock) {
-                TryBlock tb = (TryBlock) exp;
+            } else if (exp is TryBlock tb) {
                 GenFirstSet(tb.Expansion);
             }
         }
@@ -453,92 +433,86 @@ namespace Deveel.CSharpCC.Parser {
             Token t = null;
             Lookahead[] conds;
             String[] actions;
-            if (e is RegularExpression) {
-                RegularExpression e_nrw = (RegularExpression) e;
+            if (e is RegularExpression regularExpression) {
                 retval += "\n";
-                if (e_nrw.LhsTokens.Count != 0) {
-                    CSharpCCGlobals.PrintTokenSetup(e_nrw.LhsTokens[0]);
-                    foreach (var token in e_nrw.LhsTokens) {
+                if (regularExpression.LhsTokens.Count != 0) {
+                    CSharpCCGlobals.PrintTokenSetup(regularExpression.LhsTokens[0]);
+                    foreach (var token in regularExpression.LhsTokens) {
                         t = token;
                         retval += CSharpCCGlobals.PrintToken(t);
                     }
                     retval += CSharpCCGlobals.PrintTrailingComments(t);
                     retval += " = ";
                 }
-                String tail = e_nrw.RhsToken == null ? ");" : ")." + e_nrw.RhsToken.image + ";";
-                if (e_nrw.Label.Equals("")) {
+                String tail = regularExpression.RhsToken == null ? ");" : ")." + regularExpression.RhsToken.image + ";";
+                if (regularExpression.Label.Equals("")) {
                     string label;
-                    if (CSharpCCGlobals.names_of_tokens.TryGetValue(e_nrw.Ordinal, out label)) {
+                    if (CSharpCCGlobals.names_of_tokens.TryGetValue(regularExpression.Ordinal, out label)) {
                         retval += "cc_consume_token(" + label + tail;
                     } else {
-                        retval += "cc_consume_token(" + e_nrw.Ordinal + tail;
+                        retval += "cc_consume_token(" + regularExpression.Ordinal + tail;
                     }
                 } else {
-                    retval += "cc_consume_token(" + e_nrw.Label + tail;
+                    retval += "cc_consume_token(" + regularExpression.Label + tail;
                 }
-            } else if (e is NonTerminal) {
-                NonTerminal e_nrw = (NonTerminal) e;
+            } else if (e is NonTerminal nonTerminal) {
                 retval += "\n";
-                if (e_nrw.LhsTokens.Count != 0) {
-                    CSharpCCGlobals.PrintTokenSetup(e_nrw.LhsTokens[0]);
-                    foreach (var token in e_nrw.LhsTokens) {
+                if (nonTerminal.LhsTokens.Count != 0) {
+                    CSharpCCGlobals.PrintTokenSetup(nonTerminal.LhsTokens[0]);
+                    foreach (var token in nonTerminal.LhsTokens) {
                         t = token;
                         retval += CSharpCCGlobals.PrintToken(t);
                     }
                     retval += CSharpCCGlobals.PrintTrailingComments(t);
                     retval += " = ";
                 }
-                retval += e_nrw.Name + "(";
-                if (e_nrw.ArgumentTokens.Count != 0) {
-                    CSharpCCGlobals.PrintTokenSetup(e_nrw.ArgumentTokens[0]);
-                    foreach (var token in e_nrw.ArgumentTokens) {
+                retval += nonTerminal.Name + "(";
+                if (nonTerminal.ArgumentTokens.Count != 0) {
+                    CSharpCCGlobals.PrintTokenSetup(nonTerminal.ArgumentTokens[0]);
+                    foreach (var token in nonTerminal.ArgumentTokens) {
                         t = token;
                         retval += CSharpCCGlobals.PrintToken(t);
                     }
                     retval += CSharpCCGlobals.PrintTrailingComments(t);
                 }
                 retval += ");";
-            } else if (e is Action) {
-                Action e_nrw = (Action) e;
+            } else if (e is Action action) {
                 retval += "\u0003\n";
-                if (e_nrw.ActionTokens.Count != 0) {
-                    CSharpCCGlobals.PrintTokenSetup(e_nrw.ActionTokens[0]);
+                if (action.ActionTokens.Count != 0) {
+                    CSharpCCGlobals.PrintTokenSetup(action.ActionTokens[0]);
                     CSharpCCGlobals.ccol = 1;
-                    foreach (var token in e_nrw.ActionTokens) {
+                    foreach (var token in action.ActionTokens) {
                         t = token;
                         retval += CSharpCCGlobals.PrintToken(t);
                     }
                     retval += CSharpCCGlobals.PrintTrailingComments(t);
                 }
                 retval += "\u0004";
-            } else if (e is Choice) {
-                Choice e_nrw = (Choice) e;
-                conds = new Lookahead[e_nrw.Choices.Count];
-                actions = new String[e_nrw.Choices.Count + 1];
-                actions[e_nrw.Choices.Count] = "\n" + "cc_consume_token(-1);\n" + "throw new ParseException();";
+            } else if (e is Choice choice) {
+                conds = new Lookahead[choice.Choices.Count];
+                actions = new String[choice.Choices.Count + 1];
+                actions[choice.Choices.Count] = "\n" + "cc_consume_token(-1);\n" + "throw new ParseException();";
                 // In previous line, the "throw" never throws an exception since the
                 // evaluation of cc_consume_token(-1) causes ParseException to be
                 // thrown first.
                 Sequence nestedSeq;
-                for (int i = 0; i < e_nrw.Choices.Count; i++) {
-                    nestedSeq = (Sequence) (e_nrw.Choices[i]);
+                for (int i = 0; i < choice.Choices.Count; i++) {
+                    nestedSeq = (Sequence) (choice.Choices[i]);
                     actions[i] = phase1ExpansionGen(nestedSeq);
                     conds[i] = (Lookahead) (nestedSeq.Units[0]);
                 }
                 retval = buildLookaheadChecker(conds, actions);
-            } else if (e is Sequence) {
-                Sequence e_nrw = (Sequence) e;
+            } else if (e is Sequence sequence) {
                 // We skip the first element in the following iteration since it is the
                 // Lookahead object.
-                foreach (var unit in e_nrw.Units) {
+                foreach (var unit in sequence.Units) {
                     retval += phase1ExpansionGen(unit);
                 }
-            } else if (e is OneOrMore) {
-                OneOrMore e_nrw = (OneOrMore) e;
-                Expansion nested_e = e_nrw.Expansion;
+            } else if (e is OneOrMore oneOrMore) {
+                Expansion nested_e = oneOrMore.Expansion;
                 Lookahead la;
-                if (nested_e is Sequence) {
-                    la = (Lookahead) (((Sequence) nested_e).Units[0]);
+                if (nested_e is Sequence nestedSequence) {
+                    la = (Lookahead) (nestedSequence.Units[0]);
                 } else {
                     la = new Lookahead();
                     la.Amount = Options.getLookahead();
@@ -556,12 +530,11 @@ namespace Deveel.CSharpCC.Parser {
                 retval += buildLookaheadChecker(conds, actions);
                 retval += "\u0002\n" + "}";
                 retval += "label_" + labelIndex + ":;\n";
-            } else if (e is ZeroOrMore) {
-                ZeroOrMore e_nrw = (ZeroOrMore) e;
-                Expansion nested_e = e_nrw.Expansion;
+            } else if (e is ZeroOrMore zeroOrMore) {
+                Expansion nested_e = zeroOrMore.Expansion;
                 Lookahead la;
-                if (nested_e is Sequence) {
-                    la = (Lookahead) (((Sequence) nested_e).Units[0]);
+                if (nested_e is Sequence nestedSequence) {
+                    la = (Lookahead) (nestedSequence.Units[0]);
                 } else {
                     la = new Lookahead();
                     la.Amount = Options.getLookahead();
@@ -579,12 +552,11 @@ namespace Deveel.CSharpCC.Parser {
                 retval += phase1ExpansionGen(nested_e);
                 retval += "\u0002\n" + "}";
                 retval += "label_" + labelIndex + ":;\n";
-            } else if (e is ZeroOrOne) {
-                ZeroOrOne e_nrw = (ZeroOrOne) e;
-                Expansion nested_e = e_nrw.Expansion;
+            } else if (e is ZeroOrOne zeroOrOne) {
+                Expansion nested_e = zeroOrOne.Expansion;
                 Lookahead la;
-                if (nested_e is Sequence) {
-                    la = (Lookahead) (((Sequence) nested_e).Units[0]);
+                if (nested_e is Sequence nestedSequence) {
+                    la = (Lookahead) (nestedSequence.Units[0]);
                 } else {
                     la = new Lookahead();
                     la.Amount = Options.getLookahead();
@@ -596,17 +568,16 @@ namespace Deveel.CSharpCC.Parser {
                 actions[0] = phase1ExpansionGen(nested_e);
                 actions[1] = "\n;";
                 retval += buildLookaheadChecker(conds, actions);
-            } else if (e is TryBlock) {
-                TryBlock e_nrw = (TryBlock) e;
-                Expansion nested_e = e_nrw.Expansion;
+            } else if (e is TryBlock tryBlock) {
+                Expansion nested_e = tryBlock.Expansion;
                 IList<Token> list;
                 retval += "\n";
                 retval += "try {\u0001";
                 retval += phase1ExpansionGen(nested_e);
                 retval += "\u0002\n" + "}";
-                for (int i = 0; i < e_nrw.CatchBlocks.Count; i++) {
+                for (int i = 0; i < tryBlock.CatchBlocks.Count; i++) {
                     retval += " catch (";
-                    list = e_nrw.Types[i];
+                    list = tryBlock.Types[i];
                     if (list.Count != 0) {
                         CSharpCCGlobals.PrintTokenSetup(list[0]);
                         foreach (var token in list) {
@@ -616,12 +587,12 @@ namespace Deveel.CSharpCC.Parser {
                         retval += CSharpCCGlobals.PrintTrailingComments(t);
                     }
                     retval += " ";
-                    t = e_nrw.Ids[i];
+                    t = tryBlock.Ids[i];
                     CSharpCCGlobals.PrintTokenSetup(t);
                     retval += CSharpCCGlobals.PrintToken(t);
                     retval += CSharpCCGlobals.PrintTrailingComments(t);
                     retval += ") {\u0003\n";
-                    list = e_nrw.CatchBlocks[i];
+                    list = tryBlock.CatchBlocks[i];
                     if (list.Count != 0) {
                         CSharpCCGlobals.PrintTokenSetup(list[0]);
                         CSharpCCGlobals.ccol = 1;
@@ -633,12 +604,12 @@ namespace Deveel.CSharpCC.Parser {
                     }
                     retval += "\u0004\n" + "}";
                 }
-                if (e_nrw.FinallyBlocks != null) {
+                if (tryBlock.FinallyBlocks != null) {
                     retval += " finally {\u0003\n";
-                    if (e_nrw.FinallyBlocks.Count != 0) {
-                        CSharpCCGlobals.PrintTokenSetup(e_nrw.FinallyBlocks[0]);
+                    if (tryBlock.FinallyBlocks.Count != 0) {
+                        CSharpCCGlobals.PrintTokenSetup(tryBlock.FinallyBlocks[0]);
                         CSharpCCGlobals.ccol = 1;
-                        foreach (var token in e_nrw.FinallyBlocks) {
+                        foreach (var token in tryBlock.FinallyBlocks) {
                             t = token;
                             retval += CSharpCCGlobals.PrintToken(t);
                         }
@@ -660,7 +631,7 @@ namespace Deveel.CSharpCC.Parser {
                 ostr.WriteLine("    finally { cc_save(" + (Int32.Parse(e.InternalName.Substring(1), CultureInfo.InvariantCulture) - 1) + ", xla); }");
             ostr.WriteLine("  }");
             ostr.WriteLine("");
-            Phase3Data p3d = new Phase3Data(e, la.Amount);
+            Phase3Data p3d = new(e, la.Amount);
             phase3list.Add(p3d);
             phase3table[e] = p3d;
         }
@@ -687,11 +658,10 @@ namespace Deveel.CSharpCC.Parser {
             Expansion seq = e;
             if (e.InternalName.Equals("")) {
                 while (true) {
-                    if (seq is Sequence && ((Sequence) seq).Units.Count == 2) {
-                        seq = ((Sequence) seq).Units[1];
-                    } else if (seq is NonTerminal) {
-                        NonTerminal e_nrw = (NonTerminal) seq;
-                        NormalProduction ntprod = productionTable[e_nrw.Name];
+                    if (seq is Sequence { Units.Count: 2 } sequenceExpansion) {
+                        seq = sequenceExpansion.Units[1];
+                    } else if (seq is NonTerminal nonTerminal) {
+                        NormalProduction ntprod = productionTable[nonTerminal.Name];
                         if (ntprod is CodeProduction) {
                             break; // nothing to do here
                         } else {
@@ -709,8 +679,7 @@ namespace Deveel.CSharpCC.Parser {
                 gensymindex++;
                 e.InternalName = "R_" + gensymindex;
             }
-            Phase3Data p3d;
-            if (!phase3table.TryGetValue(e, out p3d) ||
+            if (!phase3table.TryGetValue(e, out var p3d) ||
                 p3d.Count < inf.Count) {
                 p3d = new Phase3Data(e, inf.Count);
                 phase3list.Add(p3d);
@@ -722,47 +691,40 @@ namespace Deveel.CSharpCC.Parser {
             Expansion e = inf.Expansion;
             if (e is RegularExpression) {
                 ; // nothing to here
-            } else if (e is NonTerminal) {
+            } else if (e is NonTerminal nonTerminal) {
                 // All expansions of non-terminals have the "name" fields set.  So
-                // there's no need to check it below for "e_nrw" and "ntexp".  In
+                // there's no need to check it below for "nonTerminal" and "ntexp".  In
                 // fact, we rely here on the fact that the "name" fields of both these
                 // variables are the same.
-                NonTerminal e_nrw = (NonTerminal) e;
-                NormalProduction ntprod = productionTable[e_nrw.Name];
+                NormalProduction ntprod = productionTable[nonTerminal.Name];
                 if (ntprod is CodeProduction) {
                     ; // nothing to do here
                 } else {
                     generate3R(ntprod.Expansion, inf);
                 }
-            } else if (e is Choice) {
-                Choice e_nrw = (Choice) e;
-                for (int i = 0; i < e_nrw.Choices.Count; i++) {
-                    generate3R(e_nrw.Choices[i], inf);
+            } else if (e is Choice choice) {
+                for (int i = 0; i < choice.Choices.Count; i++) {
+                    generate3R(choice.Choices[i], inf);
                 }
-            } else if (e is Sequence) {
-                Sequence e_nrw = (Sequence) e;
+            } else if (e is Sequence sequence) {
                 // We skip the first element in the following iteration since it is the
                 // Lookahead object.
                 int cnt = inf.Count;
-                for (int i = 1; i < e_nrw.Units.Count; i++) {
-                    Expansion eseq = e_nrw.Units[i];
+                for (int i = 1; i < sequence.Units.Count; i++) {
+                    Expansion eseq = sequence.Units[i];
                     setupPhase3Builds(new Phase3Data(eseq, cnt));
                     cnt -= minimumSize(eseq);
                     if (cnt <= 0)
                         break;
                 }
-            } else if (e is TryBlock) {
-                TryBlock e_nrw = (TryBlock) e;
-                setupPhase3Builds(new Phase3Data(e_nrw.Expansion, inf.Count));
-            } else if (e is OneOrMore) {
-                OneOrMore e_nrw = (OneOrMore) e;
-                generate3R(e_nrw.Expansion, inf);
-            } else if (e is ZeroOrMore) {
-                ZeroOrMore e_nrw = (ZeroOrMore) e;
-                generate3R(e_nrw.Expansion, inf);
-            } else if (e is ZeroOrOne) {
-                ZeroOrOne e_nrw = (ZeroOrOne) e;
-                generate3R(e_nrw.Expansion, inf);
+            } else if (e is TryBlock tryBlock) {
+                setupPhase3Builds(new Phase3Data(tryBlock.Expansion, inf.Count));
+            } else if (e is OneOrMore oneOrMore) {
+                generate3R(oneOrMore.Expansion, inf);
+            } else if (e is ZeroOrMore zeroOrMore) {
+                generate3R(zeroOrMore.Expansion, inf);
+            } else if (e is ZeroOrOne zeroOrOne) {
+                generate3R(zeroOrOne.Expansion, inf);
             }
         }
 
@@ -779,54 +741,51 @@ namespace Deveel.CSharpCC.Parser {
             if (!recursive_call) {
                 ostr.WriteLine("  private " + CSharpCCGlobals.staticOpt() + "bool cc_3" + e.InternalName + "() {");
                 xsp_declared = false;
-                if (Options.getDebugLookahead() && e.Parent is NormalProduction) {
+                if (Options.getDebugLookahead() && e.Parent is NormalProduction parentNormalProduction) {
                     ostr.Write("    ");
                     if (Options.getErrorReporting()) {
                         ostr.Write("if (!cc_rescan) ");
                     }
-                    ostr.WriteLine("trace_call(\"" + ((NormalProduction) e.Parent).Lhs + "(LOOKING AHEAD...)\");");
+                    ostr.WriteLine("trace_call(\"" + parentNormalProduction.Lhs + "(LOOKING AHEAD...)\");");
                     cc3_expansion = e;
                 } else {
                     cc3_expansion = null;
                 }
             }
-            if (e is RegularExpression) {
-                RegularExpression e_nrw = (RegularExpression) e;
-                if (e_nrw.Label.Equals("")) {
+            if (e is RegularExpression regularExpression) {
+                if (regularExpression.Label.Equals("")) {
                     string label;
-                    if (CSharpCCGlobals.names_of_tokens.TryGetValue(e_nrw.Ordinal, out label)) {
+                    if (CSharpCCGlobals.names_of_tokens.TryGetValue(regularExpression.Ordinal, out label)) {
                         ostr.WriteLine("    if (cc_scan_token(" + label + ")) " + genReturn(true));
                     } else {
-                        ostr.WriteLine("    if (cc_scan_token(" + e_nrw.Ordinal + ")) " + genReturn(true));
+                        ostr.WriteLine("    if (cc_scan_token(" + regularExpression.Ordinal + ")) " + genReturn(true));
                     }
                 } else {
-                    ostr.WriteLine("    if (cc_scan_token(" + e_nrw.Label + ")) " + genReturn(true));
+                    ostr.WriteLine("    if (cc_scan_token(" + regularExpression.Label + ")) " + genReturn(true));
                 }
-            } else if (e is NonTerminal) {
+            } else if (e is NonTerminal nonTerminal) {
                 // All expansions of non-terminals have the "name" fields set.  So
-                // there's no need to check it below for "e_nrw" and "ntexp".  In
+                // there's no need to check it below for "nonTerminal" and "ntexp".  In
                 // fact, we rely here on the fact that the "name" fields of both these
                 // variables are the same.
-                NonTerminal e_nrw = (NonTerminal) e;
-                NormalProduction ntprod = productionTable[e_nrw.Name];
+                NormalProduction ntprod = productionTable[nonTerminal.Name];
                 if (ntprod is CodeProduction) {
                     ostr.WriteLine("    if (true) { cc_la = 0; cc_scanpos = cc_lastpos; " + genReturn(false) + "}");
                 } else {
                     Expansion ntexp = ntprod.Expansion;
                     ostr.WriteLine("    if (" + gencc_3Call(ntexp) + ") " + genReturn(true));
                 }
-            } else if (e is Choice) {
+            } else if (e is Choice choice) {
                 Sequence nested_seq;
-                Choice e_nrw = (Choice) e;
-                if (e_nrw.Choices.Count != 1) {
+                if (choice.Choices.Count != 1) {
                     if (!xsp_declared) {
                         xsp_declared = true;
                         ostr.WriteLine("    Token xsp;");
                     }
                     ostr.WriteLine("    xsp = cc_scanpos;");
                 }
-                for (int i = 0; i < e_nrw.Choices.Count; i++) {
-                    nested_seq = (Sequence) (e_nrw.Choices[i]);
+                for (int i = 0; i < choice.Choices.Count; i++) {
+                    nested_seq = (Sequence) (choice.Choices[i]);
                     Lookahead la = (Lookahead) (nested_seq.Units[0]);
                     if (la.ActionTokens.Count != 0) {
                         // We have semantic lookahead that must be evaluated.
@@ -846,62 +805,57 @@ namespace Deveel.CSharpCC.Parser {
                     if (la.ActionTokens.Count != 0) {
                         ostr.Write("!cc_semLA || ");
                     }
-                    if (i != e_nrw.Choices.Count - 1) {
+                    if (i != choice.Choices.Count - 1) {
                         ostr.WriteLine(gencc_3Call(nested_seq) + ") {");
                         ostr.WriteLine("    cc_scanpos = xsp;");
                     } else {
                         ostr.WriteLine(gencc_3Call(nested_seq) + ") " + genReturn(true));
                     }
                 }
-                for (int i = 1; i < e_nrw.Choices.Count; i++) {
+                for (int i = 1; i < choice.Choices.Count; i++) {
                     ostr.WriteLine("    }");
                 }
-            } else if (e is Sequence) {
-                Sequence e_nrw = (Sequence) e;
+            } else if (e is Sequence sequence) {
                 // We skip the first element in the following iteration since it is the
                 // Lookahead object.
                 int cnt = inf.Count;
-                for (int i = 1; i < e_nrw.Units.Count; i++) {
-                    Expansion eseq = (Expansion) (e_nrw.Units[i]);
+                for (int i = 1; i < sequence.Units.Count; i++) {
+                    Expansion eseq = (Expansion) (sequence.Units[i]);
                     buildPhase3Routine(new Phase3Data(eseq, cnt), true);
 
                     cnt -= minimumSize(eseq);
                     if (cnt <= 0)
                         break;
                 }
-            } else if (e is TryBlock) {
-                TryBlock e_nrw = (TryBlock) e;
-                buildPhase3Routine(new Phase3Data(e_nrw.Expansion, inf.Count), true);
-            } else if (e is OneOrMore) {
+            } else if (e is TryBlock tryBlock) {
+                buildPhase3Routine(new Phase3Data(tryBlock.Expansion, inf.Count), true);
+            } else if (e is OneOrMore oneOrMore) {
                 if (!xsp_declared) {
                     xsp_declared = true;
                     ostr.WriteLine("    Token xsp;");
                 }
-                OneOrMore e_nrw = (OneOrMore) e;
-                Expansion nested_e = e_nrw.Expansion;
+                Expansion nested_e = oneOrMore.Expansion;
                 ostr.WriteLine("    if (" + gencc_3Call(nested_e) + ") " + genReturn(true));
                 ostr.WriteLine("    while (true) {");
                 ostr.WriteLine("      xsp = cc_scanpos;");
                 ostr.WriteLine("      if (" + gencc_3Call(nested_e) + ") { cc_scanpos = xsp; break; }");
                 ostr.WriteLine("    }");
-            } else if (e is ZeroOrMore) {
+            } else if (e is ZeroOrMore zeroOrMore) {
                 if (!xsp_declared) {
                     xsp_declared = true;
                     ostr.WriteLine("    Token xsp;");
                 }
-                ZeroOrMore e_nrw = (ZeroOrMore) e;
-                Expansion nested_e = e_nrw.Expansion;
+                Expansion nested_e = zeroOrMore.Expansion;
                 ostr.WriteLine("    while (true) {");
                 ostr.WriteLine("      xsp = cc_scanpos;");
                 ostr.WriteLine("      if (" + gencc_3Call(nested_e) + ") { cc_scanpos = xsp; break; }");
                 ostr.WriteLine("    }");
-            } else if (e is ZeroOrOne) {
+            } else if (e is ZeroOrOne zeroOrOne) {
                 if (!xsp_declared) {
                     xsp_declared = true;
                     ostr.WriteLine("    Token xsp;");
                 }
-                ZeroOrOne e_nrw = (ZeroOrOne) e;
-                Expansion nested_e = e_nrw.Expansion;
+                Expansion nested_e = zeroOrOne.Expansion;
                 ostr.WriteLine("    xsp = cc_scanpos;");
                 ostr.WriteLine("    if (" + gencc_3Call(nested_e) + ") cc_scanpos = xsp;");
             }
@@ -926,9 +880,8 @@ namespace Deveel.CSharpCC.Parser {
             e.IsMinimumSize = true;
             if (e is RegularExpression) {
                 retval = 1;
-            } else if (e is NonTerminal) {
-                NonTerminal e_nrw = (NonTerminal) e;
-                NormalProduction ntprod = productionTable[e_nrw.Name];
+            } else if (e is NonTerminal nonTerminal) {
+                NormalProduction ntprod = productionTable[nonTerminal.Name];
                 if (ntprod is CodeProduction) {
                     retval = Int32.MaxValue;
                     // Make caller think this is unending (for we do not go beyond JAVACODE during
@@ -937,24 +890,22 @@ namespace Deveel.CSharpCC.Parser {
                     Expansion ntexp = ntprod.Expansion;
                     retval = minimumSize(ntexp);
                 }
-            } else if (e is Choice) {
+            } else if (e is Choice choice) {
                 int min = oldMin;
                 Expansion nested_e;
-                Choice e_nrw = (Choice) e;
-                for (int i = 0; min > 1 && i < e_nrw.Choices.Count; i++) {
-                    nested_e = e_nrw.Choices[i];
+                for (int i = 0; min > 1 && i < choice.Choices.Count; i++) {
+                    nested_e = choice.Choices[i];
                     int min1 = minimumSize(nested_e, min);
                     if (min > min1)
                         min = min1;
                 }
                 retval = min;
-            } else if (e is Sequence) {
+            } else if (e is Sequence sequence) {
                 int min = 0;
-                Sequence e_nrw = (Sequence) e;
                 // We skip the first element in the following iteration since it is the
                 // Lookahead object.
-                for (int i = 1; i < e_nrw.Units.Count; i++) {
-                    Expansion eseq = e_nrw.Units[i];
+                for (int i = 1; i < sequence.Units.Count; i++) {
+                    Expansion eseq = sequence.Units[i];
                     int mineseq = minimumSize(eseq);
                     if (min == Int32.MaxValue || 
                         mineseq == Int32.MaxValue) {
@@ -966,19 +917,11 @@ namespace Deveel.CSharpCC.Parser {
                     }
                 }
                 retval = min;
-            } else if (e is TryBlock) {
-                TryBlock e_nrw = (TryBlock) e;
-                retval = minimumSize(e_nrw.Expansion);
-            } else if (e is OneOrMore) {
-                OneOrMore e_nrw = (OneOrMore) e;
-                retval = minimumSize(e_nrw.Expansion);
-            } else if (e is ZeroOrMore) {
-                retval = 0;
-            } else if (e is ZeroOrOne) {
-                retval = 0;
-            } else if (e is Lookahead) {
-                retval = 0;
-            } else if (e is Action) {
+            } else if (e is TryBlock tryBlock) {
+                retval = minimumSize(tryBlock.Expansion);
+            } else if (e is OneOrMore oneOrMore) {
+                retval = minimumSize(oneOrMore.Expansion);
+            } else if (e is ZeroOrMore or ZeroOrOne or Lookahead or Action) {
                 retval = 0;
             }
             e.IsMinimumSize = false;
@@ -986,14 +929,12 @@ namespace Deveel.CSharpCC.Parser {
         }
 
 	    internal static void build(TextWriter ps) {
-            CodeProduction jp;
             Token t = null;
 
             ostr = ps;
 
             foreach (var p in CSharpCCGlobals.bnfproductions) {
-                if (p is CodeProduction) {
-                    jp = (CodeProduction) p;
+                if (p is CodeProduction jp) {
                     t = jp.ReturnTypeTokens[0];
                     CSharpCCGlobals.PrintTokenSetup(t);
                     CSharpCCGlobals.ccol = 1;
@@ -1058,22 +999,17 @@ namespace Deveel.CSharpCC.Parser {
             gensymindex = 0;
             indentamt = 0;
             cc2LA = false;
-            phase2list = new List<Lookahead>();
-            phase3list = new List<Phase3Data>();
+            phase2list = [];
+            phase3list = [];
             phase3table = new Dictionary<Expansion, Phase3Data>();
             firstSet = null;
             xsp_declared = false;
             cc3_expansion = null;
         }
 
-        private class Phase3Data {
-            public Expansion Expansion;
-            public int Count;
-
-            public Phase3Data(Expansion expansion, int count) {
-                Expansion = expansion;
-                Count = count;
-            }
+        private class Phase3Data(Expansion expansion, int count) {
+            public Expansion Expansion { get; } = expansion;
+            public int Count { get; } = count;
         }
     }
 }

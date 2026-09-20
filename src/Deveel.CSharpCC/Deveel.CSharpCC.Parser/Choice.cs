@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Deveel.CSharpCC.Parser {
 	public class Choice : Expansion {
-		private readonly IList<Expansion> choices = new List<Expansion>();
+		private readonly IList<Expansion> choices = [];
 
 		public Choice() {
 		}
@@ -21,9 +21,7 @@ namespace Deveel.CSharpCC.Parser {
 			choices.Add(expansion);
 		}
 
-		public IList<Expansion> Choices {
-			get { return choices; }
-		}
+		public IList<Expansion> Choices => choices;
 
 		public override StringBuilder Dump(int indent, IList alreadyDumped) {
 			StringBuilder sb = base.Dump(indent, alreadyDumped);

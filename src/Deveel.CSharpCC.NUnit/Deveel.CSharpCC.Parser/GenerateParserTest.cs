@@ -112,49 +112,47 @@ namespace Deveel.CSharpCC.Parser {
 			Options.SetCmdLineOption("STATIC=false");
 		}
 
-		private string MakeUpGrammar() {
-			var sb = new StringBuilder();
-			sb.AppendLine("PARSER_BEGIN(SimpleParser)");
-			sb.AppendLine("namespace Deveel.CSharpCC.Parser;");
-			sb.AppendLine();
-			sb.AppendLine("using System;");
-			sb.AppendLine();
-			sb.AppendLine("public class SimpleParser {");
-			sb.AppendLine("}");
-			sb.AppendLine();
-			sb.AppendLine("PARSER_END(SimpleParser)");
-			sb.AppendLine();
-			sb.AppendLine("TOKEN: {");
-			sb.AppendLine("< READ: \"read\" > |");
-			sb.AppendLine("< AND: \"and\" > |");
-			sb.AppendLine("< PRINT: \"print\" >");
-			sb.AppendLine("}");
-			sb.AppendLine();
-			sb.AppendLine("SKIP: {");
-			sb.AppendLine("\" \" |");
-			sb.AppendLine("\"\\t\"");
-			sb.AppendLine("}");
-			sb.AppendLine();
-			sb.AppendLine("MORE: {");
-			sb.AppendLine("\"/*\" : IN_MULTI_LINE_COMMENT");
-			sb.AppendLine("}");
-			sb.AppendLine();
-			sb.AppendLine("<IN_MULTI_LINE_COMMENT>");
-			sb.AppendLine("SPECIAL_TOKEN: {");
-			sb.AppendLine("<MULTI_LINE_COMMENT: \"*/\" > : DEFAULT");
-			sb.AppendLine("}");
-			sb.AppendLine();
-			sb.AppendLine("TOKEN: {");
-			sb.AppendLine("< STRING_LITERAL: \"'\" ( \"''\" | \"\\\\\" [\"a\"-\"z\", \"\\\\\", \"%\", \"_\", \"'\"] | ~[\"'\",\"\\\\\"] )* \"'\" >");
-			sb.AppendLine("}");
-			sb.AppendLine();
-			sb.AppendLine("void Input() :");
-			sb.AppendLine("{ Token t; string line; }");
-			sb.AppendLine("{");
-			sb.AppendLine("\"READ\" \"AND\" \"PRINT\" t = <STRING_LITERAL> { line = t.Image; } <EOF>");
-			sb.AppendLine("{ Console.Out.WriteLine(line); }");
-			sb.AppendLine("}");
-			return sb.ToString();
-		}
+        private string MakeUpGrammar() => """
+            PARSER_BEGIN(SimpleParser)
+            namespace Deveel.CSharpCC.Parser;
+
+            using System;
+
+            public class SimpleParser {
+            }
+
+            PARSER_END(SimpleParser)
+
+            TOKEN: {
+            < READ: "read" > |
+            < AND: "and" > |
+            < PRINT: "print" >
+            }
+
+            SKIP: {
+            " " |
+            "\t"
+            }
+
+            MORE: {
+            "/*" : IN_MULTI_LINE_COMMENT
+            }
+
+            <IN_MULTI_LINE_COMMENT>
+            SPECIAL_TOKEN: {
+            <MULTI_LINE_COMMENT: "*/" > : DEFAULT
+            }
+
+            TOKEN: {
+            < STRING_LITERAL: "'" ( "''" | "\\" ["a"-"z", "\\", "%", "_", "'"] | ~["'","\\"] )* "'" >
+            }
+
+            void Input() :
+            { Token t; string line; }
+            {
+            "READ" "AND" "PRINT" t = <STRING_LITERAL> { line = t.Image; } <EOF>
+            { Console.Out.WriteLine(line); }
+            }
+            """.ReplaceLineEndings(Environment.NewLine) + Environment.NewLine;
 	}
 }

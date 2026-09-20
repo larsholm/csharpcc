@@ -13,7 +13,7 @@ namespace Deveel.CSharpCC.Parser {
 		public ZeroOrOne() {
 		}
 
-		public Expansion Expansion { get; private set; }
+		public Expansion Expansion { get; }
 
 		public override StringBuilder Dump(int indent, IList alreadyDumped) {
 			StringBuilder sb = base.Dump(indent, alreadyDumped);

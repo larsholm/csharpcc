@@ -4,8 +4,8 @@ using System.Collections.Generic;
 
 namespace Deveel.CSharpCC.Parser {
     public class Semanticize {
-        private static IList<IList<RegExprSpec>> removeList = new List<IList<RegExprSpec>>();
-        private static IList<RegExprSpec> itemList = new List<RegExprSpec>();
+        private static IList<IList<RegExprSpec>> removeList = [];
+        private static IList<RegExprSpec> itemList = [];
 
         public static RegularExpression other;
 
@@ -128,7 +128,7 @@ namespace Deveel.CSharpCC.Parser {
             foreach (var tp in CSharpCCGlobals.rexprlist) {
                 IList<RegExprSpec> respecs = tp.RegexSpecs;
                 foreach (var res in respecs) {
-                    if (!(res.RegularExpression is RJustName) &&
+                    if (res.RegularExpression is not RJustName &&
                         !String.IsNullOrEmpty(res.RegularExpression.Label)) {
                         string s = res.RegularExpression.Label;
                         if (CSharpCCGlobals.named_tokens_table.ContainsKey(s))
@@ -177,8 +177,7 @@ namespace Deveel.CSharpCC.Parser {
 	            }
 
 	            foreach (var res in respecs) {
-                    if (res.RegularExpression is RStringLiteral) {
-                        RStringLiteral sl = (RStringLiteral) res.RegularExpression;
+                    if (res.RegularExpression is RStringLiteral sl) {
                         // This loop performs the checks and actions with respect to each lexical state.
                         for (int i = 0; i < table.Length; i++) {
                             // Get table of all case variants of "sl.Image" into table2.
@@ -264,12 +263,12 @@ namespace Deveel.CSharpCC.Parser {
                                 }
                             }
                         }
-                    } else if (!(res.RegularExpression is RJustName))
+                    } else if (res.RegularExpression is not RJustName)
                         res.RegularExpression.Ordinal = CSharpCCGlobals.tokenCount++;
-                    if (!(res.RegularExpression is RJustName) &&
+                    if (res.RegularExpression is not RJustName &&
                         !String.IsNullOrEmpty(res.RegularExpression.Label))
                         CSharpCCGlobals.names_of_tokens[res.RegularExpression.Ordinal] = res.RegularExpression.Label;
-                    if (!(res.RegularExpression is RJustName))
+                    if (res.RegularExpression is not RJustName)
                         CSharpCCGlobals.rexps_of_tokens[res.RegularExpression.Ordinal] = res.RegularExpression;
                 }
             }
@@ -317,8 +316,7 @@ namespace Deveel.CSharpCC.Parser {
                 foreach (var tp in CSharpCCGlobals.rexprlist) {
                     IList<RegExprSpec> respecs = tp.RegexSpecs;
                     foreach (var res in respecs) {
-                        if (res.RegularExpression is RJustName) {
-                            RJustName jn = (RJustName) res.RegularExpression;
+                        if (res.RegularExpression is RJustName jn) {
                             RegularExpression rexp;
                             if (!CSharpCCGlobals.named_tokens_table.TryGetValue(jn.Label, out rexp)) {
                                 jn.Ordinal = CSharpCCGlobals.tokenCount++;
@@ -465,9 +463,9 @@ namespace Deveel.CSharpCC.Parser {
 		
 
         private static void addLeftMost(NormalProduction prod, Expansion exp) {
-            if (exp is NonTerminal) {
+            if (exp is NonTerminal nonTerminal) {
                 for (int i = 0; i < prod.LeIndex; i++) {
-                    if (prod.LeftExpansions[i] == ((NonTerminal) exp).Production)
+                    if (prod.LeftExpansions[i] == nonTerminal.Production)
                         return;
                 }
                 if (prod.LeIndex == prod.LeftExpansions.Length) {
@@ -475,24 +473,24 @@ namespace Deveel.CSharpCC.Parser {
                     Array.Copy(prod.LeftExpansions, 0, newle, 0, prod.LeIndex);
                     prod.LeftExpansions = newle;
                 }
-                prod.LeftExpansions[prod.LeIndex++] = ((NonTerminal) exp).Production;
-            } else if (exp is OneOrMore)
-                addLeftMost(prod, ((OneOrMore) exp).Expansion);
-            else if (exp is ZeroOrMore)
-                addLeftMost(prod, ((ZeroOrMore) exp).Expansion);
-            else if (exp is ZeroOrOne)
-                addLeftMost(prod, ((ZeroOrOne) exp).Expansion);
-            else if (exp is Choice) {
-                foreach (var choice in ((Choice) exp).Choices)
+                prod.LeftExpansions[prod.LeIndex++] = nonTerminal.Production;
+            } else if (exp is OneOrMore oneOrMore)
+                addLeftMost(prod, oneOrMore.Expansion);
+            else if (exp is ZeroOrMore zeroOrMore)
+                addLeftMost(prod, zeroOrMore.Expansion);
+            else if (exp is ZeroOrOne zeroOrOne)
+                addLeftMost(prod, zeroOrOne.Expansion);
+            else if (exp is Choice choiceExpansion) {
+                foreach (var choice in choiceExpansion.Choices)
                     addLeftMost(prod, choice);
-            } else if (exp is Sequence) {
-                foreach (var unit in ((Sequence) exp).Units) {
+            } else if (exp is Sequence sequenceExpansion) {
+                foreach (var unit in sequenceExpansion.Units) {
                     addLeftMost(prod, unit);
                     if (!EmptyExpansionExists(unit))
                         break;
                 }
-            } else if (exp is TryBlock)
-                addLeftMost(prod, ((TryBlock) exp).Expansion);
+            } else if (exp is TryBlock tryBlock)
+                addLeftMost(prod, tryBlock.Expansion);
         }
 
         private static bool prodWalk(NormalProduction prod) {
@@ -528,8 +526,7 @@ namespace Deveel.CSharpCC.Parser {
         }
 
         private static bool rexpWalk(RegularExpression rexp) {
-            if (rexp is RJustName) {
-                RJustName jn = (RJustName) rexp;
+            if (rexp is RJustName jn) {
                 if (jn.RegularExpression.WalkStatus == -1) {
                     jn.RegularExpression.WalkStatus = -2;
                     loopString = "..." + jn.RegularExpression.Label + "...";
@@ -554,63 +551,63 @@ namespace Deveel.CSharpCC.Parser {
                         return false;
                     }
                 }
-            } else if (rexp is RChoice) {
-                foreach (var choice in ((RChoice) rexp).Choices) {
+            } else if (rexp is RChoice rChoice) {
+                foreach (var choice in rChoice.Choices) {
                     if (rexpWalk(choice))
                         return true;
                 }
                 return false;
-            } else if (rexp is RSequence) {
-                foreach (var unit in ((RSequence) rexp).Units) {
+            } else if (rexp is RSequence rSequence) {
+                foreach (var unit in rSequence.Units) {
                     if (rexpWalk(unit))
                         return true;
                 }
                 return false;
-            } else if (rexp is ROneOrMore)
-                return rexpWalk(((ROneOrMore) rexp).RegularExpression);
-            else if (rexp is RZeroOrMore)
-                return rexpWalk(((RZeroOrMore) rexp).RegularExpression);
-            else if (rexp is RZeroOrOne)
-                return rexpWalk(((RZeroOrOne) rexp).RegularExpression);
-            else if (rexp is RRepetitionRange)
-                return rexpWalk(((RRepetitionRange) rexp).RegularExpression);
+            } else if (rexp is ROneOrMore rOneOrMore)
+                return rexpWalk(rOneOrMore.RegularExpression);
+            else if (rexp is RZeroOrMore rZeroOrMore)
+                return rexpWalk(rZeroOrMore.RegularExpression);
+            else if (rexp is RZeroOrOne rZeroOrOne)
+                return rexpWalk(rZeroOrOne.RegularExpression);
+            else if (rexp is RRepetitionRange rRepetitionRange)
+                return rexpWalk(rRepetitionRange.RegularExpression);
             return false;
         }
 
         public static void reInit() {
-			removeList = new List<IList<RegExprSpec>>();
-			itemList = new List<RegExprSpec>();
+			removeList = [];
+			itemList = [];
 			other = null;
 			loopString = null;
         }
 
         public static bool EmptyExpansionExists(Expansion expansion) {
-            if (expansion is NonTerminal)
-                return ((NonTerminal) expansion).Production.IsEmptyPossible;
+            if (expansion is NonTerminal nonTerminal)
+                return nonTerminal.Production.IsEmptyPossible;
             else if (expansion is Action)
                 return true;
             else if (expansion is RegularExpression)
                 return false;
-            else if (expansion is OneOrMore)
-                return EmptyExpansionExists(((OneOrMore) expansion).Expansion);
-            else if (expansion is ZeroOrMore || expansion is ZeroOrOne)
+            else if (expansion is OneOrMore oneOrMore)
+                return EmptyExpansionExists(oneOrMore.Expansion);
+            else if (expansion is ZeroOrMore or ZeroOrOne)
                 return true;
             else if (expansion is Lookahead)
                 return true;
-            else if (expansion is Choice) {
-                foreach (var choice in ((Choice) expansion).Choices) {
+            else if (expansion is Choice choiceExpansion) {
+                foreach (var choice in choiceExpansion.Choices) {
                     if (EmptyExpansionExists(choice))
                         return true;
                 }
                 return false;
-            } else if (expansion is Sequence) {
-                foreach (var unit in ((Sequence) expansion).Units) {
+            } else if (expansion is Sequence sequenceExpansion) {
+                foreach (var unit in sequenceExpansion.Units) {
                     if (!EmptyExpansionExists(unit))
                         return false;
                 }
                 return true;
-            } else if (expansion is TryBlock)
-                return EmptyExpansionExists(((TryBlock) expansion).Expansion);
+            } else if (expansion is TryBlock tryBlock)
+                return EmptyExpansionExists(tryBlock.Expansion);
             else
                 return false; // This should be dead code.
         }
@@ -625,8 +622,7 @@ namespace Deveel.CSharpCC.Parser {
             }
 
             public void Action(Expansion e) {
-                if (e is RJustName) {
-                    RJustName jn = (RJustName) e;
+                if (e is RJustName jn) {
                     RegularExpression rexp;
                     if (!CSharpCCGlobals.named_tokens_table.TryGetValue(jn.Label, out rexp))
                         CSharpCCErrors.SemanticError(e, "Undefined lexical token name \"" + jn.Label + "\".");
@@ -653,31 +649,29 @@ namespace Deveel.CSharpCC.Parser {
 
         private class LookaheadFixer : ITreeWalkerOp {
             public bool GoDeeper(Expansion e) {
-                return !(e is RegularExpression);
+                return e is not RegularExpression;
             }
 
             public void Action(Expansion e) {
-                if (e is Sequence) {
-                    if (e.Parent is Choice || e.Parent is ZeroOrMore ||
-                        e.Parent is OneOrMore || e.Parent is ZeroOrOne)
+                if (e is Sequence seq) {
+                    if (e.Parent is Choice or ZeroOrMore or OneOrMore or ZeroOrOne)
                         return;
-                    Sequence seq = (Sequence) e;
                     Lookahead la = (Lookahead) (seq.Units[0]);
                     if (!la.IsExplicit)
                         return;
 
                     // Create a singleton choice with an empty action.
-                    Choice ch = new Choice();
+                    Choice ch = new();
                     ch.Line = la.Line;
                     ch.Column = la.Column;
                     ch.Parent = seq;
-                    Sequence seq1 = new Sequence();
+                    Sequence seq1 = new();
                     seq1.Line = la.Line;
                     seq1.Column = la.Column;
                     seq1.Parent = ch;
                     seq1.Units.Add(la);
                     la.Parent = seq1;
-                    Action act = new Action();
+                    Action act = new();
                     act.Line = la.Line;
                     act.Column = la.Column;
                     act.Parent = seq1;
@@ -693,7 +687,7 @@ namespace Deveel.CSharpCC.Parser {
                     }
                     // Now we have moved the lookahead into the singleton choice.  Now create
                     // a new dummy lookahead node to replace this one at its original location.
-                    Lookahead la1 = new Lookahead();
+                    Lookahead la1 = new();
                     la1.IsExplicit = false;
                     la1.Line = la.Line;
                     la1.Column = la.Column;
@@ -713,12 +707,11 @@ namespace Deveel.CSharpCC.Parser {
 
         private class ProductionDefinedChecker : ITreeWalkerOp {
             public bool GoDeeper(Expansion e) {
-                return !(e is RegularExpression);
+                return e is not RegularExpression;
             }
 
             public void Action(Expansion e) {
-                if (e is NonTerminal) {
-                    NonTerminal nt = (NonTerminal) e;
+                if (e is NonTerminal nt) {
                     NormalProduction prod;
                     if (!CSharpCCGlobals.production_table.TryGetValue(nt.Name, out prod))
                         CSharpCCErrors.SemanticError(e, "Non-terminal " + nt.Name + " has not been defined.");
@@ -736,18 +729,18 @@ namespace Deveel.CSharpCC.Parser {
 
         private class EmptyChecker : ITreeWalkerOp {
             public bool GoDeeper(Expansion e) {
-                return !(e is RegularExpression);
+                return e is not RegularExpression;
             }
 
             public void Action(Expansion e) {
-                if (e is OneOrMore) {
-                    if (Semanticize.EmptyExpansionExists(((OneOrMore) e).Expansion))
+                if (e is OneOrMore oneOrMore) {
+                    if (Semanticize.EmptyExpansionExists(oneOrMore.Expansion))
                         CSharpCCErrors.SemanticError(e, "Expansion within \"(...)+\" can be matched by empty string.");
-                } else if (e is ZeroOrMore) {
-                    if (Semanticize.EmptyExpansionExists(((ZeroOrMore) e).Expansion))
+                } else if (e is ZeroOrMore zeroOrMore) {
+                    if (Semanticize.EmptyExpansionExists(zeroOrMore.Expansion))
                         CSharpCCErrors.SemanticError(e, "Expansion within \"(...)*\" can be matched by empty string.");
-                } else if (e is ZeroOrOne) {
-                    if (Semanticize.EmptyExpansionExists(((ZeroOrOne) e).Expansion))
+                } else if (e is ZeroOrOne zeroOrOne) {
+                    if (Semanticize.EmptyExpansionExists(zeroOrOne.Expansion))
                         CSharpCCErrors.SemanticError(e, "Expansion within \"(...)?\" can be matched by empty string.");
                 }
             }
@@ -759,37 +752,29 @@ namespace Deveel.CSharpCC.Parser {
 
         private class LookaheadChecker : ITreeWalkerOp {
             public bool GoDeeper(Expansion e) {
-                return !(e is RegularExpression) && !(e is Lookahead);
+                return e is not (RegularExpression or Lookahead);
             }
 
             public void Action(Expansion e) {
-                if (e is Choice) {
+                if (e is Choice choiceExpansion) {
                     if (Options.getLookahead() == 1 || Options.getForceLaCheck())
-                        LookaheadCalc.choiceCalc((Choice) e);
-                } else if (e is OneOrMore) {
-                    OneOrMore exp = (OneOrMore) e;
-                    if (Options.getForceLaCheck() || (implicitLA(exp.Expansion) && Options.getLookahead() == 1))
-                        LookaheadCalc.ebnfCalc(exp, exp.Expansion);
-                } else if (e is ZeroOrMore) {
-                    ZeroOrMore exp = (ZeroOrMore) e;
-                    if (Options.getForceLaCheck() || (implicitLA(exp.Expansion) && Options.getLookahead() == 1))
-                        LookaheadCalc.ebnfCalc(exp, exp.Expansion);
-                } else if (e is ZeroOrOne) {
-                    ZeroOrOne exp = (ZeroOrOne) e;
-                    if (Options.getForceLaCheck() || (implicitLA(exp.Expansion) && Options.getLookahead() == 1))
-                        LookaheadCalc.ebnfCalc(exp, exp.Expansion);
+                        LookaheadCalc.choiceCalc(choiceExpansion);
+                } else if (e is OneOrMore oneOrMore) {
+                    if (Options.getForceLaCheck() || (implicitLA(oneOrMore.Expansion) && Options.getLookahead() == 1))
+                        LookaheadCalc.ebnfCalc(oneOrMore, oneOrMore.Expansion);
+                } else if (e is ZeroOrMore zeroOrMore) {
+                    if (Options.getForceLaCheck() || (implicitLA(zeroOrMore.Expansion) && Options.getLookahead() == 1))
+                        LookaheadCalc.ebnfCalc(zeroOrMore, zeroOrMore.Expansion);
+                } else if (e is ZeroOrOne zeroOrOne) {
+                    if (Options.getForceLaCheck() || (implicitLA(zeroOrOne.Expansion) && Options.getLookahead() == 1))
+                        LookaheadCalc.ebnfCalc(zeroOrOne, zeroOrOne.Expansion);
                 }
             }
 
             private static bool implicitLA(Expansion exp) {
-                if (!(exp is Sequence))
+                if (exp is not Sequence seq)
                     return true;
-                Sequence seq = (Sequence) exp;
-                Object obj = seq.Units[0];
-                if (!(obj is Lookahead))
-                    return true;
-                Lookahead la = (Lookahead) obj;
-                return !la.IsExplicit;
+                return seq.Units[0] is not Lookahead { IsExplicit: true };
             }
         }
 
