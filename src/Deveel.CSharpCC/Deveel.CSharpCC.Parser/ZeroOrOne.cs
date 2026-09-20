@@ -10,6 +10,7 @@ namespace Deveel.CSharpCC.Parser {
 			Line = token.beginLine;
 			Column = token.beginColumn;
 			Expansion = expansion;
+			Expansion.Parent = this;
 		}
 
 		public ZeroOrOne() {

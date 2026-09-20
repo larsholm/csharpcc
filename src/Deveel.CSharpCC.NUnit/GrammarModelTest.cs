@@ -10,6 +10,19 @@ namespace Deveel.CSharpCC.NUnit;
 [TestFixture]
 [NonParallelizable]
 public class GrammarModelTest {
+    [TestCase("é", "\\u00e9")]
+    [TestCase("\u0001", "\\u0001")]
+    [TestCase("😀", "\\ud83d\\ude00")]
+    public void EscapingPreservesNonAsciiUtf16CodeUnits(string value, string expected) {
+        Assert.That(CSharpCCGlobals.AddEscapes(value), Is.EqualTo(expected));
+        Assert.That(CSharpCCGlobals.AddUnicodeEscapes(value), Is.EqualTo(expected));
+    }
+
+    [Test]
+    public void UnicodeEscapingAlsoHandlesBackslashes() {
+        Assert.That(CSharpCCGlobals.AddUnicodeEscapes("a\\b"), Is.EqualTo("a\\u005cb"));
+    }
+
     [Test]
     public void ProductionRelationshipsAndCallTokensStartEmpty() {
         var production = new BnfProduction();

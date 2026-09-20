@@ -113,6 +113,48 @@ public class GenerationRegressionTest(bool modernOutput) {
         await Expect(fixture, " [hello]", "[hello]");
     }
 
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task OptionalLookaheadKeepsItsParentAndFirstToken(bool isStatic) {
+        const string production = """
+            void Input() : {} { [ LOOKAHEAD(1) "a" ] [ LOOKAHEAD(2) "b" "c" ] <EOF> }
+            """;
+        using var fixture = new ParserFixture { ModernOutput = modernOutput };
+        await fixture.GenerateAndBuild(Header + production, Driver(isStatic), $"STATIC={isStatic}");
+        foreach (string input in new[] { "", "a", "bc", "abc" })
+            await Expect(fixture, input, "ok");
+        foreach (string input in new[] { "b", "c", "bca" })
+            await Expect(fixture, input, "parse-error");
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task NonChoiceLookaheadDoesNotReplaceTheFirstConsumedToken(bool isStatic) {
+        const string production = """
+            void Input() : {} { LOOKAHEAD(2) "a" "b" <EOF> }
+            """;
+        using var fixture = new ParserFixture { ModernOutput = modernOutput };
+        await fixture.GenerateAndBuild(Header + production, Driver(isStatic), $"STATIC={isStatic}");
+        await Expect(fixture, "ab", "ok");
+        await Expect(fixture, "b", "parse-error");
+        await Expect(fixture, "a", "parse-error");
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task OverlappingNfaAlternativesIgnoreRemovedStates(bool isStatic) {
+        const string production = """
+            TOKEN: { < WORD: (["a"-"z"])+ | "a" (["a"-"z"])* > }
+            void Input() : {} { <WORD> <EOF> }
+            """;
+        using var fixture = new ParserFixture { ModernOutput = modernOutput };
+        await fixture.GenerateAndBuild(Header + production, Driver(isStatic), $"STATIC={isStatic}");
+        await Expect(fixture, "abc", "ok");
+        await Expect(fixture, "z", "ok");
+        await Expect(fixture, "", "parse-error");
+        await Expect(fixture, "123", "lexical-error");
+    }
+
     private static string Driver(bool isStatic) => $$"""
         using System;
         using System.IO;

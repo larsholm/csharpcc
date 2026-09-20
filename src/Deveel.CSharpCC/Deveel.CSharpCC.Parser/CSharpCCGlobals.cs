@@ -215,7 +215,7 @@ namespace Deveel.CSharpCC.Parser {
                     retval += "\\\\";
                 } else if (ch < 0x20 || ch > 0x7e) {
                     String s = "0000" + Convert.ToString(ch, 16);
-                    retval += "\\u" + s.Substring(s.Length - 4, s.Length);
+                    retval += "\\u" + s[^4..];
                 } else {
                     retval += ch;
                 }
@@ -230,7 +230,7 @@ namespace Deveel.CSharpCC.Parser {
                 ch = str[i];
                 if (ch < 0x20 || ch > 0x7e || ch == '\\') {
                     String s = "0000" + Convert.ToString(ch, 16);
-                    retval += "\\u" + s.Substring(s.Length - 4, s.Length);
+                    retval += "\\u" + s[^4..];
                 } else {
                     retval += ch;
                 }

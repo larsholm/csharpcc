@@ -1800,9 +1800,8 @@ namespace Deveel.CSharpCC.Parser {
             for (int i = 0; i < allStates.Count; i++) {
                 NfaState temp = allStates[i];
 
-                if (dumped[temp.stateName] || temp.lexState != LexGen.lexStateIndex ||
-                    !temp.HasTransitions() || temp.dummy ||
-                    temp.stateName == -1)
+                if (temp.stateName == -1 || temp.lexState != LexGen.lexStateIndex ||
+                    !temp.HasTransitions() || temp.dummy || dumped[temp.stateName])
                     continue;
 
                 String toPrint = "";

@@ -690,6 +690,7 @@ namespace Deveel.CSharpCC.Parser {
                         } else
                             CSharpCCErrors.Warning(la, "Encountered LOOKAHEAD(...) at a non-choice location.  This will be ignored.");
                     }
+                    la.Amount = 0;
                     // Now we have moved the lookahead into the singleton choice.  Now create
                     // a new dummy lookahead node to replace this one at its original location.
                     Lookahead la1 = new();
@@ -701,7 +702,9 @@ namespace Deveel.CSharpCC.Parser {
                     la.Expansion = new REndOfFile();
                     la1.Expansion = new REndOfFile();
                     seq.Units[0] = la1;
-                    seq.Units[1] = ch;
+                    seq.Units.Insert(1, ch);
+                    for (int i = 1; i < seq.Units.Count; i++)
+                        seq.Units[i].Ordinal = i;
                 }
             }
         }
