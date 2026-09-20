@@ -16,7 +16,7 @@ internal sealed class ParserFixture : IDisposable {
 
     public ParserFixture() => Directory.CreateDirectory(DirectoryPath);
 
-    public async Task GenerateAndBuild(string grammar, string driver, params string[] options) {
+    public async Task<ProcessResult> Generate(string grammar, params string[] options) {
         File.WriteAllText(Path.Combine(DirectoryPath, "Parser.cc"), grammar);
         var repository = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
         while (repository != null && !File.Exists(Path.Combine(repository.FullName, "src", "CSharpCC.sln")))
@@ -31,7 +31,11 @@ internal sealed class ParserFixture : IDisposable {
         for (int i = 0; i < options.Length; i++)
             arguments[i + 2] = "-" + options[i];
         arguments[^1] = Path.Combine(DirectoryPath, "Parser.cc");
-        var generation = await RunProcess(arguments);
+        return await RunProcess(arguments);
+    }
+
+    public async Task GenerateAndBuild(string grammar, string driver, params string[] options) {
+        var generation = await Generate(grammar, options);
         Assert.That(generation.ExitCode, Is.Zero, generation.Output);
 
         File.WriteAllText(Path.Combine(DirectoryPath, "Consumer.csproj"), """

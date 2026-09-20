@@ -1,8 +1,12 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 
 namespace Deveel.CSharpCC.Parser {
     static class ExpansionTreeWalker {
-        public static void PreOrderWalk(Expansion node, ITreeWalkerOp opObj) {
+        public static void PreOrderWalk(Expansion? node, ITreeWalkerOp opObj) {
+            if (node == null)
+                return;
             opObj.Action(node);
             if (opObj.GoDeeper(node)) {
                 if (node is Choice) {
@@ -19,7 +23,7 @@ namespace Deveel.CSharpCC.Parser {
                 } else if (node is ZeroOrOne) {
                     PreOrderWalk(((ZeroOrOne) node).Expansion, opObj);
                 } else if (node is Lookahead) {
-                    Expansion nestedE = ((Lookahead) node).Expansion;
+                    Expansion? nestedE = ((Lookahead) node).Expansion;
                     if (!(nestedE is Sequence && ((Sequence) nestedE).Units[0] == node)) {
                         PreOrderWalk(nestedE, opObj);
                     }
@@ -45,7 +49,9 @@ namespace Deveel.CSharpCC.Parser {
             }
         }
 
-        internal static void PostOrderWalk(Expansion node, ITreeWalkerOp opObj) {
+        internal static void PostOrderWalk(Expansion? node, ITreeWalkerOp opObj) {
+            if (node == null)
+                return;
             if (opObj.GoDeeper(node)) {
                 if (node is Choice) {
                     foreach (var choice in ((Choice)node).Choices) {
@@ -62,7 +68,7 @@ namespace Deveel.CSharpCC.Parser {
                 } else if (node is ZeroOrOne) {
                     PostOrderWalk(((ZeroOrOne) node).Expansion, opObj);
                 } else if (node is Lookahead) {
-                    Expansion nestedE = ((Lookahead) node).Expansion;
+                    Expansion? nestedE = ((Lookahead) node).Expansion;
                     if (!(nestedE is Sequence && ((Sequence) nestedE).Units[0] == node)) {
                         PostOrderWalk(nestedE, opObj);
                     }

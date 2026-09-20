@@ -1,17 +1,19 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace Deveel.CSharpCC.Parser {
 	public static class LookaheadWalk {
 		public static bool considerSemanticLA;
-		public static List<MatchInfo> sizeLimitedMatches;
+		public static List<MatchInfo>? sizeLimitedMatches;
 		public static void reInit() {
 			considerSemanticLA = false;
 			sizeLimitedMatches = null;
 		}
 
-		public static IList<MatchInfo> genFirstSet(IList<MatchInfo> partialMatches, Expansion exp) {
+		public static IList<MatchInfo> genFirstSet(IList<MatchInfo> partialMatches, Expansion? exp) {
 			if (exp is RegularExpression regularExpression) {
 				IList<MatchInfo> retval = [];
 				for (int i = 0; i < partialMatches.Count; i++) {
@@ -23,14 +25,14 @@ namespace Deveel.CSharpCC.Parser {
 					mnew.firstFreeLoc = m.firstFreeLoc;
 					mnew.match[mnew.firstFreeLoc++] = regularExpression.Ordinal;
 					if (mnew.firstFreeLoc == MatchInfo.laLimit) {
-						sizeLimitedMatches.Add(mnew);
+						(sizeLimitedMatches ?? throw new InvalidOperationException("Lookahead matches have not been initialized.")).Add(mnew);
 					} else {
 						retval.Add(mnew);
 					}
 				}
 				return retval;
 			} else if (exp is NonTerminal nonTerminal) {
-				NormalProduction prod = nonTerminal.Production;
+				NormalProduction prod = nonTerminal.ResolvedProduction;
 				if (prod is CodeProduction) {
 					return [];
 				} else {
@@ -97,11 +99,12 @@ namespace Deveel.CSharpCC.Parser {
 			}
 
 			exp.MyGeneration = generation;
-			if (exp.Parent == null) {
+			object? parent = exp.Parent;
+			if (parent == null) {
 				IList<MatchInfo> retval = [];
 				listAppend(retval, partialMatches);
 				return retval;
-			} else if (exp.Parent is NormalProduction parentNormalProduction) {
+			} else if (parent is NormalProduction parentNormalProduction) {
 				IList<NonTerminal> parents = parentNormalProduction.Parents;
 				IList<MatchInfo> retval = [];
 				//System.out.println("1; gen: " + generation + "; exp: " + exp);
@@ -110,7 +113,7 @@ namespace Deveel.CSharpCC.Parser {
 					listAppend(retval, v);
 				}
 				return retval;
-			} else if (exp.Parent is Sequence seq) {
+			} else if (parent is Sequence seq) {
 				IList<MatchInfo> v = partialMatches;
 				for (int i = exp.Ordinal + 1; i < seq.Units.Count; i++) {
 					v = genFirstSet(v, seq.Units[i]);
@@ -131,7 +134,7 @@ namespace Deveel.CSharpCC.Parser {
 				}
 				listAppend(v2, v1);
 				return v2;
-			} else if (exp.Parent is OneOrMore or ZeroOrMore) {
+			} else if (parent is OneOrMore or ZeroOrMore) {
 				IList<MatchInfo> moreMatches = [];
 				listAppend(moreMatches, partialMatches);
 				IList<MatchInfo> v = partialMatches;
@@ -147,17 +150,17 @@ namespace Deveel.CSharpCC.Parser {
 				listSplit(moreMatches, partialMatches, v1, v2);
 				if (v1.Count != 0) {
 					//System.out.println("4; gen: " + generation + "; exp: " + exp);
-					v1 = genFollowSet(v1, (Expansion) exp.Parent, generation);
+					v1 = genFollowSet(v1, (Expansion) parent, generation);
 				}
 				if (v2.Count != 0) {
 					//System.out.println("5; gen: " + generation + "; exp: " + exp);
-					v2 = genFollowSet(v2, (Expansion) exp.Parent, Expansion.NextGenerationIndex++);
+					v2 = genFollowSet(v2, (Expansion) parent, Expansion.NextGenerationIndex++);
 				}
 				listAppend(v2, v1);
 				return v2;
 			} else {
 				//System.out.println("6; gen: " + generation + "; exp: " + exp);
-				return genFollowSet(partialMatches, (Expansion) exp.Parent, generation);
+				return genFollowSet(partialMatches, (Expansion) parent, generation);
 			}
 		}
 

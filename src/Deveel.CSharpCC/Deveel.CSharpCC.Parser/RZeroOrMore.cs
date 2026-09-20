@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 
 namespace Deveel.CSharpCC.Parser {
 	public class RZeroOrMore : RegularExpression {
@@ -11,14 +13,17 @@ namespace Deveel.CSharpCC.Parser {
 		public RZeroOrMore() {
 		}
 
-		public RegularExpression RegularExpression { get; internal set; }
+		public RegularExpression? RegularExpression { get; internal set; }
+
+        internal RegularExpression RequiredExpression => RegularExpression ??
+            throw new InvalidOperationException("RZeroOrMore.RegularExpression has not been initialized.");
 
 		public override Nfa GenerateNfa(bool ignoreCase) {
 			Nfa retVal = new Nfa();
 			NfaState startState = retVal.Start;
 			NfaState finalState = retVal.End;
 
-			Nfa temp = RegularExpression.GenerateNfa(ignoreCase);
+			Nfa temp = RequiredExpression.GenerateRequiredNfa(ignoreCase);
 
 			startState.AddMove(temp.Start);
 			startState.AddMove(finalState);

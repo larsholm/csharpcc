@@ -252,6 +252,14 @@ namespace Deveel.CSharpCC.Parser {
                         maxOrdinal = re.Ordinal + 1;
             }
 
+            // Even an EOF-only grammar needs a lexer state and its empty transition tables.
+            foreach (var stateName in CSharpCCGlobals.lexstate_I2S.Values) {
+                if (!allTpsForState.ContainsKey(stateName)) {
+                    tmpLexStateName[maxLexStates++] = stateName;
+                    allTpsForState[stateName] = new List<TokenProduction>();
+                }
+            }
+
             kinds = new int[maxOrdinal];
             toSkip = new long[maxOrdinal/64 + 1];
             toSpecial = new long[maxOrdinal/64 + 1];

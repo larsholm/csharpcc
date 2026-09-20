@@ -1,7 +1,9 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 
 namespace Deveel.CSharpCC.Parser {
 	public class Container {
-		public object member;
+		public object? member;
 	}
 }

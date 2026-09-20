@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -10,12 +12,12 @@ namespace Deveel.CSharpCC.Parser {
 			// dbl[i] and dbr[i] are lists of size limited matches for choice i
 			// of choice.  dbl ignores matches with semantic lookaheads (when force_la_check
 			// is false), while dbr ignores semantic lookahead.
-			IList<MatchInfo>[] dbl = new IList<MatchInfo>[choice.Choices.Count];
-			IList<MatchInfo>[] dbr = new IList<MatchInfo>[choice.Choices.Count];
+			IList<MatchInfo>?[] dbl = new IList<MatchInfo>?[choice.Choices.Count];
+			IList<MatchInfo>?[] dbr = new IList<MatchInfo>?[choice.Choices.Count];
 			int[] minLA = new int[choice.Choices.Count - 1];
-			MatchInfo[] overlapInfo = new MatchInfo[choice.Choices.Count - 1];
+			MatchInfo?[] overlapInfo = new MatchInfo?[choice.Choices.Count - 1];
 			int[] other = new int[choice.Choices.Count - 1];
-			MatchInfo m;
+			MatchInfo? m;
 			IList<MatchInfo> v;
 			bool overlapDetected;
 			for (int la = 1; la <= Options.getChoiceAmbiguityCheck(); la++) {
@@ -48,7 +50,7 @@ namespace Deveel.CSharpCC.Parser {
 								"This choice can expand to the empty token sequence " +
 								"and will therefore always be taken in favor of the choices appearing later.");
 							break;
-						} else if (CodeCheck(dbl[i])) {
+						} else if (CodeCheck(RequiredMatches(dbl, i))) {
 							CSharpCCErrors.Warning(exp,
 								"CSHARPCODE non-terminal will force this choice to be taken " +
 								"in favor of the choices appearing later.");
@@ -59,7 +61,7 @@ namespace Deveel.CSharpCC.Parser {
 				overlapDetected = false;
 				for (int i = first; i < choice.Choices.Count - 1; i++) {
 					for (int j = i + 1; j < choice.Choices.Count; j++) {
-						if ((m = overlap(dbl[i], dbr[j])) != null) {
+						if ((m = overlap(RequiredMatches(dbl, i), RequiredMatches(dbr, j))) != null) {
 							minLA[i] = la + 1;
 							overlapInfo[i] = m;
 							other[i] = j;
@@ -98,9 +100,9 @@ namespace Deveel.CSharpCC.Parser {
 			}
 		}
 
-		public static void ebnfCalc(Expansion exp, Expansion nested) {
+		public static void ebnfCalc(Expansion exp, Expansion? nested) {
 			// exp is one of OneOrMore, ZeroOrMore, ZeroOrOne
-			MatchInfo m, m1 = null;
+			MatchInfo? m, m1 = null;
 			IList<MatchInfo> v, first, follow;
 			int la;
 			for (la = 1; la <= Options.getOtherAmbiguityCheck(); la++) {
@@ -182,7 +184,9 @@ namespace Deveel.CSharpCC.Parser {
 		}
 
 
-		private static String image(MatchInfo m) {
+		private static String image(MatchInfo? m) {
+            if (m == null)
+                throw new InvalidOperationException("No common lookahead prefix was recorded.");
 			String ret = "";
 			for (int i = 0; i < m.firstFreeLoc; i++) {
 				if (m.match[i] == 0) {
@@ -206,6 +210,9 @@ namespace Deveel.CSharpCC.Parser {
 		}
 
 
+        private static IList<MatchInfo> RequiredMatches(IList<MatchInfo>?[] matches, int index) =>
+            matches[index] ?? throw new InvalidOperationException("Lookahead matches have not been calculated.");
+
 		static bool CodeCheck(IList<MatchInfo> v) {
 			for (int i = 0; i < v.Count; i++) {
 				if (((MatchInfo)v[i]).firstFreeLoc == 0) {
@@ -215,7 +222,7 @@ namespace Deveel.CSharpCC.Parser {
 			return false;
 		}
 
-		static MatchInfo overlap(IList<MatchInfo> v1, IList<MatchInfo> v2) {
+		static MatchInfo? overlap(IList<MatchInfo> v1, IList<MatchInfo> v2) {
 			MatchInfo m1, m2, m3;
 			int size;
 			bool diff;

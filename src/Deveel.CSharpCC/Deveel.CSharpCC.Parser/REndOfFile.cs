@@ -1,8 +1,10 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 
 namespace Deveel.CSharpCC.Parser {
 	public class REndOfFile : RegularExpression {
-		public override Nfa GenerateNfa(bool ignoreCase) {
+		public override Nfa? GenerateNfa(bool ignoreCase) {
 			return null;
 		}
 	}

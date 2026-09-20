@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 
 namespace Deveel.CSharpCC.Parser {
@@ -13,7 +15,7 @@ namespace Deveel.CSharpCC.Parser {
 			CompressCharLists();
 
 			if (choices.Count == 1)
-				return choices[0].GenerateNfa(ignoreCase);
+				return choices[0].GenerateRequiredNfa(ignoreCase);
 
 			Nfa retVal = new Nfa();
 			NfaState startState = retVal.Start;
@@ -23,7 +25,7 @@ namespace Deveel.CSharpCC.Parser {
 				Nfa temp;
 				RegularExpression curRE = choices[i];
 
-				temp = curRE.GenerateNfa(ignoreCase);
+				temp = curRE.GenerateRequiredNfa(ignoreCase);
 
 				startState.AddMove(temp.Start);
 				temp.End.AddMove(finalState);
@@ -35,13 +37,13 @@ namespace Deveel.CSharpCC.Parser {
 		private void CompressCharLists() {
 			CompressChoices(); // Unroll nested choices
 			RegularExpression curRE;
-			RCharacterList curCharList = null;
+			RCharacterList? curCharList = null;
 
 			for (int i = 0; i < choices.Count; i++) {
 				curRE = choices[i];
 
 				while (curRE is RJustName)
-					curRE = ((RJustName) curRE).RegularExpression;
+					curRE = ((RJustName) curRE).RequiredExpression;
 
 				if (curRE is RStringLiteral &&
 				    ((RStringLiteral) curRE).Image.Length == 1)
@@ -72,7 +74,7 @@ namespace Deveel.CSharpCC.Parser {
 				curRE = choices[i];
 
 				while (curRE is RJustName)
-					curRE = ((RJustName) curRE).RegularExpression;
+					curRE = ((RJustName) curRE).RequiredExpression;
 
 				if (curRE is RChoice) {
 					choices.RemoveAt(i--);

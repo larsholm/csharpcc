@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -7,9 +9,9 @@ namespace Deveel.CSharpCC.Parser {
         private static IList<IList<RegExprSpec>> removeList = [];
         private static IList<RegExprSpec> itemList = [];
 
-        public static RegularExpression other;
+        public static RegularExpression? other;
 
-        private static String loopString;
+        private static string? loopString;
 
         private static void prepareToRemove(IList<RegExprSpec> vec, RegExprSpec item) {
             removeList.Add(vec);
@@ -49,10 +51,10 @@ namespace Deveel.CSharpCC.Parser {
      * The following loop populates "production_table"
      */
             foreach (var p in CSharpCCGlobals.bnfproductions) {
-                if (CSharpCCGlobals.production_table.ContainsKey(p.Lhs))
+                if (CSharpCCGlobals.production_table.ContainsKey(p.RequiredName))
                     CSharpCCErrors.SemanticError(p, p.Lhs + " occurs on the left hand side of more than one production.");
                 else
-                    CSharpCCGlobals.production_table[p.Lhs] = p;
+                    CSharpCCGlobals.production_table[p.RequiredName] = p;
             }
 
             /*
@@ -82,36 +84,36 @@ namespace Deveel.CSharpCC.Parser {
                                 "\" has not been defined.");
                         }
                     }
-                    if (res.RegularExpression is REndOfFile) {
-                        //CSharpCCErrors.SemanticError(res.RegularExpression, "Badly placed <EOF>.");
+                    if (res.RequiredExpression is REndOfFile) {
+                        //CSharpCCErrors.SemanticError(res.RequiredExpression, "Badly placed <EOF>.");
                         if (tp.LexStates != null) {
-                            CSharpCCErrors.SemanticError(res.RegularExpression,
+                            CSharpCCErrors.SemanticError(res.RequiredExpression,
                                 "EOF action/state change must be specified for all states, " +
                                 "i.e., <*>TOKEN:.");
                         }
                         if (tp.Kind != TokenProduction.TOKEN) {
-                            CSharpCCErrors.SemanticError(res.RegularExpression,
+                            CSharpCCErrors.SemanticError(res.RequiredExpression,
                                 "EOF action/state change can be specified only in a " +
                                 "TOKEN specification.");
                         }
                         if (CSharpCCGlobals.nextStateForEof != null ||
                             CSharpCCGlobals.actForEof != null)
-                            CSharpCCErrors.SemanticError(res.RegularExpression, "Duplicate action/state change specification for <EOF>.");
+                            CSharpCCErrors.SemanticError(res.RequiredExpression, "Duplicate action/state change specification for <EOF>.");
                         CSharpCCGlobals.actForEof = res.Action;
                         CSharpCCGlobals.nextStateForEof = res.NextState;
                         prepareToRemove(respecs, res);
                     } else if (tp.IsExplicit && Options.getUserTokenManager()) {
-                        CSharpCCErrors.Warning(res.RegularExpression,
+                        CSharpCCErrors.Warning(res.RequiredExpression,
                             "Ignoring regular expression specification since " +
                             "option USER_TOKEN_MANAGER has been set to true.");
-                    } else if (tp.IsExplicit && !Options.getUserTokenManager() && res.RegularExpression is RJustName) {
-                        CSharpCCErrors.Warning(res.RegularExpression,
+                    } else if (tp.IsExplicit && !Options.getUserTokenManager() && res.RequiredExpression is RJustName) {
+                        CSharpCCErrors.Warning(res.RequiredExpression,
                             "Ignoring free-standing regular expression reference.  " +
                             "If you really want this, you must give it a different label as <NEWLABEL:<"
-                            + res.RegularExpression.Label + ">>.");
+                            + res.RequiredExpression.Label + ">>.");
                         prepareToRemove(respecs, res);
-                    } else if (!tp.IsExplicit && res.RegularExpression.IsPrivate) {
-                        CSharpCCErrors.SemanticError(res.RegularExpression,
+                    } else if (!tp.IsExplicit && res.RequiredExpression.IsPrivate) {
+                        CSharpCCErrors.SemanticError(res.RequiredExpression,
                             "Private (#) regular expression cannot be defined within " +
                             "grammar productions.");
                     }
@@ -128,17 +130,17 @@ namespace Deveel.CSharpCC.Parser {
             foreach (var tp in CSharpCCGlobals.rexprlist) {
                 IList<RegExprSpec> respecs = tp.RegexSpecs;
                 foreach (var res in respecs) {
-                    if (res.RegularExpression is not RJustName &&
-                        !String.IsNullOrEmpty(res.RegularExpression.Label)) {
-                        string s = res.RegularExpression.Label;
+                    if (res.RequiredExpression is not RJustName &&
+                        !String.IsNullOrEmpty(res.RequiredExpression.Label)) {
+                        string s = res.RequiredExpression.Label;
                         if (CSharpCCGlobals.named_tokens_table.ContainsKey(s))
-                            CSharpCCErrors.SemanticError(res.RegularExpression, "Multiply defined lexical token name \"" + s + "\".");
+                            CSharpCCErrors.SemanticError(res.RequiredExpression, "Multiply defined lexical token name \"" + s + "\".");
                         else {
-                            CSharpCCGlobals.named_tokens_table[s] = res.RegularExpression;
-                            CSharpCCGlobals.ordered_named_tokens.Add(res.RegularExpression);
+                            CSharpCCGlobals.named_tokens_table[s] = res.RequiredExpression;
+                            CSharpCCGlobals.ordered_named_tokens.Add(res.RequiredExpression);
                         }
                         if (CSharpCCGlobals.lexstate_S2I.ContainsKey(s)) {
-                            CSharpCCErrors.SemanticError(res.RegularExpression,
+                            CSharpCCErrors.SemanticError(res.RequiredExpression,
                                 "Lexical token name \"" + s + "\" is the same as " +
                                 "that of a lexical state.");
                         }
@@ -167,21 +169,18 @@ namespace Deveel.CSharpCC.Parser {
                         tp.LexStates[i++] = value;
                 }
                 var table = new IDictionary<string, IDictionary<string, RegularExpression>>[tp.LexStates.Length];
-	            for (int i = 0; i < tp.LexStates.Length; i++) {
-		            IDictionary<string, IDictionary<string, RegularExpression>> toSet;
-		            if (CSharpCCGlobals.simple_tokens_table.TryGetValue(tp.LexStates[i], out toSet)) {
-			            table[i] = toSet;
-		            } else {
-			            table[i] = null;
-		            }
-	            }
+                for (int i = 0; i < tp.LexStates.Length; i++) {
+                    table[i] = CSharpCCGlobals.simple_tokens_table.TryGetValue(tp.LexStates[i], out var stateTable)
+                        ? stateTable
+                        : throw new InvalidOperationException("No token table exists for lexical state " + tp.LexStates[i] + ".");
+                }
 
 	            foreach (var res in respecs) {
-                    if (res.RegularExpression is RStringLiteral sl) {
+                    if (res.RequiredExpression is RStringLiteral sl) {
                         // This loop performs the checks and actions with respect to each lexical state.
                         for (int i = 0; i < table.Length; i++) {
                             // Get table of all case variants of "sl.Image" into table2.
-                            IDictionary<string, RegularExpression> table2;
+                            IDictionary<string, RegularExpression>? table2;
                             if (!table[i].TryGetValue(sl.Image.ToUpper(), out table2)) {
                                 // There are no case variants of "sl.Image" earlier than the current one.
                                 // So go ahead and insert this item.
@@ -193,7 +192,7 @@ namespace Deveel.CSharpCC.Parser {
                             } else if (hasIgnoreCase(table2, sl.Image)) {
                                 // hasIgnoreCase sets "other" if it is found.
                                 // Since IGNORE_CASE version exists, current one is useless and bad.
-                                if (!sl.TokenProductionContext.IsExplicit) {
+                                if (!sl.ProductionContext.IsExplicit) {
                                     // inline BNF string is used earlier with an IGNORE_CASE.
                                     CSharpCCErrors.SemanticError(sl,
                                         "String \"" + sl.Image + "\" can never be matched " +
@@ -205,7 +204,7 @@ namespace Deveel.CSharpCC.Parser {
                                         "Duplicate definition of string token \"" + sl.Image + "\" " +
                                         "can never be matched.");
                                 }
-                            } else if (sl.TokenProductionContext.IgnoreCase) {
+                            } else if (sl.ProductionContext.IgnoreCase) {
                                 // This has to be explicit.  A warning needs to be given with respect
                                 // to all previous strings.
                                 String pos = "";
@@ -229,7 +228,7 @@ namespace Deveel.CSharpCC.Parser {
                                 // the desired behavior.
                             } else {
                                 // The rest of the cases do not involve IGNORE_CASE.
-                                RegularExpression re;
+                                RegularExpression? re;
                                 if (!table2.TryGetValue(sl.Image, out re)) {
                                     if (sl.Ordinal == 0)
                                         sl.Ordinal = CSharpCCGlobals.tokenCount++;
@@ -243,10 +242,10 @@ namespace Deveel.CSharpCC.Parser {
                                             "Duplicate definition of string token \"" + sl.Image +
                                             "\" in lexical state \"" + tp.LexStates[i] + "\".");
                                     }
-                                } else if (re.TokenProductionContext.Kind != TokenProduction.TOKEN) {
+                                } else if (re.ProductionContext.Kind != TokenProduction.TOKEN) {
                                     CSharpCCErrors.SemanticError(sl,
                                         "String token \"" + sl.Image + "\" has been defined as a \"" +
-                                        TokenProduction.kindImage[re.TokenProductionContext.Kind] + "\" token.");
+                                        TokenProduction.kindImage[re.ProductionContext.Kind] + "\" token.");
                                 } else if (re.IsPrivate) {
                                     CSharpCCErrors.SemanticError(sl,
                                         "String token \"" + sl.Image +
@@ -263,13 +262,13 @@ namespace Deveel.CSharpCC.Parser {
                                 }
                             }
                         }
-                    } else if (res.RegularExpression is not RJustName)
-                        res.RegularExpression.Ordinal = CSharpCCGlobals.tokenCount++;
-                    if (res.RegularExpression is not RJustName &&
-                        !String.IsNullOrEmpty(res.RegularExpression.Label))
-                        CSharpCCGlobals.names_of_tokens[res.RegularExpression.Ordinal] = res.RegularExpression.Label;
-                    if (res.RegularExpression is not RJustName)
-                        CSharpCCGlobals.rexps_of_tokens[res.RegularExpression.Ordinal] = res.RegularExpression;
+                    } else if (res.RequiredExpression is not RJustName)
+                        res.RequiredExpression.Ordinal = CSharpCCGlobals.tokenCount++;
+                    if (res.RequiredExpression is not RJustName &&
+                        !String.IsNullOrEmpty(res.RequiredExpression.Label))
+                        CSharpCCGlobals.names_of_tokens[res.RequiredExpression.Ordinal] = res.RequiredExpression.Label;
+                    if (res.RequiredExpression is not RJustName)
+                        CSharpCCGlobals.rexps_of_tokens[res.RequiredExpression.Ordinal] = res.RequiredExpression;
                 }
             }
 
@@ -291,9 +290,9 @@ namespace Deveel.CSharpCC.Parser {
                 foreach (var tp in CSharpCCGlobals.rexprlist) {
                     IList<RegExprSpec> respecs = tp.RegexSpecs;
                     foreach (var res in respecs) {
-                        frjn.root = res.RegularExpression;
-                        ExpansionTreeWalker.PreOrderWalk(res.RegularExpression, frjn);
-                        if (res.RegularExpression is RJustName)
+                        frjn.root = res.RequiredExpression;
+                        ExpansionTreeWalker.PreOrderWalk(res.RequiredExpression, frjn);
+                        if (res.RequiredExpression is RJustName)
                             prepareToRemove(respecs, res);
                     }
                 }
@@ -316,8 +315,8 @@ namespace Deveel.CSharpCC.Parser {
                 foreach (var tp in CSharpCCGlobals.rexprlist) {
                     IList<RegExprSpec> respecs = tp.RegexSpecs;
                     foreach (var res in respecs) {
-                        if (res.RegularExpression is RJustName jn) {
-                            RegularExpression rexp;
+                        if (res.RequiredExpression is RJustName jn) {
+                            RegularExpression? rexp;
                             if (!CSharpCCGlobals.named_tokens_table.TryGetValue(jn.Label, out rexp)) {
                                 jn.Ordinal = CSharpCCGlobals.tokenCount++;
                                 CSharpCCGlobals.named_tokens_table[jn.Label] = jn;
@@ -345,9 +344,9 @@ namespace Deveel.CSharpCC.Parser {
                 foreach (var tp in CSharpCCGlobals.rexprlist) {
                     IList<RegExprSpec> respecs = tp.RegexSpecs;
                     foreach (var res in respecs) {
-                        int ii = res.RegularExpression.Ordinal;
+                        int ii = res.RequiredExpression.Ordinal;
                         if (!CSharpCCGlobals.names_of_tokens.ContainsKey(ii)) {
-                            CSharpCCErrors.Warning(res.RegularExpression,
+                            CSharpCCErrors.Warning(res.RequiredExpression,
                                 "Unlabeled regular expression cannot be referred to by " +
                                 "user generated token manager.");
                         }
@@ -402,7 +401,7 @@ namespace Deveel.CSharpCC.Parser {
                     foreach (var tp in CSharpCCGlobals.rexprlist) {
                         IList<RegExprSpec> respecs = tp.RegexSpecs;
                         foreach (var res in respecs) {
-                            RegularExpression rexp = res.RegularExpression;
+                            RegularExpression rexp = res.RequiredExpression;
                             if (rexp.WalkStatus == 0) {
                                 rexp.WalkStatus = -1;
                                 if (rexpWalk(rexp)) {
@@ -430,14 +429,15 @@ namespace Deveel.CSharpCC.Parser {
 
 		#endregion
 
-		public static bool hasIgnoreCase(IDictionary<string, RegularExpression> table, String str) {
-            RegularExpression rexp;
+		[System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(other))]
+        public static bool hasIgnoreCase(IDictionary<string, RegularExpression> table, String str) {
+            RegularExpression? rexp;
             if (table.TryGetValue(str, out rexp) &&
-                !rexp.TokenProductionContext.IgnoreCase)
+                !rexp.ProductionContext.IgnoreCase)
                 return false;
             foreach (var regularExpression in table.Values) {
                 rexp = regularExpression;
-                if (rexp.TokenProductionContext.IgnoreCase) {
+                if (rexp.ProductionContext.IgnoreCase) {
                     other = rexp;
                     return true;
                 }
@@ -445,14 +445,15 @@ namespace Deveel.CSharpCC.Parser {
             return false;
         }
 
-		public static bool hasIgnoreCase(Hashtable table, String str) {
-			RegularExpression rexp = null;
-			if ((rexp = (RegularExpression) table[str]) != null &&
-				!rexp.TokenProductionContext.IgnoreCase)
+		[System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(other))]
+        public static bool hasIgnoreCase(Hashtable table, String str) {
+			RegularExpression? rexp = null;
+			if ((rexp = (RegularExpression?) table[str]) != null &&
+				!rexp.ProductionContext.IgnoreCase)
 				return false;
 			foreach (RegularExpression regularExpression in table.Values) {
 				rexp = regularExpression;
-				if (rexp.TokenProductionContext.IgnoreCase) {
+				if (rexp.ProductionContext.IgnoreCase) {
 					other = rexp;
 					return true;
 				}
@@ -462,18 +463,13 @@ namespace Deveel.CSharpCC.Parser {
 
 		
 
-        private static void addLeftMost(NormalProduction prod, Expansion exp) {
+        private static void addLeftMost(NormalProduction prod, Expansion? exp) {
             if (exp is NonTerminal nonTerminal) {
-                for (int i = 0; i < prod.LeIndex; i++) {
-                    if (prod.LeftExpansions[i] == nonTerminal.Production)
+                for (int i = 0; i < prod.LeftExpansions.Count; i++) {
+                    if (prod.LeftExpansions[i] == nonTerminal.ResolvedProduction)
                         return;
                 }
-                if (prod.LeIndex == prod.LeftExpansions.Length) {
-                    NormalProduction[] newle = new NormalProduction[prod.LeIndex*2];
-                    Array.Copy(prod.LeftExpansions, 0, newle, 0, prod.LeIndex);
-                    prod.LeftExpansions = newle;
-                }
-                prod.LeftExpansions[prod.LeIndex++] = nonTerminal.Production;
+                prod.LeftExpansions.Add(nonTerminal.ResolvedProduction);
             } else if (exp is OneOrMore oneOrMore)
                 addLeftMost(prod, oneOrMore.Expansion);
             else if (exp is ZeroOrMore zeroOrMore)
@@ -495,7 +491,7 @@ namespace Deveel.CSharpCC.Parser {
 
         private static bool prodWalk(NormalProduction prod) {
             prod.WalkStatus = -1;
-            for (int i = 0; i < prod.LeIndex; i++) {
+            for (int i = 0; i < prod.LeftExpansions.Count; i++) {
                 if (prod.LeftExpansions[i].WalkStatus == -1) {
                     prod.LeftExpansions[i].WalkStatus = -2;
                     loopString = prod.Lhs + "... --> " + prod.LeftExpansions[i].Lhs + "...";
@@ -527,27 +523,27 @@ namespace Deveel.CSharpCC.Parser {
 
         private static bool rexpWalk(RegularExpression rexp) {
             if (rexp is RJustName jn) {
-                if (jn.RegularExpression.WalkStatus == -1) {
-                    jn.RegularExpression.WalkStatus = -2;
-                    loopString = "..." + jn.RegularExpression.Label + "...";
+                if (jn.RequiredExpression.WalkStatus == -1) {
+                    jn.RequiredExpression.WalkStatus = -2;
+                    loopString = "..." + jn.RequiredExpression.Label + "...";
                     // Note: Only the regexpr's of RJustName nodes and the top leve
                     // regexpr's can have labels.  Hence it is only in these cases that
                     // the labels are checked for to be added to the loopString.
                     return true;
-                } else if (jn.RegularExpression.WalkStatus == 0) {
-                    jn.RegularExpression.WalkStatus = -1;
-                    if (rexpWalk(jn.RegularExpression)) {
-                        loopString = "..." + jn.RegularExpression.Label + "... --> " + loopString;
-                        if (jn.RegularExpression.WalkStatus == -2) {
-                            jn.RegularExpression.WalkStatus = 1;
-                            CSharpCCErrors.SemanticError(jn.RegularExpression, "Loop in regular expression detected: \"" + loopString + "\"");
+                } else if (jn.RequiredExpression.WalkStatus == 0) {
+                    jn.RequiredExpression.WalkStatus = -1;
+                    if (rexpWalk(jn.RequiredExpression)) {
+                        loopString = "..." + jn.RequiredExpression.Label + "... --> " + loopString;
+                        if (jn.RequiredExpression.WalkStatus == -2) {
+                            jn.RequiredExpression.WalkStatus = 1;
+                            CSharpCCErrors.SemanticError(jn.RequiredExpression, "Loop in regular expression detected: \"" + loopString + "\"");
                             return false;
                         } else {
-                            jn.RegularExpression.WalkStatus = 1;
+                            jn.RequiredExpression.WalkStatus = 1;
                             return true;
                         }
                     } else {
-                        jn.RegularExpression.WalkStatus = 1;
+                        jn.RequiredExpression.WalkStatus = 1;
                         return false;
                     }
                 }
@@ -566,11 +562,11 @@ namespace Deveel.CSharpCC.Parser {
             } else if (rexp is ROneOrMore rOneOrMore)
                 return rexpWalk(rOneOrMore.RegularExpression);
             else if (rexp is RZeroOrMore rZeroOrMore)
-                return rexpWalk(rZeroOrMore.RegularExpression);
+                return rexpWalk(rZeroOrMore.RequiredExpression);
             else if (rexp is RZeroOrOne rZeroOrOne)
-                return rexpWalk(rZeroOrOne.RegularExpression);
+                return rexpWalk(rZeroOrOne.RequiredExpression);
             else if (rexp is RRepetitionRange rRepetitionRange)
-                return rexpWalk(rRepetitionRange.RegularExpression);
+                return rexpWalk(rRepetitionRange.RequiredExpression);
             return false;
         }
 
@@ -581,9 +577,9 @@ namespace Deveel.CSharpCC.Parser {
 			loopString = null;
         }
 
-        public static bool EmptyExpansionExists(Expansion expansion) {
+        public static bool EmptyExpansionExists(Expansion? expansion) {
             if (expansion is NonTerminal nonTerminal)
-                return nonTerminal.Production.IsEmptyPossible;
+                return nonTerminal.ResolvedProduction.IsEmptyPossible;
             else if (expansion is Action)
                 return true;
             else if (expansion is RegularExpression)
@@ -615,7 +611,7 @@ namespace Deveel.CSharpCC.Parser {
         #region FixRJustNames
 
         private class FixRJustNames : ITreeWalkerOp {
-            public RegularExpression root;
+            public RegularExpression? root;
 
             public bool GoDeeper(Expansion e) {
                 return true;
@@ -623,15 +619,15 @@ namespace Deveel.CSharpCC.Parser {
 
             public void Action(Expansion e) {
                 if (e is RJustName jn) {
-                    RegularExpression rexp;
+                    RegularExpression? rexp;
                     if (!CSharpCCGlobals.named_tokens_table.TryGetValue(jn.Label, out rexp))
                         CSharpCCErrors.SemanticError(e, "Undefined lexical token name \"" + jn.Label + "\".");
-                    else if (jn == root && !jn.TokenProductionContext.IsExplicit && rexp.IsPrivate) {
+                    else if (jn == root && !jn.ProductionContext.IsExplicit && rexp.IsPrivate) {
                         CSharpCCErrors.SemanticError(e,
                             "Token name \"" + jn.Label + "\" refers to a private " +
                             "(with a #) regular expression.");
-                    } else if (jn == root && !jn.TokenProductionContext.IsExplicit &&
-                               rexp.TokenProductionContext.Kind != TokenProduction.TOKEN) {
+                    } else if (jn == root && !jn.ProductionContext.IsExplicit &&
+                               rexp.ProductionContext.Kind != TokenProduction.TOKEN) {
                         CSharpCCErrors.SemanticError(e,
                             "Token name \"" + jn.Label + "\" refers to a non-token " +
                             "(SKIP, MORE, IGNORE_IN_BNF) regular expression.");
@@ -712,12 +708,12 @@ namespace Deveel.CSharpCC.Parser {
 
             public void Action(Expansion e) {
                 if (e is NonTerminal nt) {
-                    NormalProduction prod;
-                    if (!CSharpCCGlobals.production_table.TryGetValue(nt.Name, out prod))
+                    NormalProduction? prod;
+                    if (!CSharpCCGlobals.production_table.TryGetValue(nt.RequiredName, out prod))
                         CSharpCCErrors.SemanticError(e, "Non-terminal " + nt.Name + " has not been defined.");
                     else {
                         nt.Production = prod;
-                        nt.Production.Parents.Add(nt);
+                        prod.Parents.Add(nt);
                     }
                 }
             }
@@ -771,7 +767,7 @@ namespace Deveel.CSharpCC.Parser {
                 }
             }
 
-            private static bool implicitLA(Expansion exp) {
+            private static bool implicitLA(Expansion? exp) {
                 if (exp is not Sequence seq)
                     return true;
                 return seq.Units[0] is not Lookahead { IsExplicit: true };

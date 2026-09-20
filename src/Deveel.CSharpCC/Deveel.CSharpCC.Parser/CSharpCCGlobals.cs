@@ -18,14 +18,14 @@ namespace Deveel.CSharpCC.Parser {
             ? cu_name + "TokenManager"
             : "tokenSource";
 
-        public static string FileName;
-        public static string OriginalFileName;
+        public static string? FileName;
+        public static string? OriginalFileName;
 
         public static bool TreeGenerated;
 
         public static IList<string> ToolNames = new List<string>();
 
-        public static String cu_name;
+        public static string? cu_name;
         public static IList<Token> cu_to_insertion_point_1 = new List<Token>();
         public static IList<Token> cu_to_insertion_point_2 = new List<Token>();
         public static IList<Token> cu_from_insertion_point_2 = new List<Token>();
@@ -36,7 +36,7 @@ namespace Deveel.CSharpCC.Parser {
         public static IDictionary<string, int> lexstate_S2I = new Dictionary<string, int>();
         public static IDictionary<int, string> lexstate_I2S = new Dictionary<int, string>();
 
-        public static IList<Token> token_mgr_decls;
+        public static IList<Token>? token_mgr_decls;
 
         public static IList<TokenProduction> rexprlist = new List<TokenProduction>();
 
@@ -55,13 +55,13 @@ namespace Deveel.CSharpCC.Parser {
 
         internal static List<int[]> maskVals = new List<int[]>();
 
-        internal static Action actForEof;
-        internal static String nextStateForEof;
+        internal static Action? actForEof;
+        internal static string? nextStateForEof;
         internal static int cline;
         internal static int ccol;
 
         public static void BannerLine(String fullName, String ver) {
-            Console.Out.Write("C# Compiler Compiler Version " + Assembly.GetAssembly(typeof(CSharpCCGlobals)).GetName().Version + " (" + fullName);
+            Console.Out.Write("C# Compiler Compiler Version " + typeof(CSharpCCGlobals).Assembly.GetName().Version + " (" + fullName);
             if (!ver.Equals("")) {
                 Console.Out.Write(" Version " + ver);
             }
@@ -143,7 +143,7 @@ namespace Deveel.CSharpCC.Parser {
 
         public static IList<string> GetToolNames(string fileName) {
             char[] buf = new char[256];
-            StreamReader stream = null;
+            StreamReader? stream = null;
             int read, total = 0;
 
             try {
@@ -282,7 +282,7 @@ namespace Deveel.CSharpCC.Parser {
         }
 
         internal static void PrintTokenList(IList<Token> list, TextWriter ostr) {
-            Token t = null;
+            Token? t = null;
             foreach (Token token in list) {
                 t = token;
                 PrintToken(t, ostr);
@@ -309,8 +309,8 @@ namespace Deveel.CSharpCC.Parser {
             }
         }
 
-        internal static void PrintTrailingComments(Token t, TextWriter ostr) {
-            if (t.next == null)
+        internal static void PrintTrailingComments(Token? t, TextWriter ostr) {
+            if (t?.next == null)
                 return;
             PrintLeadingComments(t.next);
         }
@@ -373,8 +373,8 @@ namespace Deveel.CSharpCC.Parser {
             return retval;
         }
 
-        internal static String PrintTrailingComments(Token t) {
-            if (t.next == null)
+        internal static String PrintTrailingComments(Token? t) {
+            if (t?.next == null)
                 return "";
             return PrintLeadingComments(t.next);
         }

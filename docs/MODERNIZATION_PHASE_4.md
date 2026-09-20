@@ -1,8 +1,9 @@
 # Phase 4 progress: nullable analysis and resource ownership
 
-Status: the utility/CLI and ownership batch is implemented. Phase 4 remains in
-progress until the grammar model and generation engine have been migrated and
-nullable analysis can be enabled across the core project.
+Status: the utility/CLI and ownership batch and the grammar-model, semantic, and
+lookahead batch are implemented. Phase 4 remains in progress until the generation
+engine and shared state have been migrated and nullable analysis can be enabled
+across the core project with an explicit bootstrap-source policy.
 
 ## Nullable contracts
 
@@ -45,7 +46,7 @@ casts past the compiler. Required utility inputs are checked at their boundaries
 intentional; `CSharpFiles` follows that protocol. Edited support files retain
 their existing preservation behavior.
 
-## Verification
+## Utility/CLI batch verification
 
 Verified locally on Linux with .NET SDK 10.0.111 against phase 3 commit `7c2a85a`:
 
@@ -79,8 +80,81 @@ dotnet test src/CSharpCC.sln -c Debug
 
 The initial whole-solution nullable audit found roughly 300 warnings in
 handwritten code, many involving state initialized in several parser passes.
-Next, annotate optional grammar links, model staged initialization explicitly,
-and migrate semantic analysis, lookahead, and generation without changing token
-identity or emission order. Bootstrap and emitted parser sources need an explicit
-nullable policy before enabling analysis across the core project. They have not
-been edited or silently excluded by this batch.
+The grammar-model batch below handles optional links, staged initialization,
+semantic analysis, and lookahead. Next, migrate the generation engine and shared
+state without changing token identity or emission order, starting with the
+confirmed generation defects listed below. Bootstrap and emitted parser sources
+need an explicit nullable policy before enabling analysis across the core
+project. They have not been edited or silently excluded by these batches.
+
+## Grammar-model, semantic, and lookahead batch
+
+Nullable analysis is now enabled in 34 additional handwritten files, including
+the production and expansion models, regular-expression combinators, tree
+walkers, `Semanticize`, `LookaheadWalk`, and `LookaheadCalc`. Nullable warnings
+remain errors for these files, without suppressions or null-forgiving operators.
+
+Unresolved production/token references and parent links are explicitly nullable.
+Internal accessors check the invariants required after parsing and resolution,
+so broken internal state produces a specific exception. Invalid grammars still
+receive semantic diagnostics before generation. Lexical-state wildcards retain
+their null representation until semantic analysis expands them. EOF explicitly
+has no character-matching NFA. CODE productions have no expansion tree, and tree
+walkers skip absent roots without passing null to their callbacks. Sparse
+lookahead tables and the optional common-prefix result are annotated and checked
+where their values are required.
+
+This audit also found and fixed previously uninitialized collections:
+
+- Production parent lists now start empty. Previously resolving a call to another
+  production threw before parser generation.
+- Left-recursion edges now use an initialized list instead of an uninitialized
+  array plus a separate length counter. Traversal order and reference comparisons
+  are preserved.
+- Nonterminal argument and assignment token lists now start empty, allowing the
+  grammar reader to collect call arguments instead of silently discarding them.
+- Try-block catch collections start empty; the finally block remains optional.
+
+Verification against the preceding ownership batch, commit `34a7157`:
+
+- 106 tests pass in Release and Debug, including 13 new cases. New coverage runs
+  standalone generated parsers with static and instance production calls,
+  arguments, assigned return values, repeated calls, and CODE productions with
+  wildcard token rules. It also checks direct/indirect left recursion, missing
+  references, lexical cycles, and ambiguity prefixes across production boundaries.
+- Ambiguity tests deliberately run semantic analysis with `BUILD_PARSER=false`
+  and `BUILD_TOKEN_MANAGER=false`; they verify diagnostics, not compilation of
+  ambiguous generated parsers. See the separate generation defects below.
+- Before the fixes, the initial collection-contract test and both production-call
+  integration cases failed. All now pass.
+- Eleven existing CLI scenarios retain identical diagnostics and exit codes, and
+  their 62 generated files are byte-for-byte identical. All 864 public/protected
+  CLR API snapshot entries match. Nullable metadata adds source-level contracts.
+- A full Release rebuild still reports 18 existing warnings and no errors.
+  `git diff --check` passes. Validation is local to Linux; cross-platform execution
+  remains assigned to the existing CI matrix.
+
+### Confirmed generation defects for the next batch
+
+The broader fixtures exposed three separate defects, reproduced with the
+unmodified `34a7157` CLI. These remain open and are not nullable regressions.
+Each fragment below follows this common header and uses `STATIC=false`:
+
+```text
+PARSER_BEGIN(FixtureParser)
+namespace Fixture;
+using System;
+public class FixtureParser {}
+PARSER_END(FixtureParser)
+```
+
+- `TOKEN: { < A: "a" > } void Input() : {} { [<A>] <EOF> }` generates an
+  optional-branch switch whose default case has no terminating statement. The
+  standalone consumer fails with CS8070.
+- `void Input() : {} { <EOF> }` crashes in `RStringLiteral.DumpStrLiteralImages`
+  when the lexer has no character-token rules.
+- `void Input() : {} { ("a" | "a" "b") <EOF> }` emits the expected ambiguity
+  warning, then crashes in `ParseEngine.GenFirstSet` while indexing the token set.
+
+Turn these into generation/compilation regression tests and repair them as part
+of the generation-engine work before extending the emitted-language modes.

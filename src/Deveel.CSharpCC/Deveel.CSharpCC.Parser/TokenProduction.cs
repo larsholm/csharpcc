@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 
 namespace Deveel.CSharpCC.Parser {
@@ -22,7 +24,7 @@ namespace Deveel.CSharpCC.Parser {
 
         public int Line { get; internal set; }
 
-        public string[] LexStates { get; internal set; }
+        public string[]? LexStates { get; internal set; }
 
         public int Kind { get; internal set; }
 
@@ -34,8 +36,8 @@ namespace Deveel.CSharpCC.Parser {
 
         public bool IgnoreCase { get; internal set; }
 
-        public Token FirstToken { get; internal set; }
+        public Token? FirstToken { get; internal set; }
 
-        public Token LastToken { get; internal set; }
+        public Token? LastToken { get; internal set; }
     }
 }

@@ -4,10 +4,14 @@ using System.IO;
 
 namespace Deveel.CSharpCC.Parser {
 	public class ParseGen {
-		private static TextWriter ostr;
+		private static TextWriter? outputWriter;
+        private static TextWriter ostr {
+            get => outputWriter ?? throw new InvalidOperationException("The generation output writer has not been initialized.");
+            set => outputWriter = value;
+        }
 
 		public static void start() {
-			Token t = null;
+			Token? t = null;
 
 			if (CSharpCCErrors.ErrorCount != 0) throw new MetaParseException();
 
@@ -736,7 +740,7 @@ namespace Deveel.CSharpCC.Parser {
 		}
 
 		public static void reInit() {
-			ostr = null;
+			outputWriter = null;
 			CSharpCCGlobals.lookaheadNeeded = false;
 		}
 	}

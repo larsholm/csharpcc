@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -9,38 +11,42 @@ namespace Deveel.CSharpCC.Parser {
         private readonly IList<Token> parameterTokens;
 
         public NormalProduction() {
-            LeIndex = 0;
             returnTypeTokens = new List<Token>();
             parameterTokens = new List<Token>();
         }
 
-        public Expansion Expansion { get; internal set; }
+        // CODE productions have no grammar expansion; BNF productions receive one during parsing.
+        public Expansion? Expansion { get; internal set; }
+
+        internal Expansion RequiredExpansion => Expansion ??
+            throw new InvalidOperationException("This production has no grammar expansion.");
 
         internal bool IsEmptyPossible { get; set; }
 
-        internal NormalProduction[] LeftExpansions { get; set; }
+        internal List<NormalProduction> LeftExpansions { get; } = [];
 
         internal int WalkStatus { get; set; }
 
-        internal Token FirstToken { get; set; }
+        internal Token? FirstToken { get; set; }
 
-        internal Token LastToken { get; set; }
+        internal Token? LastToken { get; set; }
 
-        public string AccessModifier { get; internal set; }
+        public string? AccessModifier { get; internal set; }
 
         public int Column { get; internal set; }
 
         public int Line { get; internal set; }
 
-        public string Lhs { get; internal set; }
+        public string? Lhs { get; internal set; }
 
-        internal IList<NonTerminal> Parents { get; set; }
+        internal string RequiredName => Lhs ??
+            throw new InvalidOperationException("NormalProduction.Lhs has not been initialized.");
+
+        internal IList<NonTerminal> Parents { get; } = [];
 
         public IList<Token> ReturnTypeTokens {
             get { return returnTypeTokens; }
         }
-
-        internal int LeIndex { get; set; }
 
         public IList<Token> ParameterTokens {
             get { return parameterTokens; }

@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections;
 using System.Text;
 
@@ -13,7 +15,10 @@ namespace Deveel.CSharpCC.Parser {
 		public ZeroOrOne() {
 		}
 
-		public Expansion Expansion { get; }
+		public Expansion? Expansion { get; }
+
+        internal Expansion RequiredExpansion => Expansion ??
+            throw new InvalidOperationException("ZeroOrOne.Expansion has not been initialized.");
 
 		public override StringBuilder Dump(int indent, IList alreadyDumped) {
 			StringBuilder sb = base.Dump(indent, alreadyDumped);
@@ -22,7 +27,7 @@ namespace Deveel.CSharpCC.Parser {
 
 			alreadyDumped.Add(this);
 			sb.AppendLine()
-				.Append(Expansion.Dump(indent + 1, alreadyDumped));
+				.Append(RequiredExpansion.Dump(indent + 1, alreadyDumped));
 			return sb;
 
 		}

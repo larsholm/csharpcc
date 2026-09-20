@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 
 namespace Deveel.CSharpCC.Parser {
 	public class RJustName : RegularExpression {
@@ -8,10 +10,13 @@ namespace Deveel.CSharpCC.Parser {
 			Label = image;
 		}
 
-		public RegularExpression RegularExpression { get; internal set; }
+		public RegularExpression? RegularExpression { get; internal set; }
+
+        internal RegularExpression RequiredExpression => RegularExpression ??
+            throw new InvalidOperationException("RJustName.RegularExpression has not been initialized.");
 
 		public override Nfa GenerateNfa(bool ignoreCase) {
-			return RegularExpression.GenerateNfa(ignoreCase);
+			return RequiredExpression.GenerateRequiredNfa(ignoreCase);
 		}
 	}
 }

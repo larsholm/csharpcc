@@ -4,11 +4,15 @@ using System.IO;
 
 namespace Deveel.CSharpCC.Parser {
 	public class OtherFilesGen {
-		private static TextWriter ostr;
+		private static TextWriter? outputWriter;
+        private static TextWriter ostr {
+            get => outputWriter ?? throw new InvalidOperationException("The generation output writer has not been initialized.");
+            set => outputWriter = value;
+        }
 		public static bool keepLineCol;
 
 		public static void start() {
-			Token t = null;
+			Token? t = null;
 			keepLineCol = Options.getKeepLineColumn();
 
 			if (CSharpCCErrors.ErrorCount != 0)
@@ -96,7 +100,7 @@ namespace Deveel.CSharpCC.Parser {
 			foreach (TokenProduction tp in CSharpCCGlobals.rexprlist) {
 				IList<RegExprSpec> respecs = tp.RegexSpecs;
 				foreach (RegExprSpec res in respecs) {
-					RegularExpression re = res.RegularExpression;
+					RegularExpression re = res.RequiredExpression;
 					if (re is RStringLiteral)
 					{
 						ostr.WriteLine("    \"\\\"" + CSharpCCGlobals.AddEscapes(CSharpCCGlobals.AddEscapes(((RStringLiteral) re).Image)) + "\\\"\",");
@@ -105,7 +109,7 @@ namespace Deveel.CSharpCC.Parser {
 					if (!re.Label.Equals("")) {
 						ostr.WriteLine("    \"<" + re.Label + ">\",");
 					} else {
-						if (re.TokenProductionContext.Kind == TokenProduction.TOKEN) {
+						if (re.ProductionContext.Kind == TokenProduction.TOKEN) {
 							CSharpCCErrors.Warning(re, "Consider giving this non-string token a label for better error reporting.");
 						}
 						ostr.WriteLine("    \"<token of kind " + re.Ordinal + ">\",");
@@ -122,7 +126,7 @@ namespace Deveel.CSharpCC.Parser {
 		}
 
 		public static void reInit() {
-			ostr = null;
+			outputWriter = null;
 		}
 	}
 }

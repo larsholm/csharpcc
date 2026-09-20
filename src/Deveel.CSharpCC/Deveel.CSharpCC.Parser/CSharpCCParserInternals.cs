@@ -22,7 +22,11 @@ namespace Deveel.CSharpCC.Parser {
 		}
 
 		private static IList<Token> add_cu_token_here = CSharpCCGlobals.cu_to_insertion_point_1;
-		private static Token first_cu_token;
+		private static Token? firstCompilationToken;
+        private static Token first_cu_token {
+            get => firstCompilationToken ?? throw new InvalidOperationException("The first compilation token has not been initialized.");
+            set => firstCompilationToken = value;
+        }
 		private static bool insertionpoint1set = false;
 		private static bool insertionpoint2set = false;
 
@@ -279,7 +283,7 @@ namespace Deveel.CSharpCC.Parser {
 			IList<IList<Token>> types,
 			IList<Token> ids,
 			IList<IList<Token>> catchblks,
-			IList<Token> finallyblk
+			IList<Token>? finallyblk
 			) {
 			if (catchblks.Count == 0 && finallyblk == null) {
 				CSharpCCErrors.ParseError(tryLoc, "Try block must contain at least one catch or finally block.");
@@ -288,7 +292,7 @@ namespace Deveel.CSharpCC.Parser {
 			TryBlock tblk = new TryBlock();
 			tblk.Line = tryLoc.beginLine;
 			tblk.Column = tryLoc.beginColumn;
-			tblk.Expansion = (Expansion) (nestedExp.member);
+			tblk.Expansion = nestedExp.member as Expansion ?? throw new InvalidOperationException("The try block expansion has not been initialized.");
 			tblk.Expansion.Parent = tblk;
 			tblk.Expansion.Ordinal = 0;
 			tblk.Types = types;
@@ -300,7 +304,7 @@ namespace Deveel.CSharpCC.Parser {
 
 		public static void reInit() {
 			add_cu_token_here = CSharpCCGlobals.cu_to_insertion_point_1;
-			first_cu_token = null;
+			firstCompilationToken = null;
 			insertionpoint1set = false;
 			insertionpoint2set = false;
 			nextFreeLexState = 1;

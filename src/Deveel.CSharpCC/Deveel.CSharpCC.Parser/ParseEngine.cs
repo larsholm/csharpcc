@@ -6,7 +6,11 @@ using System.Text;
 
 namespace Deveel.CSharpCC.Parser {
     public static class ParseEngine {
-        private static TextWriter ostr;
+        private static TextWriter? outputWriter;
+        private static TextWriter ostr {
+            get => outputWriter ?? throw new InvalidOperationException("The generation output writer has not been initialized.");
+            set => outputWriter = value;
+        }
         private static int gensymindex = 0;
         private static int indentamt;
         private static bool cc2LA;
@@ -14,13 +18,12 @@ namespace Deveel.CSharpCC.Parser {
         private static IDictionary<Expansion, Phase3Data> phase3table = new Dictionary<Expansion, Phase3Data>();
         private static IList<Phase3Data> phase3list = [];
 
-        private static IDictionary<string, NormalProduction> productionTable = new Dictionary<string, NormalProduction>();
 
-        private static bool CodeCheck(Expansion exp) {
+        private static bool CodeCheck(Expansion? exp) {
             if (exp is RegularExpression)
                 return false;
             if (exp is NonTerminal nonTerminal) {
-                NormalProduction prod = nonTerminal.Production;
+                NormalProduction prod = nonTerminal.ResolvedProduction;
                 if (prod is CodeProduction)
                     return true;
                 return CodeCheck(prod.Expansion);
@@ -51,14 +54,14 @@ namespace Deveel.CSharpCC.Parser {
             return exp switch {
                 OneOrMore oneOrMore => CodeCheck(oneOrMore.Expansion),
                 ZeroOrMore zeroOrMore => CodeCheck(zeroOrMore.Expansion),
-                ZeroOrOne zeroOrOne => CodeCheck(zeroOrOne.Expansion),
-                TryBlock tryBlock => CodeCheck(tryBlock.Expansion),
+                ZeroOrOne zeroOrOne => CodeCheck(zeroOrOne.RequiredExpansion),
+                TryBlock tryBlock => CodeCheck(tryBlock.RequiredExpansion),
                 _ => false
             };
         }
 
-        private static bool[] firstSet;
-        private static IList<Lookahead> phase2list;
+        private static bool[] firstSet = [];
+        private static IList<Lookahead> phase2list = [];
 
         /**
          * Sets up the array "firstSet" above based on the Expansion argument
@@ -66,12 +69,12 @@ namespace Deveel.CSharpCC.Parser {
          * "firstSet" has been reset before the first call.
          */
 
-        private static void GenFirstSet(Expansion exp) {
+        private static void GenFirstSet(Expansion? exp) {
             if (exp is RegularExpression regularExpression) {
                 firstSet[regularExpression.Ordinal] = true;
             } else if (exp is NonTerminal nonTerminal) {
-                if (nonTerminal.Production is not CodeProduction) {
-                    GenFirstSet(nonTerminal.Production.Expansion);
+                if (nonTerminal.ResolvedProduction is not CodeProduction) {
+                    GenFirstSet(nonTerminal.ResolvedProduction.Expansion);
                 }
             } else if (exp is Choice ch) {
                 foreach (var expansion in ch.Choices) {
@@ -88,7 +91,7 @@ namespace Deveel.CSharpCC.Parser {
                     // the LOOKAHEAD is suitable).
                     if (unit is NonTerminal { Production: CodeProduction }) {
                         if (i > 0 && seq.Units[i - 1] is Lookahead la) {
-                            GenFirstSet(la.Expansion);
+                            GenFirstSet(la.RequiredExpansion);
                         }
                     } else {
                         GenFirstSet(seq.Units[i]);
@@ -116,13 +119,13 @@ namespace Deveel.CSharpCC.Parser {
 
             // The state variables.
             int state = NOOPENSTM;
-            int indentAmt = 0;
+            var openStatements = new Stack<int>();
             bool[] casedValues = new bool[CSharpCCGlobals.tokenCount];
             String retval = "";
             Lookahead la;
-            Token t = null;
+            Token? t = null;
             int tokenMaskSize = (CSharpCCGlobals.tokenCount - 1)/32 + 1;
-            int[] tokenMask = null;
+            int[] tokenMask = new int[tokenMaskSize];
 
             // Iterate over all the conditions.
             int index = 0;
@@ -132,8 +135,8 @@ namespace Deveel.CSharpCC.Parser {
                 cc2LA = false;
 
                 if ((la.Amount == 0) ||
-                    Semanticize.EmptyExpansionExists(la.Expansion) ||
-                    CodeCheck(la.Expansion)) {
+                    Semanticize.EmptyExpansionExists(la.RequiredExpansion) ||
+                    CodeCheck(la.RequiredExpansion)) {
 
                     // This handles the following cases:
                     // . If syntactic lookahead is not wanted (and hence explicitly specified
@@ -154,7 +157,7 @@ namespace Deveel.CSharpCC.Parser {
                         switch (state) {
                             case NOOPENSTM:
                                 retval += "\n" + "if (";
-                                indentAmt++;
+                                openStatements.Push(OPENIF);
                                 break;
                             case OPENIF:
                                 retval += "\u0002\n" + "} else if (";
@@ -167,7 +170,7 @@ namespace Deveel.CSharpCC.Parser {
                                 }
                                 CSharpCCGlobals.maskVals.Add(tokenMask);
                                 retval += "\n" + "if (";
-                                indentAmt++;
+                                openStatements.Push(OPENIF);
                                 break;
                         }
 
@@ -186,7 +189,7 @@ namespace Deveel.CSharpCC.Parser {
                     // Special optimal processing when the lookahead is exactly 1, and there
                     // is no semantic lookahead.
 
-                    if (firstSet == null) {
+                    if (firstSet.Length != CSharpCCGlobals.tokenCount) {
                         firstSet = new bool[CSharpCCGlobals.tokenCount];
                     }
                     for (int i = 0; i < CSharpCCGlobals.tokenCount; i++) {
@@ -195,7 +198,7 @@ namespace Deveel.CSharpCC.Parser {
                     // cc2LA is set to false at the beginning of the containing "if" statement.
                     // It is checked immediately after the end of the same statement to determine
                     // if lookaheads are to be performed using calls to the cc2 methods.
-                    GenFirstSet(la.Expansion);
+                    GenFirstSet(la.RequiredExpansion);
                     // GenFirstSet may find that semantic attributes are appropriate for the next
                     // token.  In which case, it sets cc2LA to true.
                     if (!cc2LA) {
@@ -217,7 +220,7 @@ namespace Deveel.CSharpCC.Parser {
                                 for (int i = 0; i < CSharpCCGlobals.tokenCount; i++) {
                                     casedValues[i] = false;
                                 }
-                                indentAmt++;
+                                openStatements.Push(OPENSWITCH);
                                 tokenMask = new int[tokenMaskSize];
                                 for (int i = 0; i < tokenMaskSize; i++) {
                                     tokenMask[i] = 0;
@@ -233,7 +236,7 @@ namespace Deveel.CSharpCC.Parser {
                                     int j1 = i/32;
                                     int j2 = i%32;
                                     tokenMask[j1] |= 1 << j2;
-                                    string s;
+                                    string? s;
                                     if (!CSharpCCGlobals.names_of_tokens.TryGetValue(i, out s)) {
                                         retval += i;
                                     } else {
@@ -263,7 +266,7 @@ namespace Deveel.CSharpCC.Parser {
                     switch (state) {
                         case NOOPENSTM:
                             retval += "\n" + "if (";
-                            indentAmt++;
+                            openStatements.Push(OPENIF);
                             break;
                         case OPENIF:
                             retval += "\u0002\n" + "} else if (";
@@ -276,14 +279,14 @@ namespace Deveel.CSharpCC.Parser {
                             }
                             CSharpCCGlobals.maskVals.Add(tokenMask);
                             retval += "\n" + "if (";
-                            indentAmt++;
+                            openStatements.Push(OPENIF);
                             break;
                     }
                     CSharpCCGlobals.cc2index++;
                     // At this point, la.la_expansion.InternalName must be "".
-                    la.Expansion.InternalName = "_" + CSharpCCGlobals.cc2index;
+                    la.RequiredExpansion.InternalName = "_" + CSharpCCGlobals.cc2index;
                     phase2list.Add(la);
-                    retval += "cc_2" + la.Expansion.InternalName + "(" + la.Amount + ")";
+                    retval += "cc_2" + la.RequiredExpansion.InternalName + "(" + la.Amount + ")";
                     if (la.ActionTokens.Count != 0) {
                         // In addition, there is also a semantic lookahead.  So concatenate
                         // the semantic check with the syntactic one.
@@ -327,7 +330,11 @@ namespace Deveel.CSharpCC.Parser {
                     break;
             }
 
-            for (int i = 0; i < indentAmt; i++) {
+            // C# requires a terminating statement in every switch section, including
+            // defaults that contain nested lookahead if/else blocks.
+            foreach (int statement in openStatements) {
+                if (statement == OPENSWITCH)
+                    retval += "\nbreak;";
                 retval += "\u0002\n}";
             }
 
@@ -406,7 +413,7 @@ namespace Deveel.CSharpCC.Parser {
                 }
                 CSharpCCGlobals.PrintTrailingComments(t, ostr);
             }
-            String code = phase1ExpansionGen(p.Expansion);
+            String code = phase1ExpansionGen(p.RequiredExpansion);
             dumpFormattedString(code);
             ostr.WriteLine("");
             if (p.IsJumpPatched && !voidReturn) {
@@ -430,7 +437,7 @@ namespace Deveel.CSharpCC.Parser {
 
         private static String phase1ExpansionGen(Expansion e) {
             String retval = "";
-            Token t = null;
+            Token? t = null;
             Lookahead[] conds;
             String[] actions;
             if (e is RegularExpression regularExpression) {
@@ -446,7 +453,7 @@ namespace Deveel.CSharpCC.Parser {
                 }
                 String tail = regularExpression.RhsToken == null ? ");" : ")." + regularExpression.RhsToken.image + ";";
                 if (regularExpression.Label.Equals("")) {
-                    string label;
+                    string? label;
                     if (CSharpCCGlobals.names_of_tokens.TryGetValue(regularExpression.Ordinal, out label)) {
                         retval += "cc_consume_token(" + label + tail;
                     } else {
@@ -516,7 +523,7 @@ namespace Deveel.CSharpCC.Parser {
                 } else {
                     la = new Lookahead();
                     la.Amount = Options.getLookahead();
-                    la.Expansion = nested_e;
+                    la.RequiredExpansion = nested_e;
                 }
                 retval += "\n";
                 int labelIndex = ++gensymindex;
@@ -538,7 +545,7 @@ namespace Deveel.CSharpCC.Parser {
                 } else {
                     la = new Lookahead();
                     la.Amount = Options.getLookahead();
-                    la.Expansion = nested_e;
+                    la.RequiredExpansion = nested_e;
                 }
                 retval += "\n";
                 int labelIndex = ++gensymindex;
@@ -553,14 +560,14 @@ namespace Deveel.CSharpCC.Parser {
                 retval += "\u0002\n" + "}";
                 retval += "label_" + labelIndex + ":;\n";
             } else if (e is ZeroOrOne zeroOrOne) {
-                Expansion nested_e = zeroOrOne.Expansion;
+                Expansion nested_e = zeroOrOne.RequiredExpansion;
                 Lookahead la;
                 if (nested_e is Sequence nestedSequence) {
                     la = (Lookahead) (nestedSequence.Units[0]);
                 } else {
                     la = new Lookahead();
                     la.Amount = Options.getLookahead();
-                    la.Expansion = nested_e;
+                    la.RequiredExpansion = nested_e;
                 }
                 conds = new Lookahead[1];
                 conds[0] = la;
@@ -569,7 +576,7 @@ namespace Deveel.CSharpCC.Parser {
                 actions[1] = "\n;";
                 retval += buildLookaheadChecker(conds, actions);
             } else if (e is TryBlock tryBlock) {
-                Expansion nested_e = tryBlock.Expansion;
+                Expansion nested_e = tryBlock.RequiredExpansion;
                 IList<Token> list;
                 retval += "\n";
                 retval += "try {\u0001";
@@ -622,7 +629,7 @@ namespace Deveel.CSharpCC.Parser {
         }
 
         private static void buildPhase2Routine(Lookahead la) {
-            Expansion e = la.Expansion;
+            Expansion e = la.RequiredExpansion;
             ostr.WriteLine("  private " + CSharpCCGlobals.staticOpt() + " bool cc_2" + e.InternalName + "(int xla) {");
             ostr.WriteLine("    cc_la = xla; cc_lastpos = cc_scanpos = token;");
             ostr.WriteLine("    try { return !cc_3" + e.InternalName + "(); }");
@@ -638,12 +645,12 @@ namespace Deveel.CSharpCC.Parser {
 
         private static bool xsp_declared;
 
-        private static Expansion cc3_expansion;
+        private static Expansion? cc3_expansion;
 
         private static String genReturn(bool value) {
             String retval = (value ? "true" : "false");
-            if (Options.getDebugLookahead() && cc3_expansion != null) {
-                String tracecode = "trace_return(\"" + ((NormalProduction) cc3_expansion.Parent).Lhs + "(LOOKAHEAD " +
+            if (Options.getDebugLookahead() && cc3_expansion?.Parent is NormalProduction traceProduction) {
+                String tracecode = "trace_return(\"" + traceProduction.Lhs + "(LOOKAHEAD " +
                                    (value ? "FAILED" : "SUCCEEDED") + ")\");";
                 if (Options.getErrorReporting()) {
                     tracecode = "if (!cc_rescan) " + tracecode;
@@ -661,18 +668,18 @@ namespace Deveel.CSharpCC.Parser {
                     if (seq is Sequence { Units.Count: 2 } sequenceExpansion) {
                         seq = sequenceExpansion.Units[1];
                     } else if (seq is NonTerminal nonTerminal) {
-                        NormalProduction ntprod = productionTable[nonTerminal.Name];
+                        NormalProduction ntprod = nonTerminal.ResolvedProduction;
                         if (ntprod is CodeProduction) {
                             break; // nothing to do here
                         } else {
-                            seq = ntprod.Expansion;
+                            seq = ntprod.RequiredExpansion;
                         }
                     } else
                         break;
                 }
 
-                if (seq is RegularExpression) {
-                    e.InternalName = "cc_scan_token(" + seq.Ordinal + ")";
+                if (seq is RegularExpression tokenExpression) {
+                    e.InternalName = "cc_scan_token(" + tokenExpression.Ordinal + ")";
                     return;
                 }
 
@@ -696,11 +703,11 @@ namespace Deveel.CSharpCC.Parser {
                 // there's no need to check it below for "nonTerminal" and "ntexp".  In
                 // fact, we rely here on the fact that the "name" fields of both these
                 // variables are the same.
-                NormalProduction ntprod = productionTable[nonTerminal.Name];
+                NormalProduction ntprod = nonTerminal.ResolvedProduction;
                 if (ntprod is CodeProduction) {
                     ; // nothing to do here
                 } else {
-                    generate3R(ntprod.Expansion, inf);
+                    generate3R(ntprod.RequiredExpansion, inf);
                 }
             } else if (e is Choice choice) {
                 for (int i = 0; i < choice.Choices.Count; i++) {
@@ -718,13 +725,13 @@ namespace Deveel.CSharpCC.Parser {
                         break;
                 }
             } else if (e is TryBlock tryBlock) {
-                setupPhase3Builds(new Phase3Data(tryBlock.Expansion, inf.Count));
+                setupPhase3Builds(new Phase3Data(tryBlock.RequiredExpansion, inf.Count));
             } else if (e is OneOrMore oneOrMore) {
                 generate3R(oneOrMore.Expansion, inf);
             } else if (e is ZeroOrMore zeroOrMore) {
                 generate3R(zeroOrMore.Expansion, inf);
             } else if (e is ZeroOrOne zeroOrOne) {
-                generate3R(zeroOrOne.Expansion, inf);
+                generate3R(zeroOrOne.RequiredExpansion, inf);
             }
         }
 
@@ -734,7 +741,7 @@ namespace Deveel.CSharpCC.Parser {
 
         private static void buildPhase3Routine(Phase3Data inf, bool recursive_call) {
             Expansion e = inf.Expansion;
-            Token t = null;
+            Token? t = null;
             if (e.InternalName.StartsWith("cc_scan_token"))
                 return;
 
@@ -754,7 +761,7 @@ namespace Deveel.CSharpCC.Parser {
             }
             if (e is RegularExpression regularExpression) {
                 if (regularExpression.Label.Equals("")) {
-                    string label;
+                    string? label;
                     if (CSharpCCGlobals.names_of_tokens.TryGetValue(regularExpression.Ordinal, out label)) {
                         ostr.WriteLine("    if (cc_scan_token(" + label + ")) " + genReturn(true));
                     } else {
@@ -768,11 +775,11 @@ namespace Deveel.CSharpCC.Parser {
                 // there's no need to check it below for "nonTerminal" and "ntexp".  In
                 // fact, we rely here on the fact that the "name" fields of both these
                 // variables are the same.
-                NormalProduction ntprod = productionTable[nonTerminal.Name];
+                NormalProduction ntprod = nonTerminal.ResolvedProduction;
                 if (ntprod is CodeProduction) {
                     ostr.WriteLine("    if (true) { cc_la = 0; cc_scanpos = cc_lastpos; " + genReturn(false) + "}");
                 } else {
-                    Expansion ntexp = ntprod.Expansion;
+                    Expansion ntexp = ntprod.RequiredExpansion;
                     ostr.WriteLine("    if (" + gencc_3Call(ntexp) + ") " + genReturn(true));
                 }
             } else if (e is Choice choice) {
@@ -828,7 +835,7 @@ namespace Deveel.CSharpCC.Parser {
                         break;
                 }
             } else if (e is TryBlock tryBlock) {
-                buildPhase3Routine(new Phase3Data(tryBlock.Expansion, inf.Count), true);
+                buildPhase3Routine(new Phase3Data(tryBlock.RequiredExpansion, inf.Count), true);
             } else if (e is OneOrMore oneOrMore) {
                 if (!xsp_declared) {
                     xsp_declared = true;
@@ -855,7 +862,7 @@ namespace Deveel.CSharpCC.Parser {
                     xsp_declared = true;
                     ostr.WriteLine("    Token xsp;");
                 }
-                Expansion nested_e = zeroOrOne.Expansion;
+                Expansion nested_e = zeroOrOne.RequiredExpansion;
                 ostr.WriteLine("    xsp = cc_scanpos;");
                 ostr.WriteLine("    if (" + gencc_3Call(nested_e) + ") cc_scanpos = xsp;");
             }
@@ -881,13 +888,13 @@ namespace Deveel.CSharpCC.Parser {
             if (e is RegularExpression) {
                 retval = 1;
             } else if (e is NonTerminal nonTerminal) {
-                NormalProduction ntprod = productionTable[nonTerminal.Name];
+                NormalProduction ntprod = nonTerminal.ResolvedProduction;
                 if (ntprod is CodeProduction) {
                     retval = Int32.MaxValue;
                     // Make caller think this is unending (for we do not go beyond JAVACODE during
                     // phase3 execution).
                 } else {
-                    Expansion ntexp = ntprod.Expansion;
+                    Expansion ntexp = ntprod.RequiredExpansion;
                     retval = minimumSize(ntexp);
                 }
             } else if (e is Choice choice) {
@@ -918,7 +925,7 @@ namespace Deveel.CSharpCC.Parser {
                 }
                 retval = min;
             } else if (e is TryBlock tryBlock) {
-                retval = minimumSize(tryBlock.Expansion);
+                retval = minimumSize(tryBlock.RequiredExpansion);
             } else if (e is OneOrMore oneOrMore) {
                 retval = minimumSize(oneOrMore.Expansion);
             } else if (e is ZeroOrMore or ZeroOrOne or Lookahead or Action) {
@@ -929,7 +936,7 @@ namespace Deveel.CSharpCC.Parser {
         }
 
 	    internal static void build(TextWriter ps) {
-            Token t = null;
+            Token? t = null;
 
             ostr = ps;
 
@@ -995,14 +1002,14 @@ namespace Deveel.CSharpCC.Parser {
         }
 
         public static void reInit() {
-            ostr = null;
+            outputWriter = null;
             gensymindex = 0;
             indentamt = 0;
             cc2LA = false;
             phase2list = [];
             phase3list = [];
             phase3table = new Dictionary<Expansion, Phase3Data>();
-            firstSet = null;
+            firstSet = [];
             xsp_declared = false;
             cc3_expansion = null;
         }

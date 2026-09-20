@@ -1,3 +1,5 @@
+#nullable enable
+
 /* Copyright (c) 2012-2014, Deveel
  * All rights reserved.
  *
@@ -40,7 +42,7 @@ namespace Deveel.CSharpCC.Parser {
 
         internal string InternalName { get; set; } = string.Empty;
 
-        public object Parent { get; internal set; }
+        public object? Parent { get; internal set; }
 
         internal int Ordinal { get; set; }
 

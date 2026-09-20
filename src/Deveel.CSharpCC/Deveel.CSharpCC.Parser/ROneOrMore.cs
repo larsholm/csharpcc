@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 
 namespace Deveel.CSharpCC.Parser {
 	public class ROneOrMore : RegularExpression {
@@ -15,7 +17,7 @@ namespace Deveel.CSharpCC.Parser {
 			NfaState startState = retVal.Start;
 			NfaState finalState = retVal.End;
 
-			Nfa temp = RegularExpression.GenerateNfa(ignoreCase);
+			Nfa temp = RegularExpression.GenerateRequiredNfa(ignoreCase);
 
 			startState.AddMove(temp.Start);
 			temp.End.AddMove(temp.Start);

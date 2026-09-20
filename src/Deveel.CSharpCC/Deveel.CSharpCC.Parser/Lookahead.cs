@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -19,7 +21,10 @@ namespace Deveel.CSharpCC.Parser {
 			get { return actionTokens; }
 		}
 
-		public Expansion Expansion { get; internal set; }
+		public Expansion? Expansion { get; internal set; }
+
+        internal Expansion RequiredExpansion => Expansion ??
+            throw new InvalidOperationException("Lookahead.Expansion has not been initialized.");
 
 		public override System.Text.StringBuilder Dump(int indent, IList alreadyDumped) {
 			StringBuilder sb = base.Dump(indent, alreadyDumped)
@@ -29,7 +34,7 @@ namespace Deveel.CSharpCC.Parser {
 
 			alreadyDumped.Add(this);
 			sb.AppendLine()
-				.Append(Expansion.Dump(indent + 1, alreadyDumped));
+				.Append(RequiredExpansion.Dump(indent + 1, alreadyDumped));
 			return sb;
 
 		}

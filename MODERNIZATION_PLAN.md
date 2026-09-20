@@ -1,8 +1,10 @@
 # CSharpCC modernization plan
 
 Status: phases 1–3 implemented and verified locally on Linux. Phase 4 is in
-progress: utilities, options, the CLI, and file ownership are migrated; nullable
-analysis of the grammar model and generation engine remains. Phases 5–7 remain.
+progress: utilities, options, the CLI, file ownership, the grammar model, semantic
+analysis, and lookahead are migrated. Nullable analysis of the generation engine
+and shared state remains, along with an explicit bootstrap-source policy.
+Phases 5–7 remain.
 Cross-platform execution will run through the existing GitHub Actions matrix.
 See [the phase 1 baseline](docs/MODERNIZATION_BASELINE.md) for coverage and fixes
 and [phase 2 verification](docs/MODERNIZATION_PHASE_2.md) for syntax changes.

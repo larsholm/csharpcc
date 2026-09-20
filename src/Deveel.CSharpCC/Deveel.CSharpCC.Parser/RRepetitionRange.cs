@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 
 namespace Deveel.CSharpCC.Parser {
@@ -8,7 +10,10 @@ namespace Deveel.CSharpCC.Parser {
 			Max = -1;
 		}
 
-		public RegularExpression RegularExpression { get; internal set; }
+		public RegularExpression? RegularExpression { get; internal set; }
+
+        internal RegularExpression RequiredExpression => RegularExpression ??
+            throw new InvalidOperationException("RRepetitionRange.RegularExpression has not been initialized.");
 
 		public int Min { get; internal set; }
 
@@ -22,19 +27,19 @@ namespace Deveel.CSharpCC.Parser {
 			int i;
 
 			for (i = 0; i < Min; i++) {
-				units.Add(RegularExpression);
+				units.Add(RequiredExpression);
 			}
 
 			if (HasMax && Max == -1) // Unlimited
 			{
 				RZeroOrMore zoo = new RZeroOrMore();
-				zoo.RegularExpression = RegularExpression;
+				zoo.RegularExpression = RequiredExpression;
 				units.Add(zoo);
 			}
 
 			while (i++ < Max) {
 				RZeroOrOne zoo = new RZeroOrOne();
-				zoo.RegularExpression = RegularExpression;
+				zoo.RegularExpression = RequiredExpression;
 				units.Add(zoo);
 			}
 			seq = new RSequence(units);
