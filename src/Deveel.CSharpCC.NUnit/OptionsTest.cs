@@ -9,6 +9,28 @@ namespace Deveel.CSharpCC.NUnit;
 [TestFixture]
 [NonParallelizable]
 public class OptionsTest {
+    [TestCase("CSHARP_VERSION=14", true)]
+    [TestCase("csharp_version=\"14\"", true)]
+    [TestCase("CSHARP_VERSION=LEGACY", false)]
+    public void GeneratedLanguageIsIndependentOfClrVersion(string option, bool modern) {
+        Options.SetCmdLineOption(option);
+        Options.SetCmdLineOption("CLR_VERSION=1.0");
+        Options.Normalize();
+        Assert.That(Options.ModernCSharp, Is.EqualTo(modern));
+        Assert.That(Options.getClrVersion(), Is.EqualTo("1.0"));
+        Assert.That(output.ToString(), Is.Empty);
+    }
+
+    [TestCase("CSHARP_VERSION=13")]
+    [TestCase("CSHARP_VERSION=latest")]
+    [TestCase("CSHARP_VERSION=true")]
+    public void UnsupportedGeneratedLanguagesAreRejected(string option) {
+        Options.SetCmdLineOption(option);
+        Assert.That(Options.ModernCSharp, Is.False);
+        Assert.That(output.ToString(), Does.Contain("Bad option value"));
+        Options.SetInputFileOption(null, null, "CSHARP_VERSION", 14);
+        Assert.That(Options.ModernCSharp, Is.True);
+    }
     private TextWriter originalOutput;
     private TextWriter originalError;
     private StringWriter output;

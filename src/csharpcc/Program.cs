@@ -57,6 +57,7 @@ namespace Deveel.CSharpCC.Parser {
 			Console.Out.WriteLine("    TOKEN_EXTENDS          (default System.Object)");
 			Console.Out.WriteLine("    TOKEN_FACTORY          (default none)");
 			Console.Out.WriteLine("    CLR_VERSION            (default 2.0)");
+			Console.Out.WriteLine("    CSHARP_VERSION         (legacy [default] or 14; independent of CLR_VERSION)");
 			Console.Out.WriteLine("    GRAMMAR_ENCODING       (defaults to platform file encoding)");
 			Console.Out.WriteLine("");
 			Console.Out.WriteLine("EXAMPLE:");

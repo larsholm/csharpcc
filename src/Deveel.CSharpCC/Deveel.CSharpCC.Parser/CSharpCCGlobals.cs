@@ -12,11 +12,11 @@ namespace Deveel.CSharpCC.Parser {
         // C# requires type-qualified access to static generated members.
         internal static string CharStreamReference => Options.getStatic() && !Options.getUserCharStream()
             ? (Options.getUnicodeEscape() ? "UnicodeCharStream" : "SimpleCharStream")
-            : "inputStream";
+            : Options.ModernCSharp ? "RequiredInputStream" : "inputStream";
 
         internal static string TokenManagerReference => Options.getStatic() && !Options.getUserTokenManager()
             ? cu_name + "TokenManager"
-            : "tokenSource";
+            : Options.ModernCSharp ? "cc_tokenSource" : "tokenSource";
 
         public static string? FileName;
         public static string? OriginalFileName;

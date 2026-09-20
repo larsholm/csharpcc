@@ -67,6 +67,7 @@ namespace Deveel.CSharpCC.Parser {
             values.Add("SUPPORT_CLASS_VISIBILITY_PUBLIC", true);
 
             values.Add("OUTPUT_DIRECTORY", ".");
+            values.Add("CSHARP_VERSION", "legacy");
 			values.Add("CLR_VERSION", "2.0");
             values.Add("TOKEN_EXTENDS", "");
             values.Add("TOKEN_FACTORY", "");
@@ -97,6 +98,12 @@ namespace Deveel.CSharpCC.Parser {
 
         [return: System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(value))]
         public static object? UpgradeValue(string name, object? value) {
+            if (name.Equals("CSHARP_VERSION", StringComparison.OrdinalIgnoreCase)) {
+                if (value is int version)
+                    return version.ToString(CultureInfo.InvariantCulture);
+                if (value is string text && text.Equals("legacy", StringComparison.OrdinalIgnoreCase))
+                    return "legacy";
+            }
             if (name.Equals("NODE_FACTORY", StringComparison.OrdinalIgnoreCase) && value is bool) {
                 if ((bool) value) {
                     value = "*";
@@ -201,6 +208,7 @@ namespace Deveel.CSharpCC.Parser {
                 return;
             }
 
+            Val = UpgradeValue(name, Val) ?? Val;
             if (!IsValidValue(name, Val, valOrig)) {
                 Console.Out.WriteLine("Warning: Bad option value in \"" + arg
                                       + "\" will be ignored.");
@@ -212,8 +220,6 @@ namespace Deveel.CSharpCC.Parser {
                 return;
             }
 
-            Val = UpgradeValue(name, Val);
-
             optionValues[name] = Val;
             cmdLineSetting.Add(name);
         }
@@ -221,6 +227,9 @@ namespace Deveel.CSharpCC.Parser {
         private static bool IsValidValue(string name, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] object? value, object existingValue) {
             if (value == null || value.GetType() != existingValue.GetType() || value is int and <= 0)
                 return false;
+
+            if (name.Equals("CSHARP_VERSION", StringComparison.OrdinalIgnoreCase))
+                return value is "legacy" or "14";
 
             return !name.Equals("CLR_VERSION", StringComparison.OrdinalIgnoreCase) ||
                 TryParseClrVersion((string)value, out _);
@@ -250,6 +259,8 @@ namespace Deveel.CSharpCC.Parser {
         public static int getLookahead() {
             return IntValue("LOOKAHEAD");
         }
+
+        internal static bool ModernCSharp => StringValue("CSHARP_VERSION") == "14";
 
         public static int getChoiceAmbiguityCheck() {
             return IntValue("CHOICE_AMBIGUITY_CHECK");

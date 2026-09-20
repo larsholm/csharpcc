@@ -25,7 +25,7 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :} class ParseException : System.Except
 	public ParseException() {
 	}
 
-	public ParseException(string message)
+	public ParseException(string${NULLABLE} message)
 		: base(message) {
 	}
 
@@ -36,19 +36,19 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :} class ParseException : System.Except
 	/// If this object has been created due to a parse error, the token followng this 
 	/// token will (therefore) be the first error token.
 	/// </remarks>
-	public Token CurrentToken { get; private set; }
+	public Token${NULLABLE} CurrentToken { get; private set; }
 
 	/// <summary>
 	/// Gets a 2-dimensional array representing a sequence of tokens (by their ordinal
 	/// values) that is expected at this point of the parse.
 	/// </summary>
-	public int[][] ExpectedTokenSequences { get; private set; }
+	public int[][]${NULLABLE} ExpectedTokenSequences { get; private set; }
 
 	/// <summary>
 	/// Gets an array of image string of the generated parser within which the parse error 
 	/// occurred.
 	/// </summary>
-	public string[] TokenImage { get; private set; }
+	public string[]${NULLABLE} TokenImage { get; private set; }
 
 	private static string Initialise(Token currentToken, int[][] expectedTokenSequences, string[] tokenImage) {
 		System.Text.StringBuilder expected = new System.Text.StringBuilder();
@@ -69,11 +69,14 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :} class ParseException : System.Except
 			
 		System.Text.StringBuilder encountered = new System.Text.StringBuilder();
 		encountered.Append("Encountered \"");
-		Token tok = currentToken.Next;
+		Token${NULLABLE} tok = currentToken.Next;
 		for (int i = 0; i < maxSize; i++) {
 			if (i != 0)
 				encountered.Append(" ");
 			
+			#if MODERN_CSHARP
+            if (tok == null) break;
+#fi
 			if (tok.Kind == 0) {
 				encountered.Append(tokenImage[0]);
 				break;
@@ -86,7 +89,7 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :} class ParseException : System.Except
 			tok = tok.Next;
 		}
 #if KEEP_LINE_COLUMN
-		encountered.Append("\" at line " + currentToken.Next.BeginLine + ", column " + currentToken.Next.BeginColumn);
+		encountered.Append("\" at line " + ${MODERN_CSHARP?(currentToken.Next ?? throw new System.InvalidOperationException("The error token is missing.")).BeginLine:currentToken.Next.BeginLine} + ", column " + ${MODERN_CSHARP?(currentToken.Next ?? throw new System.InvalidOperationException("The error token is missing.")).BeginColumn:currentToken.Next.BeginColumn});
 #fi
 		encountered.AppendLine(".");
 		
@@ -101,7 +104,10 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :} class ParseException : System.Except
 		return encountered.ToString() + expected.ToString();
 	}
 	
-	internal static string AddEscapes(string str) {
+	internal static string AddEscapes(string${NULLABLE} str) {
+#if MODERN_CSHARP
+        str ??= "";
+#fi
 		System.Text.StringBuilder retval = new System.Text.StringBuilder();
 		char ch;
 		for (int i = 0; i < str.Length; i++) {

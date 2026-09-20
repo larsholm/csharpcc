@@ -13,7 +13,7 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class Token {
 		: this(kind, null) {
 	}
 
-	public Token(int kind, string image) {
+	public Token(int kind, string${NULLABLE} image) {
 		Kind = kind;
 		Image = image;
 	}
@@ -50,9 +50,9 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class Token {
 	public int EndColumn { get; internal set; }
 #fi
 	/// <summary>
-	/// The string image of the token.
+	/// The string${NULLABLE} image of the token.
 	/// </summary>
-	public string Image { get; internal set; }
+	public string${NULLABLE} Image { get; internal set; }
 	
 	/// <summary>
 	/// Gets a reference to the next regular (non-special) token from the 
@@ -64,7 +64,7 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class Token {
 	/// if this token is also a regular token.
 	/// </remarks>
 	/// <seealso cref="SpecialToken"/>
-	public Token Next { get; internal set; }
+	public Token${NULLABLE} Next { get; internal set; }
 	
 	/// <summary>
 	/// Get special tokens that occur prior to this token, but after the immediately preceding 
@@ -78,7 +78,7 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class Token {
 	/// The next fields of special tokens refer to other special tokens that immediately follow 
 	/// it (without an intervening regular token).  If there* is no such token, this is null.
 	/// </remarks>
-	public Token SpecialToken { get; internal set; }
+	public Token${NULLABLE} SpecialToken { get; internal set; }
 
 	/// <summary>
 	/// Gets an optional attribute value of the token.
@@ -89,15 +89,15 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class Token {
 	/// from the image. Any subclass of Token that actually wants to return a non-null value can
 	/// override this method as appropriate.
 	/// </remarks>
-	public virtual object Value {
+	public virtual object${NULLABLE} Value {
 		get { return null; }
 	}
 
-	public override string ToString() {
+	public override string${NULLABLE} ToString() {
 		return Image;
 	}
 
-	public static Token NewToken(int ofKind, string image) {
+	public static Token NewToken(int ofKind, string${NULLABLE} image) {
 		switch(ofKind) {
 			default:
 				return new Token(ofKind, image);

@@ -166,7 +166,7 @@ namespace Deveel.CSharpCC.Parser {
 
 			ostr.WriteLine("");
 			ostr.WriteLine("// Token literal values.");
-			ostr.WriteLine("public static readonly string[] ccStrLiteralImages = {");
+			ostr.WriteLine((Options.ModernCSharp ? "public static readonly string?[] ccStrLiteralImages = {" : "public static readonly string[] ccStrLiteralImages = {"));
 
 			if (allImages == null || allImages.Length == 0) {
 				ostr.WriteLine("};");
@@ -360,7 +360,7 @@ namespace Deveel.CSharpCC.Parser {
 			}
 
 			ostr.WriteLine("   try { curChar = " + CSharpCCGlobals.CharStreamReference + ".ReadChar(); }");
-			ostr.WriteLine("   catch(System.IO.IOException e) { return pos + 1; }");
+			ostr.WriteLine((Options.ModernCSharp ? "   catch(System.IO.IOException) { return pos + 1; }" : "   catch(System.IO.IOException e) { return pos + 1; }"));
 
 			if (Options.getDebugTokenManager())
 				ostr.WriteLine("   debugStream.WriteLine(" +

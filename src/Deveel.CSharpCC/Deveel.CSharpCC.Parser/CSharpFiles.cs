@@ -79,6 +79,11 @@ namespace Deveel.CSharpCC.Parser {
 		}
 
 		private static void GenerateFile(string fileName, string templateName, IDictionary<string, object> options, string[] optionNames) {
+			options["MODERN_CSHARP"] = Options.ModernCSharp;
+			options["NULLABLE"] = Options.ModernCSharp ? "?" : "";
+			options["INPUT_STREAM_REF"] = Options.ModernCSharp ? "RequiredInputStream" : "inputStream";
+			if (Options.ModernCSharp)
+				optionNames = [.. optionNames, "CSHARP_VERSION"];
 			try {
 				string file = Path.Combine(Options.getOutputDirectory().FullName, fileName);
 				using OutputFile outputFile = new OutputFile(file, typeof(CSharpFiles).Assembly.GetName().Version?.ToString(), optionNames);
@@ -88,6 +93,8 @@ namespace Deveel.CSharpCC.Parser {
 				}
 
 				TextWriter ostr = outputFile.GetTextWriter();
+				if (Options.ModernCSharp)
+					ostr.WriteLine("#nullable enable");
 
 				bool nsFound = false;
 				if (CSharpCCGlobals.cu_to_insertion_point_1.Count != 0 &&

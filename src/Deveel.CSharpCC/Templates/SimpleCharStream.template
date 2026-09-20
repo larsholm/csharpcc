@@ -15,8 +15,8 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class SimpleCharStream
 /** Position in buffer. */
   ${PREFIX}public int bufpos = -1;
 #if KEEP_LINE_COLUMN
-  ${PREFIX}protected int[] bufline;
-  ${PREFIX}protected int[] bufcolumn;
+  ${PREFIX}protected int[] bufline${MODERN_CSHARP? = []:};
+  ${PREFIX}protected int[] bufcolumn${MODERN_CSHARP? = []:};
 
   ${PREFIX}protected int column = 0;
   ${PREFIX}protected int line = 1;
@@ -25,9 +25,13 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class SimpleCharStream
   ${PREFIX}protected bool prevCharIsLF = false;
 #fi
 
-  ${PREFIX}protected System.IO.TextReader inputStream;
+  ${PREFIX}protected System.IO.TextReader${NULLABLE} inputStream;
+#if MODERN_CSHARP
+  ${PREFIX}private System.IO.TextReader RequiredInputStream => inputStream ??
+    throw new System.InvalidOperationException("The character stream has not been initialized.");
+#fi
 
-  ${PREFIX}protected char[] buffer;
+  ${PREFIX}protected char[] buffer${MODERN_CSHARP? = []:};
   ${PREFIX}protected int maxNextCharInd = 0;
   ${PREFIX}protected int inBuf = 0;
   ${PREFIX}protected int tabSize = 8;
@@ -116,21 +120,21 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class SimpleCharStream
 
     int i;
     try {
-      if ((i = inputStream.Read(buffer, maxNextCharInd, available - maxNextCharInd)) == -1)
+      if ((i = ${INPUT_STREAM_REF}.Read(buffer, maxNextCharInd, available - maxNextCharInd)) == -1)
       {
-        inputStream.Close();
+        ${INPUT_STREAM_REF}.Close();
         throw new System.IO.IOException();
       }
       else
         maxNextCharInd += i;
       return;
     }
-    catch(System.IO.IOException e) {
+    catch(System.IO.IOException${MODERN_CSHARP?: e}) {
       --bufpos;
       Backup(0);
       if (tokenBegin == -1)
         tokenBegin = bufpos;
-      throw e;
+      throw${MODERN_CSHARP?: e};
     }
   }
 
@@ -372,7 +376,7 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class SimpleCharStream
   }
 
   /** Constructor. */
-  public SimpleCharStream(System.IO.Stream dstream, System.Text.Encoding encoding, int startline, int startcolumn, int buffersize)
+  public SimpleCharStream(System.IO.Stream dstream, System.Text.Encoding${NULLABLE} encoding, int startline, int startcolumn, int buffersize)
     : this(encoding == null ? new System.IO.StreamReader(dstream) : new System.IO.StreamReader(dstream, encoding), startline, startcolumn, buffersize) {
   }
 
@@ -382,7 +386,7 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class SimpleCharStream
   }
 
   /** Constructor. */
-  public SimpleCharStream(System.IO.Stream dstream, System.Text.Encoding encoding, int startline, int startcolumn)
+  public SimpleCharStream(System.IO.Stream dstream, System.Text.Encoding${NULLABLE} encoding, int startline, int startcolumn)
     : this(dstream, encoding, startline, startcolumn, 4096) {
   }
 
@@ -392,7 +396,7 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class SimpleCharStream
   }
 
   /** Constructor. */
-  public SimpleCharStream(System.IO.Stream dstream, System.Text.Encoding encoding)
+  public SimpleCharStream(System.IO.Stream dstream, System.Text.Encoding${NULLABLE} encoding)
     : this(dstream, encoding, 1, 1, 4096) {
   }
 
@@ -402,7 +406,7 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class SimpleCharStream
   }
 
   /** Reinitialise. */
-  public void ReInit(System.IO.Stream dstream, System.Text.Encoding encoding, int startline, int startcolumn, int buffersize)
+  public void ReInit(System.IO.Stream dstream, System.Text.Encoding${NULLABLE} encoding, int startline, int startcolumn, int buffersize)
   {
     ReInit(encoding == null ? new System.IO.StreamReader(dstream) : new System.IO.StreamReader(dstream, encoding), startline, startcolumn, buffersize);
   }
@@ -414,7 +418,7 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class SimpleCharStream
   }
 
   /** Reinitialise. */
-  public void ReInit(System.IO.Stream dstream, System.Text.Encoding encoding)
+  public void ReInit(System.IO.Stream dstream, System.Text.Encoding${NULLABLE} encoding)
   {
     ReInit(dstream, encoding, 1, 1, 4096);
   }
@@ -425,7 +429,7 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class SimpleCharStream
     ReInit(dstream, 1, 1, 4096);
   }
   /** Reinitialise. */
-  public void ReInit(System.IO.Stream dstream, System.Text.Encoding encoding, int startline, int startcolumn)
+  public void ReInit(System.IO.Stream dstream, System.Text.Encoding${NULLABLE} encoding, int startline, int startcolumn)
   {
     ReInit(dstream, encoding, startline, startcolumn, 4096);
   }
@@ -462,10 +466,10 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class SimpleCharStream
   /** Reset buffer when finished. */
   ${PREFIX}public void Done()
   {
-    buffer = null;
+    buffer = ${MODERN_CSHARP?[]:null};
 #if KEEP_LINE_COLUMN
-    bufline = null;
-    bufcolumn = null;
+    bufline = ${MODERN_CSHARP?[]:null};
+    bufcolumn = ${MODERN_CSHARP?[]:null};
 #fi
   }
 #if KEEP_LINE_COLUMN

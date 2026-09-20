@@ -22,7 +22,7 @@ namespace Deveel.CSharpCC.Parser {
 						new StreamWriter(
 							new BufferedStream(
 								new FileStream(Path.Combine(Options.getOutputDirectory().FullName, CSharpCCGlobals.cu_name + ".cs"),
-								               FileMode.OpenOrCreate, FileAccess.Write), 8192));
+								               FileMode.Create, FileAccess.Write), 8192));
 				} catch (IOException e) {
 					CSharpCCErrors.SemanticError("Could not open file " + CSharpCCGlobals.cu_name + ".cs for writing.");
 					throw new InvalidOperationException();
@@ -33,6 +33,7 @@ namespace Deveel.CSharpCC.Parser {
 				IList<string> tn = new List<string>(CSharpCCGlobals.ToolNames);
 				tn.Add(CSharpCCGlobals.ToolName);
 				ostr.WriteLine("// " + CSharpCCGlobals.GetIdString(tn, CSharpCCGlobals.cu_name + ".cs"));
+				if (Options.ModernCSharp) ostr.WriteLine("#nullable enable");
 
 				bool implementsExists = false;
                 bool namespaceInserted = false, namespaceFound = false;
@@ -91,27 +92,37 @@ namespace Deveel.CSharpCC.Parser {
 				}
 				if (Options.getUserTokenManager()) {
 					ostr.WriteLine("  /** User defined Token Manager. */");
-					ostr.WriteLine("  public " + CSharpCCGlobals.staticOpt() + " ITokenManager tokenSource;");
+					ostr.WriteLine("  public " + CSharpCCGlobals.staticOpt() + (Options.ModernCSharp ? " ITokenManager? tokenSource;" : " ITokenManager tokenSource;"));
 				} else {
 					ostr.WriteLine("  /** Generated Token Manager. */");
-					ostr.WriteLine("  public " + CSharpCCGlobals.staticOpt() + " " + CSharpCCGlobals.cu_name + "TokenManager tokenSource;");
+					ostr.WriteLine("  public " + CSharpCCGlobals.staticOpt() + " " + CSharpCCGlobals.cu_name + (Options.ModernCSharp ? "TokenManager? tokenSource;" : "TokenManager tokenSource;"));
 					if (!Options.getUserCharStream()) {
 						if (Options.getUnicodeEscape()) {
-							ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + "UnicodeCharStream cc_inputStream;");
+							ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + (Options.ModernCSharp ? "UnicodeCharStream? cc_inputStream;" : "UnicodeCharStream cc_inputStream;"));
 						} else {
-							ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + "SimpleCharStream cc_inputStream;");
+							ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + (Options.ModernCSharp ? "SimpleCharStream? cc_inputStream;" : "SimpleCharStream cc_inputStream;"));
 						}
 					}
 				}
+                if (Options.ModernCSharp) {
+                    string modifier = CSharpCCGlobals.staticOpt();
+                    string manager = Options.getUserTokenManager() ? "ITokenManager" : CSharpCCGlobals.cu_name + "TokenManager";
+                    ostr.WriteLine($"  private {modifier}{manager} cc_tokenSource => tokenSource ?? throw new InvalidOperationException(\"The parser has not been initialized.\");");
+                    ostr.WriteLine($"  private {modifier}Token cc_currentToken => token ?? throw new InvalidOperationException(\"The parser has not been initialized.\");");
+                    if (Options.getCacheTokens())
+                        ostr.WriteLine($"  private {modifier}Token cc_nextToken => cc_nt ?? throw new InvalidOperationException(\"No cached token is available.\");");
+                    if (CSharpCCGlobals.cc2index != 0)
+                        ostr.WriteLine($"  private {modifier}Token cc_scanToken => cc_scanpos ?? throw new InvalidOperationException(\"Lookahead has not been initialized.\");");
+                }
 				ostr.WriteLine("  /// <summary>Current token.</summary>");
-				ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + "public Token token;");
+				ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + (Options.ModernCSharp ? "public Token? token;" : "public Token token;"));
 				ostr.WriteLine("  /// <summary> Next token.</summary>");
-				ostr.WriteLine("  public " + CSharpCCGlobals.staticOpt() + "Token cc_nt;");
+				ostr.WriteLine("  public " + CSharpCCGlobals.staticOpt() + (Options.ModernCSharp ? "Token? cc_nt;" : "Token cc_nt;"));
 				if (!Options.getCacheTokens()) {
 					ostr.WriteLine("  private " + CSharpCCGlobals.staticOpt() + "int cc_ntKind;");
 				}
 				if (CSharpCCGlobals.cc2index != 0) {
-					ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + "private Token cc_scanpos, cc_lastpos;");
+					ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + (Options.ModernCSharp ? "private Token? cc_scanpos, cc_lastpos;" : "private Token cc_scanpos, cc_lastpos;"));
 					ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + "private int cc_la;");
 					if (CSharpCCGlobals.lookaheadNeeded) {
 						ostr.WriteLine("  /** Whether we are looking ahead. */");
@@ -123,6 +134,14 @@ namespace Deveel.CSharpCC.Parser {
 					ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + "private int cc_gen;");
 					ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + " private readonly int[] cc_la1 = new int[" + CSharpCCGlobals.maskindex + "];");
 					int tokenMaskSize = (CSharpCCGlobals.tokenCount - 1) / 32 + 1;
+                    if (Options.ModernCSharp) {
+                        for (int i = 0; i < tokenMaskSize; i++) {
+                            ostr.Write($"  private static readonly int[] cc_la1_{i} = [");
+                            foreach (int[] tokenMask in CSharpCCGlobals.maskVals)
+                                ostr.Write(tokenMask[i] + ",");
+                            ostr.WriteLine("];");
+                        }
+                    } else {
 					for (int i = 0; i < tokenMaskSize; i++)
 						ostr.WriteLine("  static private int[] cc_la1_" + i + ";");
 					ostr.WriteLine("  static " + CSharpCCGlobals.cu_name + "() { ");
@@ -138,6 +157,7 @@ namespace Deveel.CSharpCC.Parser {
 						ostr.WriteLine("};");
 						ostr.WriteLine("   }");
 					}
+                    }
 				}
 				if (CSharpCCGlobals.cc2index != 0 && Options.getErrorReporting()) {
 					ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + "readonly private CCCalls[] cc_2_rtns = new CCCalls[" + CSharpCCGlobals.cc2index + "];");
@@ -209,7 +229,7 @@ namespace Deveel.CSharpCC.Parser {
 						ostr.WriteLine("     : this(stream, null) {");
 						ostr.WriteLine("  }");
 						ostr.WriteLine("  /// Constructor with Stream and supplied encoding");
-						ostr.WriteLine("  public " + CSharpCCGlobals.cu_name + "(System.IO.Stream stream, System.Text.Encoding encoding) {");
+						ostr.WriteLine("  public " + CSharpCCGlobals.cu_name + (Options.ModernCSharp ? "(System.IO.Stream stream, System.Text.Encoding? encoding) {" : "(System.IO.Stream stream, System.Text.Encoding encoding) {"));
 						if (Options.getStatic()) {
 							ostr.WriteLine("    if (cc_initialized_once) {");
 							ostr.WriteLine("      Console.Out.WriteLine(\"ERROR: Second call to constructor of static parser.  \");");
@@ -251,9 +271,9 @@ namespace Deveel.CSharpCC.Parser {
 						ostr.WriteLine("     ReInit(stream, null);");
 						ostr.WriteLine("  }");
 						ostr.WriteLine("  /// Reinitialise.");
-						ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + "public void ReInit(System.IO.Stream stream, System.Text.Encoding encoding) {");
-							ostr.WriteLine("   cc_inputStream.ReInit(stream, encoding, 1, 1);");
-						ostr.WriteLine("    " + CSharpCCGlobals.TokenManagerReference + ".ReInit(cc_inputStream);");
+						ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + (Options.ModernCSharp ? "public void ReInit(System.IO.Stream stream, System.Text.Encoding? encoding) {" : "public void ReInit(System.IO.Stream stream, System.Text.Encoding encoding) {"));
+							ostr.WriteLine((Options.ModernCSharp ? "   (cc_inputStream ?? throw new InvalidOperationException(\"No character stream is available.\")).ReInit(stream, encoding, 1, 1);" : "   cc_inputStream.ReInit(stream, encoding, 1, 1);"));
+						ostr.WriteLine("    " + CSharpCCGlobals.TokenManagerReference + (Options.ModernCSharp ? ".ReInit(cc_inputStream ?? throw new InvalidOperationException(\"No character stream is available.\"));" : ".ReInit(cc_inputStream);"));
 						ostr.WriteLine("    token = new Token();");
 						if (Options.getCacheTokens()) {
 							ostr.WriteLine("    token.Next = cc_nt = " + CSharpCCGlobals.TokenManagerReference + ".GetNextToken();");
@@ -312,11 +332,11 @@ namespace Deveel.CSharpCC.Parser {
 						ostr.WriteLine("  /// Reinitialise.");
 						ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + "public void ReInit(System.IO.TextReader reader) {");
 						if (Options.getUnicodeEscape()) {
-							ostr.WriteLine("    cc_inputStream.ReInit(reader, 1, 1);");
+							ostr.WriteLine((Options.ModernCSharp ? "    (cc_inputStream ?? throw new InvalidOperationException(\"No character stream is available.\")).ReInit(reader, 1, 1);" : "    cc_inputStream.ReInit(reader, 1, 1);"));
 						} else {
-							ostr.WriteLine("    cc_inputStream.ReInit(reader, 1, 1);");
+							ostr.WriteLine((Options.ModernCSharp ? "    (cc_inputStream ?? throw new InvalidOperationException(\"No character stream is available.\")).ReInit(reader, 1, 1);" : "    cc_inputStream.ReInit(reader, 1, 1);"));
 						}
-						ostr.WriteLine("    " + CSharpCCGlobals.TokenManagerReference + ".ReInit(cc_inputStream);");
+						ostr.WriteLine("    " + CSharpCCGlobals.TokenManagerReference + (Options.ModernCSharp ? ".ReInit(cc_inputStream ?? throw new InvalidOperationException(\"No character stream is available.\"));" : ".ReInit(cc_inputStream);"));
 						ostr.WriteLine("    token = new Token();");
 						if (Options.getCacheTokens()) {
 							ostr.WriteLine("    token.Next = cc_nt = " + CSharpCCGlobals.TokenManagerReference + ".GetNextToken();");
@@ -397,24 +417,15 @@ namespace Deveel.CSharpCC.Parser {
 				ostr.WriteLine("  }");
 				ostr.WriteLine("");
 				ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + "private Token cc_consume_token(int kind) {");
-				if (Options.getCacheTokens()) {
-					ostr.WriteLine("    Token oldToken = token;");
-					ostr.WriteLine("    if ((token = cc_nt).Next != null) cc_nt = cc_nt.Next;");
-					ostr.WriteLine("    else cc_nt = cc_nt.Next = " + CSharpCCGlobals.TokenManagerReference + ".GetNextToken();");
-				} else {
-					ostr.WriteLine("    Token oldToken;");
-					ostr.WriteLine("    if ((oldToken = token).Next != null) token = token.Next;");
-					ostr.WriteLine("    else token = token.Next = " + CSharpCCGlobals.TokenManagerReference + ".GetNextToken();");
-					ostr.WriteLine("    cc_ntKind = -1;");
-				}
-				ostr.WriteLine("    if (token.Kind == kind) {");
+                WriteTokenAdvance(true);
+				ostr.WriteLine((Options.ModernCSharp ? "    if (cc_currentToken.Kind == kind) {" : "    if (token.Kind == kind) {"));
 				if (Options.getErrorReporting()) {
 					ostr.WriteLine("      cc_gen++;");
 					if (CSharpCCGlobals.cc2index != 0) {
 						ostr.WriteLine("      if (++cc_gc > 100) {");
 						ostr.WriteLine("        cc_gc = 0;");
 						ostr.WriteLine("        for (int i = 0; i < cc_2_rtns.Length; i++) {");
-						ostr.WriteLine("          CCCalls c = cc_2_rtns[i];");
+						ostr.WriteLine((Options.ModernCSharp ? "          CCCalls? c = cc_2_rtns[i];" : "          CCCalls c = cc_2_rtns[i];"));
 						ostr.WriteLine("          while (c != null) {");
 						ostr.WriteLine("            if (c.gen < cc_gen) c.first = null;");
 						ostr.WriteLine("            c = c.next;");
@@ -424,9 +435,9 @@ namespace Deveel.CSharpCC.Parser {
 					}
 				}
 				if (Options.getDebugParser()) {
-					ostr.WriteLine("      trace_token(token, \"\");");
+					ostr.WriteLine((Options.ModernCSharp ? "      trace_token(cc_currentToken, \"\");" : "      trace_token(token, \"\");"));
 				}
-				ostr.WriteLine("      return token;");
+				ostr.WriteLine((Options.ModernCSharp ? "      return cc_currentToken;" : "      return token;"));
 				ostr.WriteLine("    }");
 				if (Options.getCacheTokens()) {
 					ostr.WriteLine("    cc_nt = token;");
@@ -444,28 +455,28 @@ namespace Deveel.CSharpCC.Parser {
 					ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + "private bool cc_scan_token(int kind) {");
 					ostr.WriteLine("    if (cc_scanpos == cc_lastpos) {");
 					ostr.WriteLine("      cc_la--;");
-					ostr.WriteLine("      if (cc_scanpos.Next == null) {");
-					ostr.WriteLine("        cc_lastpos = cc_scanpos = cc_scanpos.Next = " + CSharpCCGlobals.TokenManagerReference + ".GetNextToken();");
+					ostr.WriteLine((Options.ModernCSharp ? "      if (cc_scanToken.Next == null) {" : "      if (cc_scanpos.Next == null) {"));
+					ostr.WriteLine((Options.ModernCSharp ? "        cc_lastpos = cc_scanpos = cc_scanToken.Next = " : "        cc_lastpos = cc_scanpos = cc_scanpos.Next = ") + CSharpCCGlobals.TokenManagerReference + ".GetNextToken();");
 					ostr.WriteLine("      } else {");
-					ostr.WriteLine("        cc_lastpos = cc_scanpos = cc_scanpos.Next;");
+					ostr.WriteLine((Options.ModernCSharp ? "        cc_lastpos = cc_scanpos = cc_scanToken.Next;" : "        cc_lastpos = cc_scanpos = cc_scanpos.Next;"));
 					ostr.WriteLine("      }");
 					ostr.WriteLine("    } else {");
-					ostr.WriteLine("      cc_scanpos = cc_scanpos.Next;");
+					ostr.WriteLine((Options.ModernCSharp ? "      cc_scanpos = cc_scanToken.Next;" : "      cc_scanpos = cc_scanpos.Next;"));
 					ostr.WriteLine("    }");
 					if (Options.getErrorReporting()) {
 						ostr.WriteLine("    if (cc_rescan) {");
-						ostr.WriteLine("      int i = 0; Token tok = token;");
+						ostr.WriteLine((Options.ModernCSharp ? "      int i = 0; Token? tok = token;" : "      int i = 0; Token tok = token;"));
 						ostr.WriteLine("      while (tok != null && tok != cc_scanpos) { i++; tok = tok.Next; }");
 						ostr.WriteLine("      if (tok != null) cc_add_error_token(kind, i);");
 						if (Options.getDebugLookahead()) {
 							ostr.WriteLine("    } else {");
-							ostr.WriteLine("      trace_scan(cc_scanpos, kind);");
+							ostr.WriteLine((Options.ModernCSharp ? "      trace_scan(cc_scanToken, kind);" : "      trace_scan(cc_scanpos, kind);"));
 						}
 						ostr.WriteLine("    }");
 					} else if (Options.getDebugLookahead()) {
-						ostr.WriteLine("    trace_scan(cc_scanpos, kind);");
+						ostr.WriteLine((Options.ModernCSharp ? "    trace_scan(cc_scanToken, kind);" : "    trace_scan(cc_scanpos, kind);"));
 					}
-					ostr.WriteLine("    if (cc_scanpos.Kind != kind) return true;");
+					ostr.WriteLine((Options.ModernCSharp ? "    if (cc_scanToken.Kind != kind) return true;" : "    if (cc_scanpos.Kind != kind) return true;"));
 					ostr.WriteLine("    if (cc_la == 0 && cc_scanpos == cc_lastpos) throw cc_ls;");
 					ostr.WriteLine("    return false;");
 					ostr.WriteLine("  }");
@@ -474,29 +485,22 @@ namespace Deveel.CSharpCC.Parser {
 				ostr.WriteLine("");
 				ostr.WriteLine("/** Get the next Token. */");
 				ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + " public Token GetNextToken() {");
-				if (Options.getCacheTokens()) {
-					ostr.WriteLine("    if ((token = cc_nt).Next != null) cc_nt = cc_nt.Next;");
-					ostr.WriteLine("    else cc_nt = cc_nt.Next = " + CSharpCCGlobals.TokenManagerReference + ".GetNextToken();");
-				} else {
-					ostr.WriteLine("    if (token.Next != null) token = token.Next;");
-					ostr.WriteLine("    else token = token.Next = " + CSharpCCGlobals.TokenManagerReference + ".GetNextToken();");
-					ostr.WriteLine("    cc_ntKind = -1;");
-				}
+                WriteTokenAdvance(false);
 				if (Options.getErrorReporting()) {
 					ostr.WriteLine("    cc_gen++;");
 				}
 				if (Options.getDebugParser()) {
-					ostr.WriteLine("      trace_token(token, \" (in GetNextToken)\");");
+					ostr.WriteLine((Options.ModernCSharp ? "      trace_token(cc_currentToken, \" (in GetNextToken)\");" : "      trace_token(token, \" (in GetNextToken)\");"));
 				}
-				ostr.WriteLine("    return token;");
+				ostr.WriteLine((Options.ModernCSharp ? "    return cc_currentToken;" : "    return token;"));
 				ostr.WriteLine("  }");
 				ostr.WriteLine("");
 				ostr.WriteLine("/** Get the specific Token. */");
 				ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + " public Token GetToken(int index) {");
 				if (CSharpCCGlobals.lookaheadNeeded) {
-					ostr.WriteLine("    Token t = cc_lookingAhead ? cc_scanpos : token;");
+					ostr.WriteLine((Options.ModernCSharp ? "    Token t = cc_lookingAhead ? cc_scanToken : cc_currentToken;" : "    Token t = cc_lookingAhead ? cc_scanpos : token;"));
 				} else {
-					ostr.WriteLine("    Token t = token;");
+					ostr.WriteLine((Options.ModernCSharp ? "    Token t = cc_currentToken;" : "    Token t = token;"));
 				}
 				ostr.WriteLine("    for (int i = 0; i < index; i++) {");
 				ostr.WriteLine("      if (t.Next != null) t = t.Next;");
@@ -507,19 +511,19 @@ namespace Deveel.CSharpCC.Parser {
 				ostr.WriteLine("");
 				if (!Options.getCacheTokens()) {
 					ostr.WriteLine("  private " + CSharpCCGlobals.staticOpt() + "int cc_ntk() {");
-					ostr.WriteLine("    if ((cc_nt=token.Next) == null)");
-					ostr.WriteLine("      return (cc_ntKind = (token.Next = " + CSharpCCGlobals.TokenManagerReference + ".GetNextToken()).Kind);");
+					ostr.WriteLine((Options.ModernCSharp ? "    if ((cc_nt=cc_currentToken.Next) == null)" : "    if ((cc_nt=token.Next) == null)"));
+					ostr.WriteLine((Options.ModernCSharp ? "      return (cc_ntKind = (cc_currentToken.Next = " : "      return (cc_ntKind = (token.Next = ") + CSharpCCGlobals.TokenManagerReference + ".GetNextToken()).Kind);");
 					ostr.WriteLine("    else");
 					ostr.WriteLine("      return (cc_ntKind = cc_nt.Kind);");
 					ostr.WriteLine("  }");
 					ostr.WriteLine("");
 				}
 				if (Options.getErrorReporting()) {
-					if (!Options.getGenerateGenerics())
+					if (!Options.ModernCSharp && !Options.getGenerateGenerics())
 						ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + "private System.Collections.IList cc_expentries = new System.Collections.ArrayList();");
 					else
-						ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + "private System.Collections.Generic.IList<int[]> cc_expentries = new System.Collections.Generic.List<int[]>();");
-					ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + "private int[] cc_expentry;");
+						ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + (Options.ModernCSharp ? "private readonly System.Collections.Generic.List<int[]> cc_expentries = [];" : "private System.Collections.Generic.IList<int[]> cc_expentries = new System.Collections.Generic.List<int[]>();"));
+					ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + (Options.ModernCSharp ? "private int[] cc_expentry = [];" : "private int[] cc_expentry;"));
 					ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + "private int cc_kind = -1;");
 					if (CSharpCCGlobals.cc2index != 0) {
 						ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + "private int[] cc_lasttokens = new int[100];");
@@ -586,20 +590,20 @@ namespace Deveel.CSharpCC.Parser {
 					}
 					ostr.WriteLine("    int[][] exptokseq = new int[cc_expentries.Count][];");
 					ostr.WriteLine("    for (int i = 0; i < cc_expentries.Count; i++) {");
-					if (!Options.getGenerateGenerics())
+					if (!Options.ModernCSharp && !Options.getGenerateGenerics())
 						ostr.WriteLine("      exptokseq[i] = (int[])cc_expentries[i];");
 					else
 						ostr.WriteLine("      exptokseq[i] = cc_expentries[i];");
 					ostr.WriteLine("    }");
-					ostr.WriteLine("    return new ParseException(token, exptokseq, TokenImage);");
+					ostr.WriteLine((Options.ModernCSharp ? "    return new ParseException(cc_currentToken, exptokseq, TokenImage);" : "    return new ParseException(token, exptokseq, TokenImage);"));
 					ostr.WriteLine("  }");
 				} else {
 					ostr.WriteLine("  /** Generate ParseException. */");
 					ostr.WriteLine("  " + CSharpCCGlobals.staticOpt() + "public ParseException GenerateParseException() {");
-					ostr.WriteLine("    Token errortok = token.Next;");
+					ostr.WriteLine((Options.ModernCSharp ? "    Token errortok = GetToken(1);" : "    Token errortok = token.Next;"));
 					if (Options.getKeepLineColumn())
 						ostr.WriteLine("    int line = errortok.BeginLine, column = errortok.BeginColumn;");
-					ostr.WriteLine("    string mess = (errortok.Kind == 0) ? TokenImage[0] : errortok.Image;");
+					ostr.WriteLine((Options.ModernCSharp ? "    string? mess = (errortok.Kind == 0) ? TokenImage[0] : errortok.Image;" : "    string mess = (errortok.Kind == 0) ? TokenImage[0] : errortok.Image;"));
 					if (Options.getKeepLineColumn())
 						ostr.WriteLine("    return new ParseException(" +
 							"\"Parse error at line \" + line + \", column \" + column + \".  " +
@@ -681,7 +685,7 @@ namespace Deveel.CSharpCC.Parser {
 					ostr.WriteLine("    cc_rescan = true;");
 					ostr.WriteLine("    for (int i = 0; i < " + CSharpCCGlobals.cc2index + "; i++) {");
 					ostr.WriteLine("    try {");
-					ostr.WriteLine("      CCCalls p = cc_2_rtns[i];");
+					ostr.WriteLine((Options.ModernCSharp ? "      CCCalls? p = cc_2_rtns[i];" : "      CCCalls p = cc_2_rtns[i];"));
 					ostr.WriteLine("      do {");
 					ostr.WriteLine("        if (p.gen > cc_gen) {");
 					ostr.WriteLine("          cc_la = p.arg; cc_lastpos = cc_scanpos = p.first;");
@@ -712,9 +716,9 @@ namespace Deveel.CSharpCC.Parser {
 				if (CSharpCCGlobals.cc2index != 0 && Options.getErrorReporting()) {
 					ostr.WriteLine("  sealed class CCCalls {");
 					ostr.WriteLine("    public int gen;");
-					ostr.WriteLine("    public  Token first;");
+					ostr.WriteLine((Options.ModernCSharp ? "    public Token? first;" : "    public  Token first;"));
 					ostr.WriteLine("    public int arg;");
-					ostr.WriteLine("    public CCCalls next;");
+					ostr.WriteLine((Options.ModernCSharp ? "    public CCCalls? next;" : "    public CCCalls next;"));
 					ostr.WriteLine("  }");
 					ostr.WriteLine("");
 				}
@@ -738,6 +742,35 @@ namespace Deveel.CSharpCC.Parser {
 			} // matches "if (Options.getBuildParser())"
 
 		}
+
+        // Keep token linking in one place so caching and consumption retain the same identity.
+        private static void WriteTokenAdvance(bool consuming) {
+            if (Options.ModernCSharp) {
+                if (consuming)
+                    ostr.WriteLine("    Token oldToken = cc_currentToken;");
+                if (Options.getCacheTokens()) {
+                    ostr.WriteLine("    token = cc_nextToken;");
+                    ostr.WriteLine($"    cc_nt = token.Next ??= {CSharpCCGlobals.TokenManagerReference}.GetNextToken();");
+                } else {
+                    ostr.WriteLine($"    token = cc_currentToken.Next ??= {CSharpCCGlobals.TokenManagerReference}.GetNextToken();");
+                    ostr.WriteLine("    cc_ntKind = -1;");
+                }
+            } else if (Options.getCacheTokens()) {
+                if (consuming)
+                    ostr.WriteLine("    Token oldToken = token;");
+                ostr.WriteLine("    if ((token = cc_nt).Next != null) cc_nt = cc_nt.Next;");
+                ostr.WriteLine("    else cc_nt = cc_nt.Next = " + CSharpCCGlobals.TokenManagerReference + ".GetNextToken();");
+            } else {
+                if (consuming) {
+                    ostr.WriteLine("    Token oldToken;");
+                    ostr.WriteLine("    if ((oldToken = token).Next != null) token = token.Next;");
+                } else {
+                    ostr.WriteLine("    if (token.Next != null) token = token.Next;");
+                }
+                ostr.WriteLine("    else token = token.Next = " + CSharpCCGlobals.TokenManagerReference + ".GetNextToken();");
+                ostr.WriteLine("    cc_ntKind = -1;");
+            }
+        }
 
 		public static void reInit() {
 			outputWriter = null;

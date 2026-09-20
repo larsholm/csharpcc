@@ -38,6 +38,41 @@ that source. Invalid command-line values produce warnings and are ignored.
 String values preserve their spelling, spaces, and path separators; surrounding
 double quotes in the argument value are removed.
 
+Generated language modes
+========================
+
+Output uses the legacy C# syntax by default. Opt in to modern output with
+`-CSHARP_VERSION=14`, or add `CSHARP_VERSION = 14;` to the grammar's `options` block:
+
+```sh
+dotnet run --project src/csharpcc --configuration Release -- -CSHARP_VERSION=14 -OUTPUT_DIRECTORY=artifacts/modern-parser src/SimpleParserApp/SimpleParser.cc
+```
+
+Modern output uses nullable annotations, typed collections, collection expressions,
+and null-coalescing assignment for token links. It requires a C# 14 compiler;
+the tested consumer configuration is .NET 10 with these project settings:
+
+```xml
+<TargetFramework>net10.0</TargetFramework>
+<LangVersion>14</LangVersion>
+<Nullable>enable</Nullable>
+<WarningsAsErrors>nullable</WarningsAsErrors>
+```
+
+The [C# 14 compiler ships with the .NET 10 SDK](https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-14).
+`CSHARP_VERSION=legacy` explicitly selects the default mode. This option is
+independent of `CLR_VERSION`; modern mode always uses typed error collections.
+Neither mode adds a CSharpCC runtime dependency to the generated application.
+
+Modern files contain `#nullable enable`. Token images and links can be null;
+parser state fields can be null before initialization, and manually constructed
+`ParseException` instances can lack token details. Check these values in your
+own actions and consumer code. Existing public CLR signatures are preserved,
+but nullable analysis can surface new warnings in callers and custom support
+classes. Regeneration preserves edited support files, so reconcile customized
+files when changing modes. The output mode does not extend the embedded C#
+syntax accepted by the grammar reader; that is a separate planned phase.
+
 Run the sample
 ==============
 

@@ -86,6 +86,7 @@ namespace Deveel.CSharpCC.Parser {
                 tn.Add(CSharpCCGlobals.ToolName);
 
                 ostr.WriteLine("/* " + CSharpCCGlobals.GetIdString(tn, tokMgrClassName + ".cs") + " */");
+                if (Options.ModernCSharp) ostr.WriteLine("#nullable enable");
 
                 int l = 0, kind;
                 i = 1;
@@ -182,7 +183,7 @@ namespace Deveel.CSharpCC.Parser {
             if (Options.getTokenManagerUsesParser() && !Options.getStatic()) {
                 ostr.WriteLine("");
                 ostr.WriteLine("  // The parser.");
-                ostr.WriteLine("  public {0} parser = null;", CSharpCCGlobals.cu_name);
+                ostr.WriteLine((Options.ModernCSharp ? "  public {0} parser;" : "  public {0} parser = null;"), CSharpCCGlobals.cu_name);
             }
         }
 
@@ -693,7 +694,9 @@ namespace Deveel.CSharpCC.Parser {
                     charStreamName = "SimpleCharStream";
             }
 
-            ostr.WriteLine("internal {0}{1} inputStream;", staticString, charStreamName);
+            ostr.WriteLine((Options.ModernCSharp ? "internal {0}{1}? inputStream;" : "internal {0}{1} inputStream;"), staticString, charStreamName);
+            if (Options.ModernCSharp)
+                ostr.WriteLine("private {0}{1} RequiredInputStream => inputStream ?? throw new System.InvalidOperationException(\"The token manager has not been initialized.\");", staticString, charStreamName);
 
             ostr.WriteLine("private {0}readonly int[] ccRounds = new int[{1}];", staticString, stateSetSize);
             ostr.WriteLine("private {0}readonly int[] ccStateSet = new int[{1}];", staticString, (2 * stateSetSize));
@@ -701,7 +704,8 @@ namespace Deveel.CSharpCC.Parser {
             if (hasMoreActions || hasSkipActions || hasTokenActions) {
                 ostr.WriteLine("private {0}{1} image = new {1}();", staticString, Options.stringBufOrBuild());
                 ostr.WriteLine("private {0}int ccImageLen;", staticString);
-                ostr.WriteLine("private {0}int lengthOfMatch;", staticString);
+                if (!Options.ModernCSharp || hasMoreActions || Array.Exists(actions, action => action?.ActionTokens.Count > 0))
+                    ostr.WriteLine("private {0}int lengthOfMatch;", staticString);
             }
 
             ostr.WriteLine("{0}protected char curChar;", staticString);
@@ -821,7 +825,7 @@ namespace Deveel.CSharpCC.Parser {
                 }
 
                 ostr.WriteLine("   } else {");
-                ostr.WriteLine("      string im = ccStrLiteralImages[ccMatchedKind];");
+                ostr.WriteLine((Options.ModernCSharp ? "      string? im = ccStrLiteralImages[ccMatchedKind];" : "      string im = ccStrLiteralImages[ccMatchedKind];"));
                 ostr.WriteLine("      curTokenImage = (im == null) ? " + CSharpCCGlobals.CharStreamReference + ".GetImage() : im;");
 
                 if (keepLineCol) {
@@ -833,7 +837,7 @@ namespace Deveel.CSharpCC.Parser {
 
                 ostr.WriteLine("   }");
             } else {
-                ostr.WriteLine("   string im = ccStrLiteralImages[ccMatchedKind];");
+                ostr.WriteLine((Options.ModernCSharp ? "   string? im = ccStrLiteralImages[ccMatchedKind];" : "   string im = ccStrLiteralImages[ccMatchedKind];"));
                 ostr.WriteLine("   curTokenImage = (im == null) ? " + CSharpCCGlobals.CharStreamReference + ".GetImage() : im;");
                 if (keepLineCol) {
                     ostr.WriteLine("   beginLine = " + CSharpCCGlobals.CharStreamReference + ".BeginLine;");
@@ -868,6 +872,7 @@ namespace Deveel.CSharpCC.Parser {
 
         private static void DumpGetNextToken() {
             int i;
+            bool usesEofLabel = false;
 
             ostr.WriteLine("");
             ostr.WriteLine(staticString + "int curLexState = " + defaultLexState + ";");
@@ -881,7 +886,7 @@ namespace Deveel.CSharpCC.Parser {
             ostr.WriteLine("public " + staticString + "Token GetNextToken() ");
             ostr.WriteLine("{");
             if (hasSpecial) {
-                ostr.WriteLine("  Token specialToken = null;");
+                ostr.WriteLine((Options.ModernCSharp ? "  Token? specialToken = null;" : "  Token specialToken = null;"));
             }
             ostr.WriteLine("  Token matchedToken;");
             ostr.WriteLine("  int curPos = 0;");
@@ -890,7 +895,7 @@ namespace Deveel.CSharpCC.Parser {
             ostr.WriteLine("  while (true) {");
             ostr.WriteLine("   try {");
             ostr.WriteLine("      curChar = " + CSharpCCGlobals.CharStreamReference + ".BeginToken();");
-            ostr.WriteLine("   }  catch(System.IO.IOException e) {");
+            ostr.WriteLine((Options.ModernCSharp ? "   } catch(System.IO.IOException) {" : "   }  catch(System.IO.IOException e) {"));
 
             if (Options.getDebugTokenManager())
                 ostr.WriteLine("      debugStream.WriteLine(\"Returning the <EOF> token.\");");
@@ -976,6 +981,7 @@ namespace Deveel.CSharpCC.Parser {
                         ostr.WriteLine(prefix + "}");
 
                     ostr.WriteLine(prefix + "}");
+                    usesEofLabel = true;
                     ostr.WriteLine(prefix + "catch (System.IO.IOException) { goto EOFLoop; }");
                 }
 
@@ -1129,6 +1135,7 @@ namespace Deveel.CSharpCC.Parser {
                             ostr.WriteLine(prefix + "         curLexState = ccNewLexState[ccMatchedKind];");
                         }
 
+                        usesEofLabel = true;
                         ostr.WriteLine(prefix + "         goto EOFLoop;");
                         ostr.WriteLine(prefix + "      }");
                     }
@@ -1164,7 +1171,7 @@ namespace Deveel.CSharpCC.Parser {
                 ostr.WriteLine(prefix + "   }");
                 ostr.WriteLine(prefix + "   int errorLine = " + CSharpCCGlobals.CharStreamReference + ".EndLine;");
                 ostr.WriteLine(prefix + "   int errorColumn = " + CSharpCCGlobals.CharStreamReference + ".EndColumn;");
-                ostr.WriteLine(prefix + "   string errorAfter = null;");
+                ostr.WriteLine(prefix + (Options.ModernCSharp ? "   string errorAfter = \"\";" : "   string errorAfter = null;"));
                 ostr.WriteLine(prefix + "   bool EOFSeen = false;");
                 ostr.WriteLine(prefix + "   try { " + CSharpCCGlobals.CharStreamReference + ".ReadChar(); " + CSharpCCGlobals.CharStreamReference + ".Backup(1); }");
                 ostr.WriteLine(prefix + "   catch (System.IO.IOException) {");
@@ -1188,8 +1195,8 @@ namespace Deveel.CSharpCC.Parser {
             if (hasMore)
                 ostr.WriteLine(prefix + " }");
 
-			//TODO: Check this is the right position for the EOFLoop label!!!
-			ostr.WriteLine("  EOFLoop: ;");
+            if (!Options.ModernCSharp || usesEofLabel)
+                ostr.WriteLine("  EOFLoop: ;");
 
             ostr.WriteLine("  }");
             ostr.WriteLine("}");
@@ -1199,7 +1206,7 @@ namespace Deveel.CSharpCC.Parser {
         public static void DumpSkipActions() {
             Action? act;
 
-            ostr.WriteLine(staticString + "void SkipLexicalActions(Token matchedToken)");
+            ostr.WriteLine(staticString + (Options.ModernCSharp ? "void SkipLexicalActions(Token? matchedToken)" : "void SkipLexicalActions(Token matchedToken)"));
             ostr.WriteLine("{");
             ostr.WriteLine("   switch(ccMatchedKind)");
             ostr.WriteLine("   {");
@@ -1239,7 +1246,7 @@ namespace Deveel.CSharpCC.Parser {
                     ostr.Write("         image.Append");
                     if (RStringLiteral.allImages[i] != null) {
                         ostr.WriteLine("(ccStrLiteralImages[" + i + "]);");
-                        ostr.WriteLine("        lengthOfMatch = ccStrLiteralImages[" + i + "].Length;");
+                        ostr.WriteLine("        lengthOfMatch = ccStrLiteralImages[" + i + (Options.ModernCSharp ? "]?.Length ?? throw new InvalidOperationException(\"Missing literal image.\");" : "].Length;"));
                     } else {
                         ostr.WriteLine("(" + CSharpCCGlobals.CharStreamReference + ".GetSuffix(ccImageLen + (lengthOfMatch = ccMatchedPos + 1)));");
                     }
@@ -1270,7 +1277,7 @@ namespace Deveel.CSharpCC.Parser {
 
             ostr.WriteLine(staticString + "void MoreLexicalActions()");
             ostr.WriteLine("{");
-            ostr.WriteLine("   jjimageLen += (lengthOfMatch = ccMatchedPos + 1);");
+            ostr.WriteLine("   ccImageLen += (lengthOfMatch = ccMatchedPos + 1);");
             ostr.WriteLine("   switch(ccMatchedKind)");
             ostr.WriteLine("   {");
 
@@ -1388,7 +1395,7 @@ namespace Deveel.CSharpCC.Parser {
 
                         if (RStringLiteral.allImages[i] != null) {
                             ostr.WriteLine("(ccStrLiteralImages[" + i + "]);");
-                            ostr.WriteLine("        lengthOfMatch = ccStrLiteralImages[" + i + "].Length;");
+                            ostr.WriteLine("        lengthOfMatch = ccStrLiteralImages[" + i + (Options.ModernCSharp ? "]?.Length ?? throw new InvalidOperationException(\"Missing literal image.\");" : "].Length;"));
                         } else {
                             ostr.WriteLine("(" + CSharpCCGlobals.CharStreamReference + ".GetSuffix(ccImageLen + (lengthOfMatch = ccMatchedPos + 1)));");
                         }

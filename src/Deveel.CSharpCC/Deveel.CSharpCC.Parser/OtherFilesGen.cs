@@ -38,7 +38,7 @@ namespace Deveel.CSharpCC.Parser {
 					new StreamWriter(
 						new BufferedStream(
 							new FileStream(Path.Combine(Options.getOutputDirectory().FullName, CSharpCCGlobals.cu_name + "Constants.cs"),
-							               FileMode.OpenOrCreate, FileAccess.Write), 8192));
+							               FileMode.Create, FileAccess.Write), 8192));
 			} catch (IOException) {
 				CSharpCCErrors.SemanticError("Could not open file " + CSharpCCGlobals.cu_name + "Constants.cs for writing.");
 				throw new InvalidOperationException();
@@ -49,6 +49,7 @@ namespace Deveel.CSharpCC.Parser {
 			List<string> tn = new List<string>(CSharpCCGlobals.ToolNames);
 			tn.Add(CSharpCCGlobals.ToolName);
 			ostr.WriteLine("/* " + CSharpCCGlobals.GetIdString(tn, CSharpCCGlobals.cu_name + "Constants.cs") + " */");
+			if (Options.ModernCSharp) ostr.WriteLine("#nullable enable");
 
             bool namespaceInserted = false;
 			if (CSharpCCGlobals.cu_to_insertion_point_1.Count != 0 &&

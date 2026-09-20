@@ -56,8 +56,8 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class UnicodeCharStream {
   ${PREFIX}int bufsize;
   ${PREFIX}int available;
   ${PREFIX}int tokenBegin;
-  ${PREFIX}protected int[] bufline;
-  ${PREFIX}protected int[] bufcolumn;
+  ${PREFIX}protected int[] bufline${MODERN_CSHARP? = []:};
+  ${PREFIX}protected int[] bufcolumn${MODERN_CSHARP? = []:};
 
   ${PREFIX}protected int column = 0;
   ${PREFIX}protected int line = 1;
@@ -65,10 +65,14 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class UnicodeCharStream {
   ${PREFIX}protected bool prevCharIsCR = false;
   ${PREFIX}protected bool prevCharIsLF = false;
 
-  ${PREFIX}protected System.IO.TextReader inputStream;
+  ${PREFIX}protected System.IO.TextReader${NULLABLE} inputStream;
+#if MODERN_CSHARP
+  ${PREFIX}private System.IO.TextReader RequiredInputStream => inputStream ??
+    throw new System.InvalidOperationException("The character stream has not been initialized.");
+#fi
 
-  ${PREFIX}protected char[] nextCharBuf;
-  ${PREFIX}protected char[] buffer;
+  ${PREFIX}protected char[] nextCharBuf${MODERN_CSHARP? = []:};
+  ${PREFIX}protected char[] buffer${MODERN_CSHARP? = []:};
   ${PREFIX}protected int maxNextCharInd = 0;
   ${PREFIX}protected int nextCharInd = -1;
   ${PREFIX}protected int inBuf = 0;
@@ -116,7 +120,7 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class UnicodeCharStream {
   ${PREFIX}protected void FillBuff() {
      if (maxNextCharInd == nextCharBuf.Length)
         maxNextCharInd = nextCharInd = 0;
-     int count = inputStream.Read(nextCharBuf, maxNextCharInd, nextCharBuf.Length - maxNextCharInd);
+     int count = ${INPUT_STREAM_REF}.Read(nextCharBuf, maxNextCharInd, nextCharBuf.Length - maxNextCharInd);
      if (count == 0) {
         --nextCharInd;
         throw new System.IO.EndOfStreamException();
@@ -411,7 +415,7 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class UnicodeCharStream {
      ReInit(dstream, 1, 1, 4096);
   }
   /** Constructor. */
-  public UnicodeCharStream(System.IO.Stream dstream, System.Text.Encoding encoding, int startline, int startcolumn, int buffersize)
+  public UnicodeCharStream(System.IO.Stream dstream, System.Text.Encoding${NULLABLE} encoding, int startline, int startcolumn, int buffersize)
     : this(encoding == null ? new System.IO.StreamReader(dstream) : new System.IO.StreamReader(dstream, encoding), startline, startcolumn, buffersize) {
   }
 
@@ -421,7 +425,7 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class UnicodeCharStream {
   }
 
   /** Constructor. */
-  public UnicodeCharStream(System.IO.Stream dstream, System.Text.Encoding encoding, int startline, int startcolumn)
+  public UnicodeCharStream(System.IO.Stream dstream, System.Text.Encoding${NULLABLE} encoding, int startline, int startcolumn)
     : this(dstream, encoding, startline, startcolumn, 4096) {
   }
 
@@ -431,7 +435,7 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class UnicodeCharStream {
   }
 
   /** Constructor. */
-  public UnicodeCharStream(System.IO.Stream dstream, System.Text.Encoding encoding)
+  public UnicodeCharStream(System.IO.Stream dstream, System.Text.Encoding${NULLABLE} encoding)
     : this(dstream, encoding, 1, 1, 4096) {
   }
 
@@ -441,7 +445,7 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class UnicodeCharStream {
   }
 
   /** Reinitialise. */
-  public void ReInit(System.IO.Stream dstream, System.Text.Encoding encoding, int startline, int startcolumn, int buffersize)
+  public void ReInit(System.IO.Stream dstream, System.Text.Encoding${NULLABLE} encoding, int startline, int startcolumn, int buffersize)
   {
     ReInit(encoding == null ? new System.IO.StreamReader(dstream) : new System.IO.StreamReader(dstream, encoding), startline, startcolumn, buffersize);
   }
@@ -453,7 +457,7 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class UnicodeCharStream {
   }
 
   /** Reinitialise. */
-  public void ReInit(System.IO.Stream dstream, System.Text.Encoding encoding)
+  public void ReInit(System.IO.Stream dstream, System.Text.Encoding${NULLABLE} encoding)
   {
     ReInit(dstream, encoding, 1, 1, 4096);
   }
@@ -464,7 +468,7 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class UnicodeCharStream {
     ReInit(dstream, 1, 1, 4096);
   }
   /** Reinitialise. */
-  public void ReInit(System.IO.Stream dstream, System.Text.Encoding encoding, int startline, int startcolumn)
+  public void ReInit(System.IO.Stream dstream, System.Text.Encoding${NULLABLE} encoding, int startline, int startcolumn)
   {
     ReInit(dstream, encoding, startline, startcolumn, 4096);
   }
@@ -498,10 +502,10 @@ ${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}class UnicodeCharStream {
 
   ${PREFIX}public void Done()
   {
-     nextCharBuf = null;
-     buffer = null;
-     bufline = null;
-     bufcolumn = null;
+     nextCharBuf = ${MODERN_CSHARP?[]:null};
+     buffer = ${MODERN_CSHARP?[]:null};
+     bufline = ${MODERN_CSHARP?[]:null};
+     bufcolumn = ${MODERN_CSHARP?[]:null};
   }
 
   /// <summary>

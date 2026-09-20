@@ -115,7 +115,7 @@ namespace Deveel.CSharpCC.Parser {
         private const int OPENIF = 1;
         private const int OPENSWITCH = 2;
 
-        private static String buildLookaheadChecker(Lookahead[] conds, String[] actions) {
+        private static String buildLookaheadChecker(Lookahead[] conds, String[] actions, bool defaultTerminates = false) {
 
             // The state variables.
             int state = NOOPENSTM;
@@ -213,7 +213,7 @@ namespace Deveel.CSharpCC.Parser {
                             case NOOPENSTM:
                                 retval += "\n" + "switch (";
                                 if (Options.getCacheTokens()) {
-                                    retval += "cc_nt.Kind) {\u0001";
+                                    retval += (Options.ModernCSharp ? "cc_nextToken.Kind) {\u0001" : "cc_nt.Kind) {\u0001");
                                 } else {
                                     retval += "(cc_ntKind==-1)?cc_ntk():cc_ntKind) {\u0001";
                                 }
@@ -332,9 +332,12 @@ namespace Deveel.CSharpCC.Parser {
 
             // C# requires a terminating statement in every switch section, including
             // defaults that contain nested lookahead if/else blocks.
+            bool omitDefaultBreak = Options.ModernCSharp && defaultTerminates &&
+                index == conds.Length && state == OPENSWITCH;
             foreach (int statement in openStatements) {
-                if (statement == OPENSWITCH)
+                if (statement == OPENSWITCH && !omitDefaultBreak)
                     retval += "\nbreak;";
+                omitDefaultBreak = false;
                 retval += "\u0002\n}";
             }
 
@@ -508,7 +511,7 @@ namespace Deveel.CSharpCC.Parser {
                     actions[i] = phase1ExpansionGen(nestedSeq);
                     conds[i] = (Lookahead) (nestedSeq.Units[0]);
                 }
-                retval = buildLookaheadChecker(conds, actions);
+                retval = buildLookaheadChecker(conds, actions, defaultTerminates: true);
             } else if (e is Sequence sequence) {
                 // We skip the first element in the following iteration since it is the
                 // Lookahead object.
@@ -534,7 +537,7 @@ namespace Deveel.CSharpCC.Parser {
                 actions = new String[2];
                 actions[0] = "\n;";
                 actions[1] = "\ngoto label_" + labelIndex + ";";
-                retval += buildLookaheadChecker(conds, actions);
+                retval += buildLookaheadChecker(conds, actions, defaultTerminates: true);
                 retval += "\u0002\n" + "}";
                 retval += "label_" + labelIndex + ":;\n";
             } else if (e is ZeroOrMore zeroOrMore) {
@@ -555,7 +558,7 @@ namespace Deveel.CSharpCC.Parser {
                 actions = new String[2];
                 actions[0] = "\n;";
                 actions[1] = "\ngoto label_" + labelIndex + ";";
-                retval += buildLookaheadChecker(conds, actions);
+                retval += buildLookaheadChecker(conds, actions, defaultTerminates: true);
                 retval += phase1ExpansionGen(nested_e);
                 retval += "\u0002\n" + "}";
                 retval += "label_" + labelIndex + ":;\n";
@@ -787,7 +790,7 @@ namespace Deveel.CSharpCC.Parser {
                 if (choice.Choices.Count != 1) {
                     if (!xsp_declared) {
                         xsp_declared = true;
-                        ostr.WriteLine("    Token xsp;");
+                        ostr.WriteLine((Options.ModernCSharp ? "    Token? xsp;" : "    Token xsp;"));
                     }
                     ostr.WriteLine("    xsp = cc_scanpos;");
                 }
@@ -839,7 +842,7 @@ namespace Deveel.CSharpCC.Parser {
             } else if (e is OneOrMore oneOrMore) {
                 if (!xsp_declared) {
                     xsp_declared = true;
-                    ostr.WriteLine("    Token xsp;");
+                    ostr.WriteLine((Options.ModernCSharp ? "    Token? xsp;" : "    Token xsp;"));
                 }
                 Expansion nested_e = oneOrMore.Expansion;
                 ostr.WriteLine("    if (" + gencc_3Call(nested_e) + ") " + genReturn(true));
@@ -850,7 +853,7 @@ namespace Deveel.CSharpCC.Parser {
             } else if (e is ZeroOrMore zeroOrMore) {
                 if (!xsp_declared) {
                     xsp_declared = true;
-                    ostr.WriteLine("    Token xsp;");
+                    ostr.WriteLine((Options.ModernCSharp ? "    Token? xsp;" : "    Token xsp;"));
                 }
                 Expansion nested_e = zeroOrMore.Expansion;
                 ostr.WriteLine("    while (true) {");
@@ -860,7 +863,7 @@ namespace Deveel.CSharpCC.Parser {
             } else if (e is ZeroOrOne zeroOrOne) {
                 if (!xsp_declared) {
                     xsp_declared = true;
-                    ostr.WriteLine("    Token xsp;");
+                    ostr.WriteLine((Options.ModernCSharp ? "    Token? xsp;" : "    Token xsp;"));
                 }
                 Expansion nested_e = zeroOrOne.RequiredExpansion;
                 ostr.WriteLine("    xsp = cc_scanpos;");

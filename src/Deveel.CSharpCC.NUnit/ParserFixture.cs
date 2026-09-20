@@ -13,10 +13,13 @@ namespace Deveel.CSharpCC.NUnit;
 // and consumer out of process also bounds failures caused by lexer EOF loops.
 internal sealed class ParserFixture : IDisposable {
     public string DirectoryPath { get; } = Path.Combine(Path.GetTempPath(), "csharpcc fixture " + Guid.NewGuid().ToString("N"));
+    public bool ModernOutput { get; init; }
 
     public ParserFixture() => Directory.CreateDirectory(DirectoryPath);
 
     public async Task<ProcessResult> Generate(string grammar, params string[] options) {
+        if (ModernOutput)
+            options = [.. options, "CSHARP_VERSION=14"];
         File.WriteAllText(Path.Combine(DirectoryPath, "Parser.cc"), grammar);
         var repository = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
         while (repository != null && !File.Exists(Path.Combine(repository.FullName, "src", "CSharpCC.sln")))
@@ -38,13 +41,15 @@ internal sealed class ParserFixture : IDisposable {
         var generation = await Generate(grammar, options);
         Assert.That(generation.ExitCode, Is.Zero, generation.Output);
 
-        File.WriteAllText(Path.Combine(DirectoryPath, "Consumer.csproj"), """
+        File.WriteAllText(Path.Combine(DirectoryPath, "Consumer.csproj"), $$"""
             <Project Sdk="Microsoft.NET.Sdk">
               <PropertyGroup>
                 <OutputType>Exe</OutputType>
                 <TargetFramework>net10.0</TargetFramework>
                 <ImplicitUsings>disable</ImplicitUsings>
-                <Nullable>disable</Nullable>
+                <Nullable>{{(ModernOutput ? "enable" : "disable")}}</Nullable>
+                <LangVersion>14</LangVersion>
+                <WarningsAsErrors>{{(ModernOutput ? "nullable;CS0168;CS0169;CS0162;CA2200" : "")}}</WarningsAsErrors>
               </PropertyGroup>
             </Project>
             """);

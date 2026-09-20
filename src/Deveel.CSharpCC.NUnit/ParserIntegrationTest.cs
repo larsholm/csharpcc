@@ -4,8 +4,9 @@ using NUnit.Framework;
 
 namespace Deveel.CSharpCC.NUnit;
 
-[TestFixture]
-public class ParserIntegrationTest {
+[TestFixture(false)]
+[TestFixture(true)]
+public class ParserIntegrationTest(bool modernOutput) {
     private const string Grammar = """
         PARSER_BEGIN(FixtureParser)
         namespace Fixture;
@@ -57,7 +58,7 @@ public class ParserIntegrationTest {
     [TestCase(true, false)]
     [TestCase(true, true)]
     public async Task GeneratedParserHandlesLookaheadCommentsPositionsAndEof(bool isStatic, bool cacheTokens) {
-        using var fixture = new ParserFixture();
+        using var fixture = new ParserFixture { ModernOutput = modernOutput };
         await fixture.GenerateAndBuild(Grammar, Driver(isStatic), $"STATIC={isStatic}", $"CACHE_TOKENS={cacheTokens}");
         await Expect(fixture, "word", 0, "word|1:1-1:4|");
         await Expect(fixture, "word:other", 0, "word|1:1-1:4|");
@@ -74,7 +75,7 @@ public class ParserIntegrationTest {
     [TestCase(false)]
     [TestCase(true)]
     public async Task UnicodeEscapesAreDecoded(bool isStatic) {
-        using var fixture = new ParserFixture();
+        using var fixture = new ParserFixture { ModernOutput = modernOutput };
         await fixture.GenerateAndBuild(Grammar, Driver(isStatic), $"STATIC={isStatic}", "UNICODE_ESCAPE=true");
         await Expect(fixture, @"\u0061bc", 0, "abc|1:1-1:8|");
         await Expect(fixture, "æøå", 0, "æøå|1:1-1:3|");
@@ -107,7 +108,7 @@ public class ParserIntegrationTest {
                 }
             }
             """;
-        using var fixture = new ParserFixture();
+        using var fixture = new ParserFixture { ModernOutput = modernOutput };
         await fixture.GenerateAndBuild(grammar, Driver(false, "new CustomTokens()", helpers), "STATIC=false", "USER_TOKEN_MANAGER=true");
         await Expect(fixture, "", 0, "custom|1:1-1:6|");
     }
@@ -132,7 +133,7 @@ public class ParserIntegrationTest {
                 public void Done() {}
             }
             """;
-        using var fixture = new ParserFixture();
+        using var fixture = new ParserFixture { ModernOutput = modernOutput };
         await fixture.GenerateAndBuild(Grammar, Driver(false, "new CustomStream(args[0])", helpers), "STATIC=false", "USER_CHAR_STREAM=true");
         await Expect(fixture, "word:other", 0, "word|1:1-1:4|");
         await Expect(fixture, "", 2, "parse-error");
@@ -175,7 +176,7 @@ public class ParserIntegrationTest {
                 }
             }
             """;
-        using var fixture = new ParserFixture();
+        using var fixture = new ParserFixture { ModernOutput = modernOutput };
         await fixture.GenerateAndBuild(Grammar, driver, $"STATIC={isStatic}", "UNICODE_ESCAPE=true");
         await Expect(fixture, @"\u0061", 0, "a");
         await Expect(fixture, @"\uuuu0061", 0, "a");
