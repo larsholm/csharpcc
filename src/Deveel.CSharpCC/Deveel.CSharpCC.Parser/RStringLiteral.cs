@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -356,7 +356,7 @@ namespace Deveel.CSharpCC.Parser {
 				             "+ (ccMatchedPos + 1) + \" characters as a \" + tokenImage[ccMatchedKind] + \" token.\");");
 			}
 
-			ostr.WriteLine("   try { curChar = inputStream.ReadChar(); }");
+			ostr.WriteLine("   try { curChar = " + CSharpCCGlobals.CharStreamReference + ".ReadChar(); }");
 			ostr.WriteLine("   catch(System.IO.IOException e) { return pos + 1; }");
 
 			if (Options.getDebugTokenManager())
@@ -364,7 +364,7 @@ namespace Deveel.CSharpCC.Parser {
 				             (LexGen.maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "") +
 				             "\"Current character : \" + " +
 				             "TokenMgrError.AddEscapes(curChar.ToString()) + \" (\" + (int)curChar + \") " +
-				             "at line \" + inputStream.EndLine + \" column \" + inputStream.EndColumn);");
+				             "at line \" + " + CSharpCCGlobals.CharStreamReference + ".EndLine + \" column \" + " + CSharpCCGlobals.CharStreamReference + ".EndColumn);");
 
 			ostr.WriteLine("   return ccMoveNfa" + LexGen.lexStateSuffix + "(state, pos + 1);");
 			ostr.WriteLine("}");
@@ -535,7 +535,7 @@ namespace Deveel.CSharpCC.Parser {
 						ostr.WriteLine(" + \" } \");");
 					}
 
-					ostr.WriteLine("   try { curChar = inputStream.ReadChar(); }");
+					ostr.WriteLine("   try { curChar = " + CSharpCCGlobals.CharStreamReference + ".ReadChar(); }");
 					ostr.WriteLine("   catch(System.IO.IOException) {");
 
 					if (!LexGen.mixed[LexGen.lexStateIndex] && NfaState.generatedStates != 0) {
@@ -572,7 +572,7 @@ namespace Deveel.CSharpCC.Parser {
 					             (LexGen.maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "") +
 					             "\"Current character : \" + " +
 					             "TokenMgrError.AddEscapes(curChar.ToString()) + \" (\" + (int)curChar + \") " +
-					             "at line \" + inputStream.EndLine + \" column \" + inputStream.EndColumn);");
+					             "at line \" + " + CSharpCCGlobals.CharStreamReference + ".EndLine + \" column \" + " + CSharpCCGlobals.CharStreamReference + ".EndColumn);");
 
 				ostr.Write("   switch((int)curChar)");
 				ostr.WriteLine("   {");

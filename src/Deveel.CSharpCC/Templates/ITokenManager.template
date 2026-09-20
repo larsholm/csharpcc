@@ -1,7 +1,7 @@
-﻿/// <summary>
+/// <summary>
 /// An interface that allows the parser to read tokens
 /// </summary>
-${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}interface TokenManager {
+${SUPPORT_CLASS_VISIBILITY_PUBLIC?public :}interface ITokenManager {
 	/// <summary>
 	/// This gets the next token from the input stream.
 	/// </summary>

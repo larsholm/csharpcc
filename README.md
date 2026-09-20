@@ -49,6 +49,10 @@ printf "read and print 'hello'\n" | dotnet run --project src/SimpleParserApp --c
 The sample generates its parser during the build into `obj/<configuration>/net10.0/GeneratedParser`,
 using the .NET 10 CLI. Tests cover grammar generation, regeneration and preservation
 of edited support files, and running the generated parser with valid and invalid input.
+The integration suite also compiles independent consumers for static parsers,
+token caching, lookahead, comment tokens, Unicode escapes, and custom streams.
+See the [modernization baseline](docs/MODERNIZATION_BASELINE.md) for the tested
+configurations and the [remaining plan](MODERNIZATION_PLAN.md).
 GitHub Actions builds and tests Debug and Release on Linux, Windows, and macOS.
 The legacy source and generated code still produce compiler/analyzer warnings.
 

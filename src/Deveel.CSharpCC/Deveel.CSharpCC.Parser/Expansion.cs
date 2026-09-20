@@ -1,4 +1,4 @@
-﻿/* Copyright (c) 2012-2014, Deveel
+/* Copyright (c) 2012-2014, Deveel
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@ namespace Deveel.CSharpCC.Parser {
 
         public int Column { get; internal set; }
 
-        internal string InternalName { get; set; }
+        internal string InternalName { get; set; } = string.Empty;
 
         public object Parent { get; internal set; }
 

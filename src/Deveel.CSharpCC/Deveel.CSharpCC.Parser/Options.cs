@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -281,7 +281,7 @@ namespace Deveel.CSharpCC.Parser {
         }
 
         public static bool getUnicodeEscape() {
-            return BooleanValue("JAVA_UNICODE_ESCAPE");
+            return BooleanValue("UNICODE_ESCAPE");
         }
 
         public static bool getUnicodeInput() {

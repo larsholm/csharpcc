@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -8,6 +8,15 @@ using System.Reflection;
 namespace Deveel.CSharpCC.Parser {
 	public static class CSharpCCGlobals {
         public const string ToolName = "CSharpCC";
+
+        // C# requires type-qualified access to static generated members.
+        internal static string CharStreamReference => Options.getStatic() && !Options.getUserCharStream()
+            ? (Options.getUnicodeEscape() ? "UnicodeCharStream" : "SimpleCharStream")
+            : "inputStream";
+
+        internal static string TokenManagerReference => Options.getStatic() && !Options.getUserTokenManager()
+            ? cu_name + "TokenManager"
+            : "tokenSource";
 
         public static string FileName;
         public static string OriginalFileName;

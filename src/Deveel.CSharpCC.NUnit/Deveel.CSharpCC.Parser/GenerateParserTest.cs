@@ -68,6 +68,14 @@ namespace Deveel.CSharpCC.Parser {
 		}
 
         [Test]
+        public void TokenConstantsMatchCompatibilitySnapshot() {
+            GenerateNoErrors();
+            var expected = File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, "Snapshots", "SimpleParserConstants.cs.txt"));
+            var actual = File.ReadAllText(Path.Combine(outputDirectory, "SimpleParserConstants.cs"));
+            Assert.That(actual.Replace("\r\n", "\n"), Is.EqualTo(expected.Replace("\r\n", "\n")));
+        }
+
+        [Test]
         public void RegeneratesUnmodifiedSupportFiles() {
             GenerateNoErrors();
             var tokenPath = Path.Combine(outputDirectory, "Token.cs");

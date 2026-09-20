@@ -1,6 +1,8 @@
 # CSharpCC modernization plan
 
-Status: proposed; implementation has not started.
+Status: phase 1 implemented and verified locally on Linux; phases 2–7 remain.
+Cross-platform execution will run through the existing GitHub Actions matrix.
+See [the phase 1 baseline](docs/MODERNIZATION_BASELINE.md) for coverage and fixes.
 
 Modernize the .NET 10 codebase, improve generated parsers, and support modern C#
 inside grammar files. Deliver each phase as a separate, reviewable change.

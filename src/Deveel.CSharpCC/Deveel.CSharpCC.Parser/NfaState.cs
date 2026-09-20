@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -2139,7 +2139,7 @@ namespace Deveel.CSharpCC.Parser {
 
         private void DumpNonAsciiMoveMethod(TextWriter ostr) {
             int j;
-            ostr.WriteLine("private static readonly bool ccCanMove_" + nonAsciiMethod +"(int hiByte, int i1, int i2, long l1, long l2)");
+            ostr.WriteLine("private static bool ccCanMove_" + nonAsciiMethod +"(int hiByte, int i1, int i2, long l1, long l2)");
             ostr.WriteLine("{");
             ostr.WriteLine("   switch(hiByte)");
             ostr.WriteLine("   {");
@@ -2391,8 +2391,8 @@ namespace Deveel.CSharpCC.Parser {
                 ostr.WriteLine("   int strKind = ccMatchedKind;");
                 ostr.WriteLine("   int strPos = ccMatchedPos;");
                 ostr.WriteLine("   int seenUpto;");
-                ostr.WriteLine("   inputStream.Backup(seenUpto = curPos + 1);");
-                ostr.WriteLine("   try { curChar = inputStream.ReadChar(); }");
+                ostr.WriteLine("   " + CSharpCCGlobals.CharStreamReference + ".Backup(seenUpto = curPos + 1);");
+                ostr.WriteLine("   try { curChar = " + CSharpCCGlobals.CharStreamReference + ".ReadChar(); }");
                 ostr.WriteLine("   catch(System.IO.IOException) { throw new System.InvalidOperationException(\"Internal Error\"); }");
                 ostr.WriteLine("   curPos = 0;");
             }
@@ -2411,7 +2411,7 @@ namespace Deveel.CSharpCC.Parser {
                     ? "\"<\" + lexStateNames[curLexState] + \">\" + "
                     : "") + "\"Current character : \" + " +
                                "TokenMgrError.AddEscapes(curChar.ToString()) + \" (\" + (int)curChar + \") " +
-                               "at line \" + inputStream.EndLine + \" column \" + inputStream.EndColumn);");
+                               "at line \" + " + CSharpCCGlobals.CharStreamReference + ".EndLine + \" column \" + " + CSharpCCGlobals.CharStreamReference + ".EndColumn);");
 
             ostr.WriteLine("   int kind = Int32.MaxValue;");
             ostr.WriteLine("   for (;;)");
@@ -2464,7 +2464,7 @@ namespace Deveel.CSharpCC.Parser {
             if (Options.getDebugTokenManager())
                 ostr.WriteLine("      debugStream.WriteLine(\"   Possible kinds of longer matches : \" + " + "ccKindsForStateVector(curLexState, ccStateSet, startsAt, i));");
 
-            ostr.WriteLine("      try { curChar = inputStream.ReadChar(); }");
+            ostr.WriteLine("      try { curChar = " + CSharpCCGlobals.CharStreamReference + ".ReadChar(); }");
 
             if (LexGen.mixed[LexGen.lexStateIndex])
                 ostr.WriteLine("      catch(System.IO.IOException) { break; }");
@@ -2476,7 +2476,7 @@ namespace Deveel.CSharpCC.Parser {
                     ? "\"<\" + lexStateNames[curLexState] + \">\" + "
                     : "") + "\"Current character : \" + " +
                                "TokenMgrError.AddEscapes(curChar.ToString()) + \" (\" + (int)curChar + \") " +
-                               "at line \" + inputStream.EndLine + \" column \" + inputStream.EndColumn);");
+                               "at line \" + " + CSharpCCGlobals.CharStreamReference + ".EndLine + \" column \" + " + CSharpCCGlobals.CharStreamReference + ".EndColumn);");
 
             ostr.WriteLine("   }");
 
@@ -2488,7 +2488,7 @@ namespace Deveel.CSharpCC.Parser {
                 ostr.WriteLine("");
                 ostr.WriteLine("   if (curPos < toRet)");
                 ostr.WriteLine("      for (i = toRet - System.Math.Min(curPos, seenUpto); i-- > 0; )");
-                ostr.WriteLine("         try { curChar = inputStream.ReadChar(); }");
+                ostr.WriteLine("         try { curChar = " + CSharpCCGlobals.CharStreamReference + ".ReadChar(); }");
                 ostr.WriteLine("         catch(System.IO.IOException e) { " +
                                "throw new InvalidOperationException(\"Internal Error : Please send a bug report.\"); }");
                 ostr.WriteLine("");
