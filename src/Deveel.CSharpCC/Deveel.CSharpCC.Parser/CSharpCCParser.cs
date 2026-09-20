@@ -4522,7 +4522,7 @@ public partial class CSharpCCParser : CSharpCCParserConstants {
 
    public void RSIGNEDSHIFT() {
     if (GetToken(1).kind == GT &&
-                    ((Token.GTToken)GetToken(1)).realKind == CSharpCCParserConstants.RSIGNEDSHIFT) {
+                ((Token.GTToken)GetToken(1)).realKind == CSharpCCParserConstants.RSIGNEDSHIFT) {
 
     } else {
       cc_consume_token(-1);

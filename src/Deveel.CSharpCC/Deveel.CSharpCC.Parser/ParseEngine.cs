@@ -187,6 +187,7 @@ namespace Deveel.CSharpCC.Parser {
                                 break;
                         }
 
+                        retval += "\u0003";
                         CSharpCCGlobals.PrintTokenSetup(la.ActionTokens[0]);
                         foreach (var token in la.ActionTokens) {
                             t = token;
@@ -194,7 +195,7 @@ namespace Deveel.CSharpCC.Parser {
                         }
 
                         retval += CSharpCCGlobals.PrintTrailingComments(t);
-                        retval += ") {\u0001" + actions[index];
+                        retval += "\u0004) {\u0001" + actions[index];
                         state = OPENIF;
                     }
 
@@ -304,7 +305,7 @@ namespace Deveel.CSharpCC.Parser {
                     if (la.ActionTokens.Count != 0) {
                         // In addition, there is also a semantic lookahead.  So concatenate
                         // the semantic check with the syntactic one.
-                        retval += " && (";
+                        retval += " && (\u0003";
                         CSharpCCGlobals.PrintTokenSetup(la.ActionTokens[0]);
                         foreach (var token in la.ActionTokens) {
                             t = token;
@@ -312,7 +313,7 @@ namespace Deveel.CSharpCC.Parser {
                         }
 
                         retval += CSharpCCGlobals.PrintTrailingComments(t);
-                        retval += ")";
+                        retval += "\u0004)";
                     }
 
                     retval += ") {\u0001" + actions[index];
@@ -365,15 +366,15 @@ namespace Deveel.CSharpCC.Parser {
             for (int i = 0; i < str.Length; i++) {
                 prevChar = ch;
                 ch = str[i];
-                if (ch == '\n' && prevChar == '\r') {
+                if (!indentOn && (ch == '\n' || ch == '\r')) {
+                    // Embedded C# can contain verbatim/raw string data whose
+                    // line endings must not change with the generator's OS.
+                    ostr.Write(ch);
+                } else if (ch == '\n' && prevChar == '\r') {
                     // do nothing - we've already printed a new line for the '\r'
                     // during the previous iteration.
                 } else if (ch == '\n' || ch == '\r') {
-                    if (indentOn) {
-                        phase1NewLine();
-                    } else {
-                        ostr.WriteLine();
-                    }
+                    phase1NewLine();
                 } else if (ch == '\u0001') {
                     indentamt += 2;
                 } else if (ch == '\u0002') {
@@ -492,12 +493,14 @@ namespace Deveel.CSharpCC.Parser {
                 }
                 retval += nonTerminal.Name + "(";
                 if (nonTerminal.ArgumentTokens.Count != 0) {
+                    retval += "\u0003";
                     CSharpCCGlobals.PrintTokenSetup(nonTerminal.ArgumentTokens[0]);
                     foreach (var token in nonTerminal.ArgumentTokens) {
                         t = token;
                         retval += CSharpCCGlobals.PrintToken(t);
                     }
                     retval += CSharpCCGlobals.PrintTrailingComments(t);
+                    retval += "\u0004";
                 }
                 retval += ");";
             } else if (e is Action action) {

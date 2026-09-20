@@ -52,6 +52,41 @@ public class EmbeddedCSharpTest(bool modernOutput) {
         Assert.That(result.Output.Trim(), Is.EqualTo("ok:5:True"));
     }
 
+    [TestCase("\n", false)]
+    [TestCase("\r\n", false)]
+    [TestCase("\n", true)]
+    [TestCase("\r\n", true)]
+    public async Task RawStringValuesRetainTheirOriginalLineEndings(string newline, bool argumentsAndLookahead) {
+        string production = """"
+            string Input() : {} { <EOF> {
+                var text = """
+                    first
+                    second
+                    """;
+                return BitConverter.ToString(System.Text.Encoding.UTF8.GetBytes(text));
+            } }
+            """";
+        if (argumentsAndLookahead) {
+            const string literal = "\"\"\"\n    first\n    second\n    \"\"\"";
+            string escaped = newline == "\n" ? "\\n" : "\\r\\n";
+            production = """
+                TOKEN: { < A: "a" > }
+                CODE string Echo(string value) { return value; }
+                string Input() : { string text; } {
+                    ( LOOKAHEAD({ String.Equals(RAW, "firstESCAPEDsecond", StringComparison.Ordinal) }) <A> text=Echo(RAW)
+                    | <A> text=Echo("wrong branch") )
+                    <EOF> { return BitConverter.ToString(System.Text.Encoding.UTF8.GetBytes(text)); }
+                }
+                """.Replace("RAW", literal).Replace("ESCAPED", escaped);
+        }
+        string grammar = (Header + production).Replace("\r\n", "\n").Replace("\n", newline);
+        using var fixture = new ParserFixture { ModernOutput = modernOutput };
+        await fixture.GenerateAndBuild(grammar, Driver(false), "STATIC=false");
+        var result = await fixture.Run(argumentsAndLookahead ? "a" : "");
+        Assert.That(result.ExitCode, Is.Zero, result.Output);
+        Assert.That(result.Output.Trim(), Is.EqualTo(System.BitConverter.ToString(Encoding.UTF8.GetBytes("first" + newline + "second"))));
+    }
+
     [Test]
     public async Task NestedNamespacesKeepAliasesAndSupplyBoilerplateImports() {
         const string grammar = """
