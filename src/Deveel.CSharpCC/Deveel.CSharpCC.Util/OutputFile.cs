@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -19,9 +19,7 @@ namespace Deveel.CSharpCC.Util {
 		internal bool needToWrite;
 
 		private const String MD5_LINE_PART_1 = "/* CSharpCC - OriginalChecksum=";
-		private const String MD5_LINE_PART_1q = "/\\* CSharpCC - OriginalChecksum=";
 		private const String MD5_LINE_PART_2 = " (do not edit this line) */";
-		private const String MD5_LINE_PART_2q = " \\(do not edit this line\\) \\*/";
 
 
 		public OutputFile(string file, String compatibleVersion, String[] options) {
@@ -34,28 +32,30 @@ namespace Deveel.CSharpCC.Util {
 				// stored
 				// in the file.
 
-				StreamReader br = new StreamReader(file);
+				using StreamReader br = new StreamReader(file);
 				MD5 digest;
 				try {
-					digest = MD5.Create("MD5");
+					digest = MD5.Create();
 				} catch (TargetInvocationException e) {
 					throw new IOException("No MD5 implementation", e);
 				}
 
 				DigestOutputStream digestStream = new DigestOutputStream(Stream.Null, digest);
-				StreamWriter pw = new StreamWriter(digestStream);
+				using StreamWriter pw = new StreamWriter(digestStream);
 				String line;
 				String existingMD5 = null;
 				while ((line = br.ReadLine()) != null) {
 					if (line.StartsWith(MD5_LINE_PART_1)) {
-						existingMD5 = line.Replace(MD5_LINE_PART_1q, "")
-							.Replace(MD5_LINE_PART_2q, "");
+						existingMD5 = line.EndsWith(MD5_LINE_PART_2)
+                            ? line.Substring(MD5_LINE_PART_1.Length,
+                                line.Length - MD5_LINE_PART_1.Length - MD5_LINE_PART_2.Length)
+                            : null;
 					} else {
 						pw.WriteLine(line);
 					}
 				}
 
-				pw.Close();
+				pw.Flush();
 				String calculatedDigest = ToHexString(digestStream.Hash());
 
 				if (existingMD5 == null || !existingMD5.Equals(calculatedDigest)) {
@@ -96,12 +96,12 @@ namespace Deveel.CSharpCC.Util {
 			String firstLine = "/* " + CSharpCCGlobals.GetIdString(ToolName, Path.GetFileName(file)) + " Version ";
 
 			try {
-				StreamReader reader = new StreamReader(file);
+				using StreamReader reader = new StreamReader(file);
 
 				String line;
 				while ((line = reader.ReadLine()) != null) {
 					if (line.StartsWith(firstLine)) {
-						String version = firstLine.Replace(".* Version ", "").Replace(" \\*/", "");
+						String version = line.Substring(firstLine.Length).Replace(" */", "");
 						if (version != versionId) {
 							CSharpCCErrors.Warning(Path.GetFileName(file)
 								+ ": File is obsolete.  Please rename or delete this file so"
@@ -121,7 +121,7 @@ namespace Deveel.CSharpCC.Util {
 
 		private void CheckOptions(string file, string[] options) {
 			try {
-				StreamReader reader = new StreamReader(file);
+				using StreamReader reader = new StreamReader(file);
 
 				String line;
 				while ((line = reader.ReadLine()) != null) {
@@ -166,12 +166,12 @@ namespace Deveel.CSharpCC.Util {
 			if (pw == null) {
 				HashAlgorithm digest;
 				try {
-					digest = HashAlgorithm.Create("MD5");
+					digest = MD5.Create();
 				} catch (TargetException e) {
 					throw new IOException("No MD5 implementation", e);
 				}
 
-				dos = new DigestOutputStream(new FileStream(file, FileMode.OpenOrCreate, FileAccess.Write), digest);
+				dos = new DigestOutputStream(new FileStream(file, FileMode.Create, FileAccess.Write), digest);
 				pw = new TrapCloseTextWriter(this, dos);
 
 				// Write the headers....
@@ -234,11 +234,17 @@ namespace Deveel.CSharpCC.Util {
 			}
 
 			public byte[] Hash() {
-                hashStream.Flush();
-			    byte[] hash = hasher.ComputeHash(hashStream);
-                hashStream = new MemoryStream(1024);
-                return hash;
+                return hasher.ComputeHash(hashStream.ToArray());
 			}
+
+            protected override void Dispose(bool disposing) {
+                if (disposing) {
+                    output.Dispose();
+                    hashStream.Dispose();
+                    hasher.Dispose();
+                }
+                base.Dispose(disposing);
+            }
 
 			public override void Flush() {
 				output.Flush();

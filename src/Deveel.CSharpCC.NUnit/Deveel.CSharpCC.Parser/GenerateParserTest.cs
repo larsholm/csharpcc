@@ -1,28 +1,23 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text;
+using System.Security.Cryptography;
 
 using NUnit.Framework;
 
 namespace Deveel.CSharpCC.Parser {
 	[TestFixture]
+    [NonParallelizable]
 	public class GenerateParserTest {
-		[SetUp]
-		public void SetUp() {
-			DeleteFiles();
-		}
+        private string outputDirectory;
 
-		private void DeleteFiles() {
-			// Initialize all static state
-			ReInitAll();
-
-			DeleteFile("SimpleParser.cs");
-			DeleteFile("SimpleParserConstants.cs");
-			DeleteFile("SimpleParserTokenManager.cs");
-			DeleteFile("TokenManagerError.cs");
-			DeleteFile("Token.cs");
-			DeleteFile("ParseException.cs");
-		}
+        [SetUp]
+        public void SetUp() {
+            ReInitAll();
+            outputDirectory = Path.Combine(Path.GetTempPath(), "csharpcc-tests-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(outputDirectory);
+            Options.SetCmdLineOption("OUTPUT_DIRECTORY=" + outputDirectory);
+        }
 
 		private void ReInitAll() {
 			Expansion.reInit();
@@ -42,16 +37,10 @@ namespace Deveel.CSharpCC.Parser {
 			ParseEngine.reInit();
 		}
 
-		private void DeleteFile(string fileName) {
-			var path = Path.Combine(Environment.CurrentDirectory, fileName);
-			if (File.Exists(path))
-				File.Delete(path);
-		}
-
-		[TearDown]
-		public void TearDown() {
-			
-		}
+        [TearDown]
+        public void TearDown() {
+            Directory.Delete(outputDirectory, true);
+        }
 
 		[Test]
 		public void GenerateNoErrors() {
@@ -71,8 +60,45 @@ namespace Deveel.CSharpCC.Parser {
 				OtherFilesGen.start();
 			}
 
-			Assert.AreEqual(0, CSharpCCErrors.ErrorCount);
+			Assert.That(CSharpCCErrors.ErrorCount, Is.Zero);
+            foreach (var file in new[] { "SimpleParser.cs", "SimpleParserConstants.cs", "SimpleParserTokenManager.cs",
+                         "TokenManagerError.cs", "Token.cs", "ParseException.cs", "SimpleCharStream.cs" }) {
+                Assert.That(new FileInfo(Path.Combine(outputDirectory, file)).Length, Is.GreaterThan(0), file);
+            }
 		}
+
+        [Test]
+        public void RegeneratesUnmodifiedSupportFiles() {
+            GenerateNoErrors();
+            var tokenPath = Path.Combine(outputDirectory, "Token.cs");
+            var original = File.ReadAllText(tokenPath);
+            var marker = "/* CSharpCC - OriginalChecksum=";
+            var checksumStart = original.LastIndexOf(marker, StringComparison.Ordinal);
+            var expected = Convert.ToHexString(MD5.HashData(Encoding.UTF8.GetBytes(original.Substring(0, checksumStart)))).ToLowerInvariant();
+            Assert.That(original.Substring(checksumStart), Does.StartWith(marker + expected));
+
+            ReInitAll();
+            Options.SetCmdLineOption("OUTPUT_DIRECTORY=" + outputDirectory);
+            GenerateNoErrors();
+
+            Assert.That(CSharpCCErrors.WarningCount, Is.Zero);
+            Assert.That(File.ReadAllText(tokenPath), Is.EqualTo(original));
+            using var stream = File.Open(tokenPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        }
+
+        [Test]
+        public void PreservesEditedSupportFiles() {
+            GenerateNoErrors();
+            var tokenPath = Path.Combine(outputDirectory, "Token.cs");
+            File.AppendAllText(tokenPath, "// Custom user code" + Environment.NewLine);
+            var edited = File.ReadAllText(tokenPath);
+
+            ReInitAll();
+            Options.SetCmdLineOption("OUTPUT_DIRECTORY=" + outputDirectory);
+            GenerateNoErrors();
+
+            Assert.That(File.ReadAllText(tokenPath), Is.EqualTo(edited));
+        }
 
 		private void SetupOptions() {
 			Options.SetCmdLineOption("STATIC=false");

@@ -1,23 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.IO;
-using System.Linq;
-using System.Text;
 
 using Deveel.CSharpCC.Parser;
 
-namespace SimpleParserApp
-{
-    class Program
-    {
+namespace SimpleParserApp {
+    class Program {
         static void Main(string[] args) {
-	        string line;
-	        while ((line = Console.In.ReadLine()) == null)
-		        continue;
+            string line = Console.In.ReadLine();
+            if (line == null)
+                return;
 
-	        var parser = new SimpleParser(new StringReader(line));
-	        parser.Input();
-	        Console.In.Read();
+            var parser = new SimpleParser(new StringReader(line));
+            parser.Input();
         }
     }
 }

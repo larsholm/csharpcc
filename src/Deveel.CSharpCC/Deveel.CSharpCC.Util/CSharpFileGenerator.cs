@@ -1,5 +1,4 @@
-﻿using System;
-using System.CodeDom.Compiler;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -111,11 +110,6 @@ namespace Deveel.CSharpCC.Util {
 
 			return text.Substring(0, startPos) + value + text.Substring(endPos);
 		}
-
-	    private bool IsValidIdentifier(string text) {
-            CodeDomProvider provider = CodeDomProvider.CreateProvider("C#");
-	        return provider.IsValidIdentifier(text);
-	    }
 
 	    private String SubstituteWithConditional(String variableName, String values) {
 			// Split values into true and false values.
