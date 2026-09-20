@@ -32,6 +32,12 @@ CSharpCC runtime dependency. Run the command without grammar arguments to see
 available generator options (the legacy CLI returns exit code 1 for help).
 `CLR_VERSION` is a legacy generator option, not the application's target framework.
 
+Option names are case-insensitive across cultures. Command-line settings take
+precedence over grammar options; duplicate settings keep the first value from
+that source. Invalid command-line values produce warnings and are ignored.
+String values preserve their spelling, spaces, and path separators; surrounding
+double quotes in the argument value are removed.
+
 Run the sample
 ==============
 

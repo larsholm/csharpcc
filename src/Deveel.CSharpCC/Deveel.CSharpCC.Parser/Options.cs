@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -7,7 +6,7 @@ using System.Text;
 
 namespace Deveel.CSharpCC.Parser {
 	public static class Options {
-		private static IDictionary<string, object> optionValues = new Dictionary<string, object>();
+		private static IDictionary<string, object> optionValues = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
 
 		private static int IntValue(String option) {
 			object value;
@@ -25,16 +24,16 @@ namespace Deveel.CSharpCC.Parser {
 		}
 
         public static IDictionary<string, object> getOptions() {
-            return new Dictionary<string, object>(optionValues);
+            return new Dictionary<string, object>(optionValues, StringComparer.OrdinalIgnoreCase);
         }
 
-        private static IList cmdLineSetting = null;
-        private static IList inputFileSetting = null;
+        private static HashSet<string> cmdLineSetting;
+        private static HashSet<string> inputFileSetting;
 		
         public static void init() {
-            optionValues = new Dictionary<string, object>();
-            cmdLineSetting = new ArrayList();
-            inputFileSetting = new ArrayList();
+            optionValues = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            cmdLineSetting = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            inputFileSetting = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             optionValues.Add("LOOKAHEAD", 1);
             optionValues.Add("CHOICE_AMBIGUITY_CHECK", 2);
@@ -106,48 +105,41 @@ namespace Deveel.CSharpCC.Parser {
         }
 
         public static void SetInputFileOption(object nameloc, object valueloc, string name, object value) {
-            string s = name.ToUpper();
-            if (!optionValues.ContainsKey(s)) {
+            if (!optionValues.TryGetValue(name, out var existingValue)) {
                 CSharpCCErrors.Warning(nameloc, "Bad option name \"" + name + "\".  Option setting will be ignored.");
                 return;
             }
 
-            object existingValue;
-
             value = UpgradeValue(name, value);
 
-            if (optionValues.TryGetValue(s, out existingValue)) {
-                if ((existingValue.GetType() != value.GetType()) ||
-                    (value is int && ((int) value) <= 0)) {
-                    CSharpCCErrors.Warning(valueloc,"Bad option value \"" + value + "\" for \"" + name + "\".  Option setting will be ignored.");
-                    return;
-                }
-
-                if (inputFileSetting.Contains(s)) {
-                    CSharpCCErrors.Warning(nameloc, "Duplicate option setting for \""  + name + "\" will be ignored.");
-                    return;
-                }
-
-                if (cmdLineSetting.Contains(s)) {
-                    if (!existingValue.Equals(value)) {
-                        CSharpCCErrors.Warning(nameloc, "Command line setting of \"" + name + "\" modifies option value in file.");
-                    }
-                    return;
-                }
+            if (!IsValidValue(name, value, existingValue)) {
+                CSharpCCErrors.Warning(valueloc, "Bad option value \"" + value + "\" for \"" + name + "\".  Option setting will be ignored.");
+                return;
             }
 
-            optionValues[s] = value;
-            inputFileSetting.Add(s);
+            if (inputFileSetting.Contains(name)) {
+                CSharpCCErrors.Warning(nameloc, "Duplicate option setting for \"" + name + "\" will be ignored.");
+                return;
+            }
+
+            if (cmdLineSetting.Contains(name)) {
+                if (!existingValue.Equals(value)) {
+                    CSharpCCErrors.Warning(nameloc, "Command line setting of \"" + name + "\" modifies option value in file.");
+                }
+                return;
+            }
+
+            optionValues[name] = value;
+            inputFileSetting.Add(name);
         }
 
         public static void SetCmdLineOption(String arg) {
-            String s;
-
-            if (arg[0] == '-') {
-                s = arg.Substring(1);
-            } else {
-                s = arg;
+            if (string.IsNullOrEmpty(arg)) {
+                Console.Out.WriteLine("Warning: Bad option \"" + arg + "\" will be ignored.");
+                return;
             }
+
+            string s = arg[0] == '-' ? arg[1..] : arg;
 
             String name;
             Object Val;
@@ -168,53 +160,44 @@ namespace Deveel.CSharpCC.Parser {
                 index = index2;
 
             if (index < 0) {
-                name = s.ToUpper();
+                name = s;
                 if (optionValues.ContainsKey(name)) {
                     Val = true;
-                } else if (name.Length > 2 && name[0] == 'N' && name[1] == 'O') {
+                } else if (name.Length > 2 && name.StartsWith("NO", StringComparison.OrdinalIgnoreCase)) {
                     Val = false;
-                    name = name.Substring(2);
+                    name = name[2..];
                 } else {
                     Console.Out.WriteLine("Warning: Bad option \"" + arg
                                           + "\" will be ignored.");
                     return;
                 }
             } else {
-                name = s.Substring(0, index).ToUpper();
-                if (s.Substring(index + 1).Equals("TRUE", StringComparison.OrdinalIgnoreCase)) {
+                name = s[..index];
+                string valueText = s[(index + 1)..];
+                if (valueText.Equals("TRUE", StringComparison.OrdinalIgnoreCase)) {
                     Val = true;
-                } else if (s.Substring(index + 1).Equals("FALSE", StringComparison.OrdinalIgnoreCase)) {
+                } else if (valueText.Equals("FALSE", StringComparison.OrdinalIgnoreCase)) {
                     Val = false;
-                } else {
-                    try {
-                        int i = Int32.Parse(s.Substring(index + 1), CultureInfo.InvariantCulture);
-                        if (i <= 0) {
-                            Console.Out.WriteLine("Warning: Bad option value in \""
-                                                  + arg + "\" will be ignored.");
-                            return;
-                        }
-                        Val = i;
-                    } catch (FormatException e) {
-                        Val = s.Substring(index + 1);
-                        if (s.Length > index + 2) {
-                            // i.e., there is space for two '"'s in value
-                            if (s[index + 1] == '"' && s[s.Length - 1] == '"') {
-                                // remove the two '"'s.
-                                Val = s.Substring(index + 2, s.Length - 1);
-                            }
-                        }
+                } else if (int.TryParse(valueText, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number)) {
+                    if (number <= 0) {
+                        Console.Out.WriteLine("Warning: Bad option value in \"" + arg + "\" will be ignored.");
+                        return;
                     }
+                    Val = number;
+                } else {
+                    Val = valueText.Length >= 2 && valueText[0] == '"' && valueText[^1] == '"'
+                        ? valueText[1..^1]
+                        : valueText;
                 }
             }
 
-            if (!optionValues.ContainsKey(name)) {
+            if (!optionValues.TryGetValue(name, out var valOrig)) {
                 Console.Out.WriteLine("Warning: Bad option \"" + arg
                                       + "\" will be ignored.");
                 return;
             }
 
-            object valOrig = optionValues[name];
-            if (Val.GetType() != valOrig.GetType()) {
+            if (!IsValidValue(name, Val, valOrig)) {
                 Console.Out.WriteLine("Warning: Bad option value in \"" + arg
                                       + "\" will be ignored.");
                 return;
@@ -231,6 +214,18 @@ namespace Deveel.CSharpCC.Parser {
             cmdLineSetting.Add(name);
         }
 
+        private static bool IsValidValue(string name, object value, object existingValue) {
+            if (value == null || value.GetType() != existingValue.GetType() || value is int and <= 0)
+                return false;
+
+            return !name.Equals("CLR_VERSION", StringComparison.OrdinalIgnoreCase) ||
+                TryParseClrVersion((string)value, out _);
+        }
+
+        private static bool TryParseClrVersion(string value, out double version) =>
+            double.TryParse(value, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out version) &&
+            double.IsFinite(version);
+
         public static void Normalize() {
             if (getDebugLookahead() && !getDebugParser()) {
                 if (cmdLineSetting.Contains("DEBUG_PARSER")
@@ -238,7 +233,7 @@ namespace Deveel.CSharpCC.Parser {
                     CSharpCCErrors.Warning("True setting of option DEBUG_LOOKAHEAD overrides " +
                                            "false setting of option DEBUG_PARSER.");
                 }
-                optionValues.Add("DEBUG_PARSER", true);
+                optionValues["DEBUG_PARSER"] = true;
             }
 
             // Now set the "GENERATE" options from the supplied (or default) JDK version.
@@ -431,10 +426,7 @@ namespace Deveel.CSharpCC.Parser {
    */
 
         public static bool clrVersionAtLeast(double version) {
-            double clrVersion = Double.Parse(getClrVersion(), CultureInfo.InvariantCulture);
-
-            // Comparing doubles is safe here, as it is two simple assignments.
-            return clrVersion >= version;
+            return TryParseClrVersion(getClrVersion(), out double clrVersion) && clrVersion >= version;
         }
 
         /**

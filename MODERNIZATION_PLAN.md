@@ -1,9 +1,10 @@
 # CSharpCC modernization plan
 
-Status: phases 1–2 implemented and verified locally on Linux; phases 3–7 remain.
+Status: phases 1–3 implemented and verified locally on Linux; phases 4–7 remain.
 Cross-platform execution will run through the existing GitHub Actions matrix.
 See [the phase 1 baseline](docs/MODERNIZATION_BASELINE.md) for coverage and fixes
 and [phase 2 verification](docs/MODERNIZATION_PHASE_2.md) for syntax changes.
+[Phase 3 verification](docs/MODERNIZATION_PHASE_3.md) covers collections and options.
 
 Modernize the .NET 10 codebase, improve generated parsers, and support modern C#
 inside grammar files. Deliver each phase as a separate, reviewable change.
@@ -137,6 +138,11 @@ bootstrap regeneration under .NET 10 before modernizing code embedded in the
 generator's own grammar; the historical bootstrap executable cannot be assumed
 to understand those changes. A newly built generator must regenerate a second
 build that passes the same fixture suite.
+
+Also replace exception-based numeric-literal conversion in `CSharpCC.cc` with
+diagnostics for invalid/out-of-range literals. Phase 3 handles command-line
+integer overflow, but oversized integer literals in grammar files currently fail
+inside the bootstrap reader before reaching option validation.
 
 Acceptance: every supported feature has positive, negative, and delimiter-edge
 fixtures; existing grammars still work; clean builds and bootstrap regeneration

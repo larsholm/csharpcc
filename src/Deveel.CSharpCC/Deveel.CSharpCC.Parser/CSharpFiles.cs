@@ -151,7 +151,7 @@ namespace Deveel.CSharpCC.Parser {
 
 		public static void GenerateSimpleCharStream() {
 			string prefix = (Options.getStatic() ? "static " : "");
-			IDictionary<string, object> options = new Dictionary<string, object>(Options.getOptions());
+			IDictionary<string, object> options = Options.getOptions();
 			options["PREFIX"] = prefix;
 
 			GenerateFile("SimpleCharStream.cs", "Deveel.CSharpCC.Templates.SimpleCharStream.template", options, new String[] { "STATIC", "SUPPORT_CLASS_VISIBILITY_PUBLIC" });
@@ -159,7 +159,7 @@ namespace Deveel.CSharpCC.Parser {
 
 		public static void GenerateUnicodeCharStream() {
 			string prefix = (Options.getStatic() ? "static " : "");
-			IDictionary<string, object> options = new Dictionary<string, object>(Options.getOptions());
+			IDictionary<string, object> options = Options.getOptions();
 			options["PREFIX"] = prefix;
 
 			GenerateFile("UnicodeCharStream.cs", "Deveel.CSharpCC.Templates.UnicodeCharStream.template", options, new String[] { "STATIC", "SUPPORT_CLASS_VISIBILITY_PUBLIC" });

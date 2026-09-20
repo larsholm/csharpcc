@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
@@ -10,7 +9,7 @@ namespace Deveel.CSharpCC.Parser {
         private static String tokMgrClassName;
 	    private static bool namespaceInserted;
 
-        // Hashtable of vectors
+        // Token productions grouped by lexical state.
         private static IDictionary<string, IList<TokenProduction>> allTpsForState = new Dictionary<string, IList<TokenProduction>>();
         public static int lexStateIndex = 0;
         private static int[] kinds;
@@ -228,13 +227,10 @@ namespace Deveel.CSharpCC.Parser {
         }
 
         private static void BuildLexStatesTable() {
-            IEnumerator it = CSharpCCGlobals.rexprlist.GetEnumerator();
-            TokenProduction tp;
             int i;
 
             String[] tmpLexStateName = new String[CSharpCCGlobals.lexstate_I2S.Count];
-            while (it.MoveNext()) {
-                tp = (TokenProduction) it.Current;
+            foreach (var tp in CSharpCCGlobals.rexprlist) {
                 IList<RegExprSpec> respecs = tp.RegexSpecs;
                 IList<TokenProduction> tps;
 
@@ -306,7 +302,6 @@ namespace Deveel.CSharpCC.Parser {
 
 			keepLineCol = Options.getKeepLineColumn();
 			List<RegularExpression> choices = new List<RegularExpression>();
-			IEnumerator e;
 			TokenProduction tp;
 			int i, j;
 
@@ -316,15 +311,11 @@ namespace Deveel.CSharpCC.Parser {
 			PrintClassHead();
 			BuildLexStatesTable();
 
-			e = allTpsForState.Keys.GetEnumerator();
-
 			bool ignoring = false;
 
-			while (e.MoveNext()) {
+			foreach (var key in allTpsForState.Keys) {
 				NfaState.ReInit();
 				RStringLiteral.ReInit();
-
-				String key = (String) e.Current;
 
 				lexStateIndex = GetIndex(key);
 				lexStateSuffix = "_" + lexStateIndex;

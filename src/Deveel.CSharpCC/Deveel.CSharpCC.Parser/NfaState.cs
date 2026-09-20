@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
@@ -25,7 +24,7 @@ namespace Deveel.CSharpCC.Parser {
         private static IDictionary<string, int> lohiByteTab = new Dictionary<string, int>();
         private static IDictionary<string, int> stateNameForComposite = new Dictionary<string, int>();
         private static IDictionary<string, int[]> compositeStateTable = new Dictionary<string, int[]>();
-        private static Hashtable stateBlockTable = new Hashtable();
+        private static HashSet<string> stateBlockTable = new(StringComparer.Ordinal);
         private static IDictionary<string, int[]> stateSetsToFix = new Dictionary<string, int[]>();
 
         private static bool jjCheckNAddStatesUnaryNeeded = false;
@@ -972,7 +971,7 @@ namespace Deveel.CSharpCC.Parser {
             int[] nameSet;
 
             if (!starts)
-                stateBlockTable[stateSetString] = stateSetString;
+                stateBlockTable.Add(stateSetString);
 
             if (!allNextStates.TryGetValue(stateSetString, out nameSet))
                 throw new InvalidOperationException("CSharpCC Bug: Please send areport; nameSet null for : " + stateSetString);
@@ -1511,7 +1510,7 @@ namespace Deveel.CSharpCC.Parser {
             NfaState tmp;
             NfaState stateForCase = null;
             String toPrint = "";
-            bool stateBlock = stateBlockTable.ContainsKey(key);
+            bool stateBlock = stateBlockTable.Contains(key);
 
             for (i = 0; i < nameSet.Length; i++) {
                 tmp = allStates[nameSet[i]];
@@ -1849,7 +1848,7 @@ namespace Deveel.CSharpCC.Parser {
             NfaState tmp;
             NfaState stateForCase = null;
             String toPrint = "";
-            bool stateBlock = stateBlockTable.ContainsKey(key);
+            bool stateBlock = stateBlockTable.Contains(key);
 
             for (i = 0; i < nameSet.Length; i++) {
                 tmp = allStates[nameSet[i]];
@@ -2602,7 +2601,7 @@ namespace Deveel.CSharpCC.Parser {
             lohiByteTab = new Dictionary<string, int>();
             stateNameForComposite = new Dictionary<string, int>();
             compositeStateTable = new Dictionary<string, int[]>();
-            stateBlockTable = new Hashtable();
+            stateBlockTable = new HashSet<string>(StringComparer.Ordinal);
             stateSetsToFix = new Dictionary<string, int[]>();
             allBitVectors = new List<string>();
             tmpIndices = new int[512];
