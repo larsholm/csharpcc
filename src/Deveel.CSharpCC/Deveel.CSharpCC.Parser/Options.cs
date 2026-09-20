@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -6,71 +8,72 @@ using System.Text;
 
 namespace Deveel.CSharpCC.Parser {
 	public static class Options {
-		private static IDictionary<string, object> optionValues = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+		private static IDictionary<string, object> optionValues = CreateDefaultOptions();
 
 		private static int IntValue(String option) {
-			object value;
-			return !optionValues.TryGetValue(option, out value) ? 0 : (int) value;
+			return !optionValues.TryGetValue(option, out var value) ? 0 : (int) value;
 		}
 
 		private static bool BooleanValue(string option) {
-			object value;
-			return optionValues.TryGetValue(option, out value) && (bool)value;
+			return optionValues.TryGetValue(option, out var value) && (bool)value;
 		}
 
 		private static String StringValue(String option) {
-			object value;
-			return !optionValues.TryGetValue(option, out value) ? null : (string)value;
+			return (string)optionValues[option];
 		}
 
         public static IDictionary<string, object> getOptions() {
             return new Dictionary<string, object>(optionValues, StringComparer.OrdinalIgnoreCase);
         }
 
-        private static HashSet<string> cmdLineSetting;
-        private static HashSet<string> inputFileSetting;
+        private static HashSet<string> cmdLineSetting = new(StringComparer.OrdinalIgnoreCase);
+        private static HashSet<string> inputFileSetting = new(StringComparer.OrdinalIgnoreCase);
 		
         public static void init() {
-            optionValues = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            optionValues = CreateDefaultOptions();
             cmdLineSetting = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             inputFileSetting = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            optionValues.Add("LOOKAHEAD", 1);
-            optionValues.Add("CHOICE_AMBIGUITY_CHECK", 2);
-            optionValues.Add("OTHER_AMBIGUITY_CHECK", 1);
-
-            optionValues.Add("STATIC", true);
-            optionValues.Add("DEBUG_PARSER", false);
-            optionValues.Add("DEBUG_LOOKAHEAD", false);
-            optionValues.Add("DEBUG_TOKEN_MANAGER", false);
-            optionValues.Add("ERROR_REPORTING", true);
-            optionValues.Add("UNICODE_ESCAPE", false);
-            optionValues.Add("UNICODE_INPUT", false);
-            optionValues.Add("IGNORE_CASE", false);
-            optionValues.Add("USER_TOKEN_MANAGER", false);
-            optionValues.Add("USER_CHAR_STREAM", false);
-            optionValues.Add("BUILD_PARSER", true);
-            optionValues.Add("BUILD_TOKEN_MANAGER", true);
-            optionValues.Add("TOKEN_MANAGER_USES_PARSER", false);
-            optionValues.Add("SANITY_CHECK", true);
-            optionValues.Add("FORCE_LA_CHECK", false);
-            optionValues.Add("COMMON_TOKEN_ACTION", false);
-            optionValues.Add("CACHE_TOKENS", false);
-            optionValues.Add("KEEP_LINE_COLUMN", true);
-
-            optionValues.Add("GENERATE_CHAINED_EXCEPTION", false);
-            optionValues.Add("GENERATE_GENERICS", false);
-            optionValues.Add("GENERATE_STRING_BUILDER", false);
-            optionValues.Add("GENERATE_ANNOTATIONS", false);
-            optionValues.Add("SUPPORT_CLASS_VISIBILITY_PUBLIC", true);
-
-            optionValues.Add("OUTPUT_DIRECTORY", ".");
-			optionValues.Add("CLR_VERSION", "2.0");
-            optionValues.Add("TOKEN_EXTENDS", "");
-            optionValues.Add("TOKEN_FACTORY", "");
-            optionValues.Add("GRAMMAR_ENCODING", "");
         }
-		
+
+        private static IDictionary<string, object> CreateDefaultOptions() {
+            var values = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            values.Add("LOOKAHEAD", 1);
+            values.Add("CHOICE_AMBIGUITY_CHECK", 2);
+            values.Add("OTHER_AMBIGUITY_CHECK", 1);
+
+            values.Add("STATIC", true);
+            values.Add("DEBUG_PARSER", false);
+            values.Add("DEBUG_LOOKAHEAD", false);
+            values.Add("DEBUG_TOKEN_MANAGER", false);
+            values.Add("ERROR_REPORTING", true);
+            values.Add("UNICODE_ESCAPE", false);
+            values.Add("UNICODE_INPUT", false);
+            values.Add("IGNORE_CASE", false);
+            values.Add("USER_TOKEN_MANAGER", false);
+            values.Add("USER_CHAR_STREAM", false);
+            values.Add("BUILD_PARSER", true);
+            values.Add("BUILD_TOKEN_MANAGER", true);
+            values.Add("TOKEN_MANAGER_USES_PARSER", false);
+            values.Add("SANITY_CHECK", true);
+            values.Add("FORCE_LA_CHECK", false);
+            values.Add("COMMON_TOKEN_ACTION", false);
+            values.Add("CACHE_TOKENS", false);
+            values.Add("KEEP_LINE_COLUMN", true);
+
+            values.Add("GENERATE_CHAINED_EXCEPTION", false);
+            values.Add("GENERATE_GENERICS", false);
+            values.Add("GENERATE_STRING_BUILDER", false);
+            values.Add("GENERATE_ANNOTATIONS", false);
+            values.Add("SUPPORT_CLASS_VISIBILITY_PUBLIC", true);
+
+            values.Add("OUTPUT_DIRECTORY", ".");
+			values.Add("CLR_VERSION", "2.0");
+            values.Add("TOKEN_EXTENDS", "");
+            values.Add("TOKEN_FACTORY", "");
+            values.Add("GRAMMAR_ENCODING", "");
+            return values;
+        }
+
         public static String GetOptionsString(String[] interestingOptions) {
             StringBuilder sb = new StringBuilder();
 
@@ -88,11 +91,12 @@ namespace Deveel.CSharpCC.Parser {
         }
 
 		
-        public static bool IsOption(String opt) {
+        public static bool IsOption(string? opt) {
             return opt != null && opt.Length > 1 && opt[0] == '-';
         }
 
-        public static Object UpgradeValue(String name, Object value) {
+        [return: System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(value))]
+        public static object? UpgradeValue(string name, object? value) {
             if (name.Equals("NODE_FACTORY", StringComparison.OrdinalIgnoreCase) && value is bool) {
                 if ((bool) value) {
                     value = "*";
@@ -104,8 +108,8 @@ namespace Deveel.CSharpCC.Parser {
             return value;
         }
 
-        public static void SetInputFileOption(object nameloc, object valueloc, string name, object value) {
-            if (!optionValues.TryGetValue(name, out var existingValue)) {
+        public static void SetInputFileOption(object? nameloc, object? valueloc, string? name, object? value) {
+            if (name == null || !optionValues.TryGetValue(name, out var existingValue)) {
                 CSharpCCErrors.Warning(nameloc, "Bad option name \"" + name + "\".  Option setting will be ignored.");
                 return;
             }
@@ -133,7 +137,7 @@ namespace Deveel.CSharpCC.Parser {
             inputFileSetting.Add(name);
         }
 
-        public static void SetCmdLineOption(String arg) {
+        public static void SetCmdLineOption(string? arg) {
             if (string.IsNullOrEmpty(arg)) {
                 Console.Out.WriteLine("Warning: Bad option \"" + arg + "\" will be ignored.");
                 return;
@@ -214,7 +218,7 @@ namespace Deveel.CSharpCC.Parser {
             cmdLineSetting.Add(name);
         }
 
-        private static bool IsValidValue(string name, object value, object existingValue) {
+        private static bool IsValidValue(string name, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] object? value, object existingValue) {
             if (value == null || value.GetType() != existingValue.GetType() || value is int and <= 0)
                 return false;
 

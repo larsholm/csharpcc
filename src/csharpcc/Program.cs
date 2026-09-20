@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.IO;
 using System.Security;
 using System.Text;
@@ -75,7 +77,7 @@ namespace Deveel.CSharpCC.Parser {
 
 			CSharpCCGlobals.BannerLine("Parser Generator", "");
 
-			CSharpCCParser parser = null;
+			StreamReader reader;
 			if (args.Length == 0) {
 				Console.Out.WriteLine("");
 				help_message();
@@ -102,10 +104,10 @@ namespace Deveel.CSharpCC.Parser {
 					Console.Out.WriteLine("File " + args[args.Length - 1] + " not found.");
 					return 1;
 				}
-				parser =
-					new CSharpCCParser(
-						new StreamReader(new FileStream(args[args.Length - 1], FileMode.Open, FileAccess.Read, FileShare.Read),
-						                 Encoding.GetEncoding(Options.getGrammarEncoding())));
+                // Resolve the encoding before opening the file. This method owns
+                // the reader for the entire parse/generation operation.
+                var encoding = Encoding.GetEncoding(Options.getGrammarEncoding());
+                reader = new StreamReader(args[args.Length - 1], encoding);
 			} catch (SecurityException) {
 				Console.Out.WriteLine("Security violation while trying to open " + args[args.Length - 1]);
 				return 1;
@@ -113,6 +115,9 @@ namespace Deveel.CSharpCC.Parser {
 				Console.Out.WriteLine("File " + args[args.Length - 1] + " not found.");
 				return 1;
 			}
+
+			using var input = reader;
+			var parser = new CSharpCCParser(input);
 
 			try {
 				Console.Out.WriteLine("Reading from file " + args[args.Length - 1] + " . . .");
@@ -146,7 +151,7 @@ namespace Deveel.CSharpCC.Parser {
 					                      + CSharpCCErrors.WarningCount + " warnings.");
 					return (CSharpCCErrors.ErrorCount == 0) ? 0 : 1;
 				}
-			} catch (MetaParseException e) {
+			} catch (MetaParseException) {
 				Console.Out.WriteLine("Detected " + CSharpCCErrors.ErrorCount + " errors and "
 				                      + CSharpCCErrors.WarningCount + " warnings.");
 				return 1;

@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 
 namespace Deveel.CSharpCC.Parser;
 public static class CSharpCCErrors {
@@ -6,7 +8,7 @@ public static class CSharpCCErrors {
     private static int parseErrorCount;
     private static int semanticErrorCount;
 
-    private static void PrintLocationInfo(object node) {
+    private static void PrintLocationInfo(object? node) {
         if (node is ILocationInfo locationInfo) {
             Console.Error.Write("Line {0}, Column {1}: ", locationInfo.Line, locationInfo.Column);
         } else if (node is Token t) {
@@ -15,7 +17,7 @@ public static class CSharpCCErrors {
     }
 
 
-    public static void ParseError(Object node, String mess) {
+    public static void ParseError(object? node, String mess) {
         Console.Error.Write("Error: ");
         PrintLocationInfo(node);
         Console.Error.WriteLine(mess);
@@ -30,7 +32,7 @@ public static class CSharpCCErrors {
 
     public static int ParseErrorCount => parseErrorCount;
 
-    public static void SemanticError(Object node, String mess) {
+    public static void SemanticError(object? node, String mess) {
         Console.Error.Write("Error: ");
         PrintLocationInfo(node);
         Console.Error.WriteLine(mess);
@@ -45,7 +47,7 @@ public static class CSharpCCErrors {
 
     public static int SemanticErrorCount => semanticErrorCount;
 
-    public static void Warning(Object node, String mess) {
+    public static void Warning(object? node, String mess) {
         Console.Error.Write("Warning: ");
         PrintLocationInfo(node);
         Console.Error.WriteLine(mess);

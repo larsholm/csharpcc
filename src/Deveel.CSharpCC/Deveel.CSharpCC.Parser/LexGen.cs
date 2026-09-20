@@ -300,6 +300,18 @@ namespace Deveel.CSharpCC.Parser {
 			    CSharpCCErrors.ErrorCount > 0)
 				return;
 
+            try {
+                GenerateTokenManager();
+            } finally {
+                try {
+                    ostr?.Dispose();
+                } finally {
+                    ostr = null;
+                }
+            }
+        }
+
+        private static void GenerateTokenManager() {
 			keepLineCol = Options.getKeepLineColumn();
 			List<RegularExpression> choices = new List<RegularExpression>();
 			TokenProduction tp;
@@ -499,7 +511,7 @@ namespace Deveel.CSharpCC.Parser {
 			if (namespaceInserted)
 				ostr.WriteLine("}");
 				
-			ostr.Close();
+
 		}
 
 		private static void CheckEmptyStringMatch() {

@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -38,13 +40,12 @@ namespace Deveel.CSharpCC.Parser {
 
 			if (!File.Exists(file)) {
 				// Has not yet been created, so it must be up to date.
-				return typeof (CSharpCCParser).Assembly.GetName().Version.Major;
+				return typeof (CSharpCCParser).Assembly.GetName().Version?.Major ?? 0;
 			}
 
-			TextReader reader = null;
 			try {
-				reader = new StringReader(file);
-				String str;
+				using var reader = new StringReader(file);
+				string? str;
 				double version = 0.0;
 
 				// Although the version comment should be the first line, sometimes the
@@ -70,13 +71,6 @@ namespace Deveel.CSharpCC.Parser {
 				return version;
 			} catch (IOException) {
 				return 0.0;
-			} finally {
-				if (reader != null) {
-					try {
-						reader.Close();
-					} catch (IOException e) {
-					}
-				}
 			}
 		}
 
@@ -87,7 +81,7 @@ namespace Deveel.CSharpCC.Parser {
 		private static void GenerateFile(string fileName, string templateName, IDictionary<string, object> options, string[] optionNames) {
 			try {
 				string file = Path.Combine(Options.getOutputDirectory().FullName, fileName);
-				OutputFile outputFile = new OutputFile(file, typeof(CSharpFiles).Assembly.GetName().Version.ToString(), optionNames);
+				using OutputFile outputFile = new OutputFile(file, typeof(CSharpFiles).Assembly.GetName().Version?.ToString(), optionNames);
 
 				if (!outputFile.needToWrite) {
 					return;
@@ -121,7 +115,7 @@ namespace Deveel.CSharpCC.Parser {
 				if (nsFound)
 					ostr.WriteLine("}");
 
-				ostr.Close();
+				outputFile.Close();
 			} catch (IOException e) {
 				Console.Error.WriteLine("Failed to create  " + fileName + ": " + e.Message);
 				CSharpCCErrors.SemanticError("Could not open file " + fileName + " for writing.");

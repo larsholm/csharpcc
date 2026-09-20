@@ -1,12 +1,16 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 
 namespace Deveel.CSharpCC.Util;
 internal class CSharpFileGenetor {
-	private string currentLine;
+	private string? currentLine;
 
 	public CSharpFileGenetor(string templateName, IDictionary<string, object> options) {
+		ArgumentNullException.ThrowIfNull(templateName);
+		ArgumentNullException.ThrowIfNull(options);
 		Options = options;
 		TemplateName = templateName;
 	}
@@ -15,27 +19,29 @@ internal class CSharpFileGenetor {
 
 	public IDictionary<string, object> Options { get; }
 
-	public void Generate(TextWriter output) {
-		using (var stream = GetType().Assembly.GetManifestResourceStream(TemplateName)) {
-			if (stream == null)
-				throw new IOException($"Invalid template name: {TemplateName}");
+    public void Generate(TextWriter output) {
+        ArgumentNullException.ThrowIfNull(output);
+        using var stream = GetType().Assembly.GetManifestResourceStream(TemplateName)
+            ?? throw new IOException($"Invalid template name: {TemplateName}");
+        using var input = new StreamReader(stream);
+        Generate(input, output);
+    }
 
-			var input = new StreamReader(stream);
-			Process(input, output, false);
-		}
-	}
+    // The caller owns both input and output in this overload.
+    internal void Generate(TextReader input, TextWriter output) {
+        ArgumentNullException.ThrowIfNull(input);
+        ArgumentNullException.ThrowIfNull(output);
+        currentLine = null;
+        Process(input, output, false);
+    }
 
-	private string PeekLine(TextReader input) => currentLine ??= input.ReadLine();
+    private string? PeekLine(TextReader input) => currentLine ??= input.ReadLine();
 
-	private String GetLine(TextReader input) {
-		String line = currentLine;
-		currentLine = null;
-
-		if (line == null)
-			input.ReadLine();
-
-		return line;
-	}
+    private string? GetLine(TextReader input) {
+        string? line = PeekLine(input);
+        currentLine = null;
+        return line;
+    }
 
 	private bool Evaluate(string condition) {
 		condition = condition.Trim();
@@ -80,7 +86,7 @@ internal class CSharpFileGenetor {
 		string variableExpression = text.Substring(startPos + 2, (endPos - (startPos + 2) - 1));
 
 		// Find the end of the variable name
-		String value = null;
+		string? value = null;
 
 		for (int i = 0; i < variableExpression.Length; i++) {
 			char ch = variableExpression[i];
@@ -114,13 +120,10 @@ internal class CSharpFileGenetor {
 			return Substitute(values.Substring(pos + 1));
 	}
 
-	private String SubstituteWithDefault(string variableName, String defaultValue) {
-		if (!Options.TryGetValue(variableName.Trim(), out var obj) ||
-		    obj.ToString().Length == 0)
-			return Substitute(defaultValue);
-
-		return obj.ToString();
-	}
+    private string SubstituteWithDefault(string variableName, string defaultValue) {
+        string? value = Options.TryGetValue(variableName.Trim(), out var option) ? option?.ToString() : null;
+        return string.IsNullOrEmpty(value) ? Substitute(defaultValue) : value;
+    }
 
 	private void Write(TextWriter output, String text) {
 		while (text.IndexOf("${") != -1) {
@@ -130,37 +133,29 @@ internal class CSharpFileGenetor {
 		output.WriteLine(text);
 	}
 
-	private void Process(TextReader input, TextWriter output, bool ignoring) {
-//    output.println("*** process ignore=" + ignoring + " : " + peekLine(input));
-		while (PeekLine(input) != null) {
-			if (PeekLine(input).Trim().StartsWith("#if")) {
-				String line = GetLine(input).Trim();
-				bool condition = Evaluate(line.Substring(3).Trim());
+    private void Process(TextReader input, TextWriter output, bool ignoring) {
+        while (PeekLine(input) is { } nextLine) {
+            if (nextLine.Trim().StartsWith("#if")) {
+                GetLine(input);
+                bool condition = Evaluate(nextLine.Trim().Substring(3).Trim());
+                Process(input, output, ignoring || !condition);
 
-				Process(input, output, ignoring || !condition);
+                if (PeekLine(input)?.Trim().StartsWith("#else") == true) {
+                    GetLine(input);
+                    Process(input, output, ignoring || condition);
+                }
 
-				if (PeekLine(input) != null && PeekLine(input).Trim().StartsWith("#else")) {
-					GetLine(input); // Discard the #else line
-					Process(input, output, ignoring || condition);
-				}
-
-				line = GetLine(input);
-
-				if (line == null)
-					throw new IOException("Missing \"#fi\"");
-
-				if (!line.Trim().StartsWith("#fi"))
-					throw new IOException("Expected \"#fi\", got: " + line);
-			} else if (PeekLine(input).Trim().StartsWith("#")) {
-				break;
-			} else {
-				String line = GetLine(input);
-				if (!ignoring)
-					Write(output, line);
-			}
-		}
-
-		output.Flush();
-	}
-
+                string line = GetLine(input) ?? throw new IOException("Missing \"#fi\"");
+                if (!line.Trim().StartsWith("#fi"))
+                    throw new IOException("Expected \"#fi\", got: " + line);
+            } else if (nextLine.Trim().StartsWith("#")) {
+                break;
+            } else {
+                GetLine(input);
+                if (!ignoring)
+                    Write(output, nextLine);
+            }
+        }
+        output.Flush();
+    }
 }

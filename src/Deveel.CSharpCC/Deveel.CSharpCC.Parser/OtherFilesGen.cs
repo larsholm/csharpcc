@@ -40,6 +40,8 @@ namespace Deveel.CSharpCC.Parser {
 				throw new InvalidOperationException();
 			}
 
+			using var output = ostr;
+
 			List<string> tn = new List<string>(CSharpCCGlobals.ToolNames);
 			tn.Add(CSharpCCGlobals.ToolName);
 			ostr.WriteLine("/* " + CSharpCCGlobals.GetIdString(tn, CSharpCCGlobals.cu_name + "Constants.cs") + " */");
@@ -116,7 +118,7 @@ namespace Deveel.CSharpCC.Parser {
 			ostr.WriteLine("}");
             if (namespaceInserted)
                 ostr.WriteLine("}");
-			ostr.Close();
+
 		}
 
 		public static void reInit() {
