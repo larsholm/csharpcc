@@ -35,8 +35,12 @@ namespace Deveel.CSharpCC.Parser {
 				ostr.WriteLine("// " + CSharpCCGlobals.GetIdString(tn, CSharpCCGlobals.cu_name + ".cs"));
 				if (Options.ModernCSharp) ostr.WriteLine("#nullable enable");
 
+                bool namespaceInserted = false;
+                if (CSharpCCGlobals.CompilationLayout is { } layout) {
+                    ostr.Write(layout.BeforeMembers);
+                } else {
 				bool implementsExists = false;
-                bool namespaceInserted = false, namespaceFound = false;
+                bool namespaceFound = false;
 
 			    if (CSharpCCGlobals.cu_to_insertion_point_1.Count != 0) {
 			        CSharpCCGlobals.PrintTokenSetup(CSharpCCGlobals.cu_to_insertion_point_1[0]);
@@ -81,6 +85,8 @@ namespace Deveel.CSharpCC.Parser {
 						CSharpCCGlobals.PrintToken(t, ostr);
 					}
 				}
+
+                }
 
 				ostr.WriteLine("");
 				ostr.WriteLine("");
@@ -723,7 +729,9 @@ namespace Deveel.CSharpCC.Parser {
 					ostr.WriteLine("");
 				}
 
-				if (CSharpCCGlobals.cu_from_insertion_point_2.Count != 0) {
+				if (CSharpCCGlobals.CompilationLayout is { } ending) {
+                    ostr.Write(ending.AfterMembers);
+                } else if (CSharpCCGlobals.cu_from_insertion_point_2.Count != 0) {
 					CSharpCCGlobals.PrintTokenSetup(CSharpCCGlobals.cu_from_insertion_point_2[0]); 
 					CSharpCCGlobals.ccol = 1;
 					foreach (Token token in CSharpCCGlobals.cu_from_insertion_point_2) {

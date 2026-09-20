@@ -29,6 +29,8 @@ namespace Deveel.CSharpCC.Parser {
         public static IList<Token> cu_to_insertion_point_1 = new List<Token>();
         public static IList<Token> cu_to_insertion_point_2 = new List<Token>();
         public static IList<Token> cu_from_insertion_point_2 = new List<Token>();
+        internal static CompilationLayout? CompilationLayout;
+        internal static bool TokenManagerHasCommonAction;
 
         public static IList<NormalProduction> bnfproductions = new List<NormalProduction>();
         public static IDictionary<string, NormalProduction> production_table = new Dictionary<string, NormalProduction>();
@@ -228,7 +230,7 @@ namespace Deveel.CSharpCC.Parser {
             char ch;
             for (int i = 0; i < str.Length; i++) {
                 ch = str[i];
-                if (ch < 0x20 || ch > 0x7e || ch == '\\') {
+                if (ch < 0x20 || ch > 0x7e) {
                     String s = "0000" + Convert.ToString(ch, 16);
                     retval += "\\u" + s[^4..];
                 } else {
@@ -388,6 +390,8 @@ namespace Deveel.CSharpCC.Parser {
             cu_to_insertion_point_1 = new List<Token>();
             cu_to_insertion_point_2 = new List<Token>();
             cu_from_insertion_point_2 = new List<Token>();
+            CompilationLayout = null;
+            TokenManagerHasCommonAction = false;
             bnfproductions = new List<NormalProduction>();
             production_table = new Dictionary<string, NormalProduction>();
             lexstate_S2I = new Dictionary<string, int>();

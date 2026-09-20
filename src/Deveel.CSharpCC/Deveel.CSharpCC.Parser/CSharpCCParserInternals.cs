@@ -11,6 +11,22 @@ namespace Deveel.CSharpCC.Parser {
 			CSharpCCGlobals.simple_tokens_table["DEFAULT"] = new Dictionary<string, IDictionary<string, RegularExpression>>();
 		}
 
+        internal static int ParseIntegerLiteral(Token token) {
+            string digits = token.image;
+            if (digits.EndsWith("l", StringComparison.OrdinalIgnoreCase))
+                digits = digits[..^1];
+            if (digits.StartsWith("0x", StringComparison.OrdinalIgnoreCase)) {
+                if (uint.TryParse(digits.AsSpan(2), System.Globalization.NumberStyles.AllowHexSpecifier,
+                    System.Globalization.CultureInfo.InvariantCulture, out uint hex) && hex <= int.MaxValue)
+                    return (int)hex;
+            } else if (int.TryParse(digits, System.Globalization.NumberStyles.None,
+                System.Globalization.CultureInfo.InvariantCulture, out int value)) {
+                return value;
+            }
+            CSharpCCErrors.ParseError(token, "Integer literal must be between 0 and 2147483647.");
+            return 0;
+        }
+
 		public static void addcuname(String id) {
 			CSharpCCGlobals.cu_name = id;
 		}

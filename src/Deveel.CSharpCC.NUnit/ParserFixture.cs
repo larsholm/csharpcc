@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -54,6 +55,17 @@ internal sealed class ParserFixture : IDisposable {
             </Project>
             """);
         File.WriteAllText(Path.Combine(DirectoryPath, "Program.cs"), driver);
+        // Parser output must survive Windows console code pages before the test
+        // process can compare Unicode token images. This is consumer test setup,
+        // not generated parser behavior or an application-wide encoding policy.
+        File.WriteAllText(Path.Combine(DirectoryPath, "ConsoleSetup.cs"), """
+            internal static class FixtureConsoleSetup {
+                [System.Runtime.CompilerServices.ModuleInitializer]
+                internal static void Initialize() {
+                    System.Console.OutputEncoding = new System.Text.UTF8Encoding(false);
+                }
+            }
+            """);
         var build = await RunProcess(["build", "Consumer.csproj", "--nologo", "--verbosity", "quiet"], 60);
         Assert.That(build.ExitCode, Is.Zero, build.Output);
     }
@@ -69,6 +81,10 @@ internal sealed class ParserFixture : IDisposable {
         };
         foreach (var argument in arguments)
             start.ArgumentList.Add(argument);
+        if (arguments[0].EndsWith("Consumer.dll", StringComparison.Ordinal)) {
+            start.StandardOutputEncoding = Encoding.UTF8;
+            start.StandardErrorEncoding = Encoding.UTF8;
+        }
         using var process = Process.Start(start) ?? throw new InvalidOperationException("Could not start dotnet.");
         var stdout = process.StandardOutput.ReadToEndAsync();
         var stderr = process.StandardError.ReadToEndAsync();

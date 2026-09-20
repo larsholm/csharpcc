@@ -70,8 +70,29 @@ parser state fields can be null before initialization, and manually constructed
 own actions and consumer code. Existing public CLR signatures are preserved,
 but nullable analysis can surface new warnings in callers and custom support
 classes. Regeneration preserves edited support files, so reconcile customized
-files when changing modes. The output mode does not extend the embedded C#
-syntax accepted by the grammar reader; that is a separate planned phase.
+files when changing modes. The output option controls generated boilerplate;
+embedded C# is preserved and may itself require a newer consumer compiler.
+
+Embedded C# in grammars
+======================
+
+The .NET grammar reader uses Roslyn with C# 14 syntax for parser declarations,
+production signatures, action/declaration blocks, call arguments, semantic
+lookahead, `CODE` bodies, and `TOKEN_MGR_DECLS`. Both output modes accept these
+fragments. Generated applications have no Roslyn runtime dependency.
+
+Supported fixtures include nullable types, aliases and global/static usings, block
+and file-scoped namespaces, lambdas, patterns, collection expressions, raw and
+interpolated strings, helper records and primary constructors, required/init
+properties, and C# 14 field-backed properties, extension declarations, and
+null-conditional assignment. Syntax errors report original grammar coordinates;
+application type checking remains the consumer compiler’s responsibility.
+
+The parser itself must be a single non-static class with a brace-delimited body
+and no primary constructor. Generic parser classes are supported, except for
+instance parsers with `TOKEN_MANAGER_USES_PARSER=true`. Existing bases must be
+interfaces because the generator supplies the constants base class. See the
+[tested syntax matrix and boundaries](docs/MODERNIZATION_PHASE_6.md).
 
 Run the sample
 ==============
@@ -100,22 +121,25 @@ The legacy source and generated code still produce compiler/analyzer warnings.
 Bootstrap parser sources
 ========================
 
-The library's grammar reader depends on generated C# sources beside `CSharpCC.cc`.
-These sources are now included in the repository so a fresh checkout can build
-with only the .NET 10 SDK. They were generated from the existing grammar using
-`tools/csharpcc-ikvm-1.1.1/csharpcc.exe`; the existing `Token.cs` is retained.
+The seven checked-in bootstrap files let a fresh checkout build with only the
+.NET 10 SDK. Regeneration now uses the current .NET generator and a compatibility
+adapter; Mono, Java, and the historical executable are not required.
 
-Only when changing the grammar reader itself, regenerate into a temporary directory
-with that historical tool (requires .NET Framework on Windows or Mono):
+After changing `CSharpCC.cc`, generator code, or bootstrap compatibility sources,
+run these commands from the repository root:
 
 ```sh
-mono tools/csharpcc-ikvm-1.1.1/csharpcc.exe -OUTPUT_DIRECTORY=/tmp/csharpcc-bootstrap src/Deveel.CSharpCC/Deveel.CSharpCC.Parser/CSharpCC.cc
+dotnet build src/CSharpCC.sln --configuration Release
+dotnet run --project tools/Bootstrap --configuration Release -- --generator src/csharpcc/bin/Release/net10.0/csharpcc.dll --grammar src/Deveel.CSharpCC/Deveel.CSharpCC.Parser/CSharpCC.cc --output src/Deveel.CSharpCC/Deveel.CSharpCC.Parser
+dotnet test src/CSharpCC.sln --configuration Release
+dotnet run --project tools/Bootstrap --configuration Release -- --generator src/csharpcc/bin/Release/net10.0/csharpcc.dll --grammar src/Deveel.CSharpCC/Deveel.CSharpCC.Parser/CSharpCC.cc --output src/Deveel.CSharpCC/Deveel.CSharpCC.Parser --check
 ```
 
-Copy back `CSharpCCParser.cs`, `CSharpCCParserConstants.cs`,
-`CSharpCCParserTokenManager.cs`, `CSharpCharStream.cs`, `ParseException.cs`, and
-`TokenMgrError.cs`, then build and test. Do not replace the hand-adapted `Token.cs`.
-The old bootstrap tool is retained for this maintenance workflow only.
+`--check` verifies the second generation without modifying files. The tool retains
+historical public token/support members through explicit compatibility sources;
+do not edit generated bootstrap files directly. See
+[the bootstrap tool](tools/Bootstrap/README.md) for source ownership and details.
+CI regenerates, rebuilds, and tests the reader on each configured platform.
 
 Some Points
 ===========

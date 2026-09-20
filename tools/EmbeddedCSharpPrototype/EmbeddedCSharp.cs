@@ -11,13 +11,13 @@ internal static class EmbeddedCSharp {
     internal sealed record Fragment(int Start, int End, string Text, SyntaxNode Syntax, Error[] Errors);
 
     internal static Fragment Block(string source, int offset) => Describe(source, offset,
-        SyntaxFactory.ParseStatement(source[offset..], options: Options, consumeFullText: false));
+        SyntaxFactory.ParseStatement(source, offset, options: Options, consumeFullText: false));
 
     internal static Fragment Expression(string source, int offset) => Describe(source, offset,
-        SyntaxFactory.ParseExpression(source[offset..], options: Options, consumeFullText: false));
+        SyntaxFactory.ParseExpression(source, offset, options: Options, consumeFullText: false));
 
     internal static Fragment Type(string source, int offset) => Describe(source, offset,
-        SyntaxFactory.ParseTypeName(source[offset..], options: Options, consumeFullText: false));
+        SyntaxFactory.ParseTypeName(source, offset, options: Options, consumeFullText: false));
 
     internal static Fragment Member(string source, int offset) => Describe(source, offset,
         SyntaxFactory.ParseMemberDeclaration(source[offset..], options: Options, consumeFullText: false)

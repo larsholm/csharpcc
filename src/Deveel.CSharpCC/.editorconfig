@@ -1,5 +1,5 @@
-# These seven checked-in files are legacy bootstrap output. Keep their generated
-# nullable context until the reproducible bootstrap migration replaces them.
+# Regenerate these seven bootstrap files with tools/Bootstrap. Their historical
+# public token/support contracts retain an oblivious nullable context for now.
 # Handwritten sources, including CSharpCCParserInternals.cs, remain analyzed.
 [Deveel.CSharpCC.Parser/{CSharpCCParser,CSharpCCParserConstants,CSharpCCParserTokenManager,CSharpCharStream,Token,ParseException,TokenMgrError}.cs]
 generated_code = true

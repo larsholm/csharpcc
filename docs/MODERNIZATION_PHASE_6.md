@@ -1,72 +1,138 @@
-# Phase 6: embedded C# and bootstrap investigation
+# Phase 6: embedded C# and reproducible bootstrap
 
-Status: prototype and initial bootstrap defect fixes; integration and reproducible
-self-hosting are not complete.
+Status: implemented, with local and cross-platform verification recorded in
+[phase 7 validation](MODERNIZATION_PHASE_7.md). The rebuilt clean reader verifies
+all seven bootstrap files; the isolated prototype passes 14 checks.
 
-## Embedded C# decision
+## Embedded C# boundary
 
-Use Roslyn for embedded C# parsing, retaining CSharpCC's production and lexical-rule
-model. The isolated [boundary prototype](../tools/EmbeddedCSharpPrototype/README.md)
-passes 14 checks on .NET 10. It demonstrates syntax-only validation of C# 14
-without application type resolution, preservation of source text and parser-body
-insertion positions, and diagnostic translation to original grammar coordinates.
-It exercises strings, interpolation, raw strings, comments, inactive preprocessor
-text, nested generics, modern declarations/expressions, and incomplete input.
+The generator pins `Microsoft.CodeAnalysis.CSharp` 5.0.0 and parses embedded code
+as C# 14. CSharpCC retains production, lexical-rule, and lookahead semantics.
+The isolated prototype established syntax boundaries; the production reader now
+uses the handwritten `CSharpCCParser.Embedded.cs` implementation.
 
-This decision still requires integration tests before production use. Roslyn must
-remain a generator dependency only. The checked-in grammar reader currently uses
-its legacy C# productions; the prototype has not changed its accepted syntax.
+Reader/stream constructors retain original source before the legacy character
+stream decodes Unicode escapes. At embedded boundaries, Roslyn consumes the C#
+fragment, preserves its text, and resumes the grammar lexer after the fragment.
+Syntax diagnostics use original grammar coordinates, including expanded tab
+columns. No application type resolution or compilation runs during generation.
+Caller-owned streams/readers remain open. Reinitializing the reader replaces its
+source and preprocessor state; caller-supplied token managers retain the historical
+token-only parser path.
 
-The integration must retain original source spans and trivia through the grammar
-model, expose balanced C# fragments without having the legacy lexer reject their
-contents first, and delegate embedded compilation units, blocks, signatures, and
-expressions to Roslyn. Parser class selection, namespace forms, inheritance,
-return/throw action handling, malformed grammar delimiters, and public API
-compatibility need explicit coverage. A syntax support matrix will describe the
-supported embedding contexts after those tests pass.
+Compilation units retain parser-body insertion positions, helper declarations,
+namespace scopes, aliases, and imports. File-scoped namespaces are emitted as block
+namespaces, preserving the older boilerplate syntax. The generated parser inherits
+its constants class before any user-supplied interfaces. Required System imports
+are supplied for boilerplate references. Global usings are emitted with the parser,
+not duplicated into each support file. Header `#define`/`#undef` state applies to
+embedded fragments and token-manager declarations.
 
-## Bootstrap findings
+Embedded action returns/throws retain the existing jump guards. Returns inside
+lambdas and local functions are not rewritten. Modern output omits redundant
+switch breaks after actions known to return or throw. Original C# fragments can
+occupy a single internal token image; token-list boundaries are not a C# syntax API.
+The public/protected library signatures remain covered by the API snapshot.
 
-The checked-in .NET reader cannot parse the master grammar's own `const` members.
-An isolated seed generated using the historical tool with `const` added to the
-modifier production revealed further issues:
+## Tested syntax matrix
 
-- The bootstrap lexer requires Unicode input support to read the grammar's own
-  identifier ranges. The master grammar also uses the obsolete option spelling
-  `CSHARP_UNICODE_ESCAPE`; the current generator expects `UNICODE_ESCAPE`.
-- Explicit lexical productions never set `TokenProduction.IsExplicit`, so private
-  lexical fragments are wrongly rejected as inline definitions. This still needs
-  to be fixed in the master grammar and regenerated reader.
-- `ZeroOrOne` did not set its child's parent. Semantic analysis consequently moved
-  valid optional lookahead as though it were outside a choice.
-- The non-choice lookahead rewrite replaced the first consumed expansion instead
-  of inserting its synthetic choice and retained the syntactic lookahead amount
-  despite reporting that it was ignored.
-- Unicode escaping passed a string's full length as a substring length after a
-  nonzero offset. Non-ASCII text and backslashes could throw during generation.
-- ASCII NFA emission indexed a removed state's `-1` identifier before checking it.
-  The failure reduces to `(["a"-"z"])+ | "a" (["a"-"z"])*`.
+The following consumer fixtures run in both legacy and C# 14 output modes. Modern
+consumers treat nullable, unused generated fields/locals, unreachable code, and
+rethrow warnings as errors. Consumer projects reference neither CSharpCC nor Roslyn.
 
-The last four defects are fixed in handwritten sources and have dedicated
-regression coverage. Optional/non-choice lookahead and overlapping NFA cases run
-with static and instance parsers in both output modes. Escaping tests include a
-control character, accented text, a surrogate pair, and a backslash.
+| Context | Positive coverage | Negative/boundary coverage |
+| --- | --- | --- |
+| Production return types and parameters | Nullable types, nested generics, default parameters | Invalid defaults; long parameter lists/literals |
+| Production calls and semantic lookahead | Lambdas, collection arguments, pattern expressions | Malformed argument collections and switch expressions; long whitespace before an expression continuation |
+| Declaration/action blocks and CODE bodies | Target-typed construction, nullable locals, local functions, lambdas, list patterns, switch/collection expressions | Invalid lambda, construction, pattern, and collection syntax; outer returns versus nested function returns |
+| Strings | Ordinary escapes, interpolation, raw literals; original LF/CRLF literal values in actions, arguments, and semantic lookahead | Unterminated raw/interpolated literals; braces and PARSER_END text inside comments/strings; literals longer than the parser window |
+| Parser/helper declarations | Aliases, global/static usings, file/block/nested namespaces, interface inheritance, static/instance generic parsers, expression-bodied members, records, required/init properties, helper primary constructors | Malformed declarations; missing/duplicate parser classes; unsupported parser shapes and generic instance token-manager backreferences; a helper named PARSER_END |
+| Applicable C# 14 | Field-backed properties, extension declarations, null-conditional assignment | Malformed forms of each construct |
+| Token-manager members/actions | Records, properties, expression bodies, CommonTokenAction, collection/pattern actions | Preprocessor-disabled invalid text; shared header symbols |
+| Preprocessor and delimiters | Inactive text, header-defined symbols, original comments and strings | Missing/mismatched PARSER_END; invalid text in active C# fragments; source-position diagnostics |
 
-With those fixes and temporary seed adjustments, the .NET generator emits the
-master grammar in the isolated experiment. That is only the first stage: the
-emitted reader must still compile against the core's historical token/support API,
-regenerate itself again, and pass the fixture suite. No experiment output has
-replaced the checked-in bootstrap files. The final workflow must require only the
-.NET toolchain; the temporary historical seed is not a proposed user prerequisite.
+The parser declaration must be one non-static class with an explicit brace body,
+without a primary constructor. Generic parser classes retain their existing
+support. Generic instance parsers with `TOKEN_MANAGER_USES_PARSER=true` are
+diagnosed explicitly: their non-generic token manager cannot reference the parser
+type, and the old generator's output for this combination did not compile.
+Top-level statements and multiple parser parts in
+the embedded unit are rejected. User-supplied bases must be interfaces: the
+constants base class occupies the class-inheritance slot. Modern helper types may
+use records and primary constructors. Grammar production declarations, access
+modifiers, and assignment targets still follow CSharpCC's grammar syntax; this is
+not a promise to accept every C# member form as a production.
 
-## Current verification
+Preprocessor symbols are those declared in the embedded header, not symbols from
+a consumer's future build configuration. Syntax-only validation cannot establish
+whether application types, extension members, or references exist. Such errors
+remain the consumer compiler's responsibility. The generated-language option
+controls boilerplate; user-provided modern C# still requires an appropriate compiler.
 
-On Linux with .NET SDK 10.0.111, Debug and Release each pass all 171 solution
-tests. The isolated Roslyn prototype passes all 14 boundary checks. The library's
-864-entry public/protected API snapshot remains unchanged, as do the 62 generated
-files in the 11-scenario legacy baseline (normalizing CLI stack-frame line numbers).
-These checks cover the committed phase 5 implementation and the initial phase 6
-fixes; they do not establish completion of the bootstrap or syntax integration.
+## .NET-only bootstrap
 
-Numeric-literal diagnostics, production integration, a second-generation build,
-the complete syntax matrix, and final cross-platform validation remain open.
+`tools/Bootstrap` generates the seven checked-in files from `CSharpCC.cc`, then
+adapts identifiers and historical support contracts without changing string or
+comment contents. Compatibility sources own `Token`, `ParseException`, and
+`TokenMgrError`; the adapter also connects the partial reader to original source.
+The workflow requires only the .NET 10 SDK. No historical executable or Mono runs
+in regeneration, builds, tests, or CI.
+
+Regeneration stages output in a temporary directory and supports a read-only
+`--check`. A newly built reader regenerates identical files; the regenerated reader
+builds and runs the fixture suite. CI now performs both generation checks around
+a rebuild/test on Linux, Windows, and macOS, using a checkout path containing
+spaces. Completed remote runs are recorded in the phase 7 report.
+See the [verified workflow commands](../README.md#bootstrap-parser-sources) and
+[source ownership](../tools/Bootstrap/README.md).
+
+## Defects exposed and fixed
+
+- The master grammar now recognizes its own const members, uses the current
+  Unicode option name, and enables Unicode input.
+- Explicit lexical productions set IsExplicit, allowing private lexical fragments
+  while still rejecting private references from parser productions.
+- Oversized decimal/hexadecimal grammar integers produce diagnostics instead of
+  conversion exceptions. Invalid values do not trigger misleading option warnings.
+- Optional expansions set their child's parent; non-choice lookahead insertion
+  preserves the consumed expansion and clears ignored syntactic lookahead.
+- Unicode escaping handles non-ASCII text and preserves existing C# backslash
+  escapes. NFA emission checks removed state IDs before indexing arrays.
+- Full 64-bit masks include bit 63; partial Unicode ranges use the current character's
+  bit index; population counting includes the final bit. Boundary fixtures cover
+  both static and instance parsers in both output modes.
+- Embedded C# preserves its original line endings, including raw-string values
+  in actions, call arguments, and semantic lookahead on Windows and Unix.
+
+## Compatibility and performance evidence
+
+The 864-entry public/protected API snapshot is now a durable test. The historical
+constants output snapshot also remains unchanged. The 11-scenario baseline retains
+its exit codes and all nine constants files. Of 62 generated files, 53 change:
+source-preserving header/body layout, propagated imports, resulting checksums, and
+corrected Unicode NFA emission account for these differences. Embedded syntax
+errors now have Roslyn source diagnostics instead of legacy parser stack traces.
+Byte-identical legacy output is therefore not claimed for this feature migration.
+
+A preliminary Linux generation comparison uses three warmups and 15 measured runs,
+with tiered compilation disabled and file regeneration included. The baseline is
+the preserved .NET 10 generator from before phase 5; medians from one same-machine
+run are shown below. These are generation measurements, not consumer throughput.
+
+| Grammar | Baseline | Current | Baseline managed allocation | Current managed allocation |
+| --- | ---: | ---: | ---: | ---: |
+| 6 productions | 0.54 ms | 0.66 ms | 789 KB | 880 KB |
+| 201 productions | 3.82 ms | 8.98 ms | 4.08 MB | 6.19 MB |
+
+Passing the entire remaining input to Roslyn at each boundary initially took about
+52 ms for the larger grammar. Bounded, expanding parse windows reduced that to
+about 9 ms. Windows expand on diagnostics or when a fragment's full span, including
+trailing trivia, reaches the window edge. Tests exercise long literals and an
+expression continuation after long whitespace. The remaining overhead pays for
+modern syntax validation and source tracking; it has not been presented as a speedup.
+The [generation benchmark](../tools/GenerationBenchmark/README.md) makes this
+comparison reproducible. Generated-parser throughput/allocation comparisons are recorded in phase 7.
+
+The legacy bootstrap keeps its explicit generated-code nullable policy and visible
+compiler warnings. Handwritten code continues to treat nullable warnings as errors.
+No blanket warning suppression was added.

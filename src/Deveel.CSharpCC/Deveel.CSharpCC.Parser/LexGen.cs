@@ -88,6 +88,9 @@ namespace Deveel.CSharpCC.Parser {
                 ostr.WriteLine("/* " + CSharpCCGlobals.GetIdString(tn, tokMgrClassName + ".cs") + " */");
                 if (Options.ModernCSharp) ostr.WriteLine("#nullable enable");
 
+                if (CSharpCCGlobals.CompilationLayout is { } layout) {
+                    ostr.Write(layout.SupportHeader);
+                } else {
                 int l = 0, kind;
                 i = 1;
                 for (;;) {
@@ -129,6 +132,8 @@ namespace Deveel.CSharpCC.Parser {
                         break;
                 }
 
+                }
+
                 ostr.WriteLine("");
                 ostr.WriteLine("// Token Manager.");
                 if (Options.getSupportClassVisibilityPublic()) {
@@ -143,7 +148,7 @@ namespace Deveel.CSharpCC.Parser {
             if (CSharpCCGlobals.token_mgr_decls != null &&
                 CSharpCCGlobals.token_mgr_decls.Count > 0) {
                 Token t = CSharpCCGlobals.token_mgr_decls[0];
-                bool commonTokenActionSeen = false;
+                bool commonTokenActionSeen = CSharpCCGlobals.TokenManagerHasCommonAction;
                 bool commonTokenActionNeeded = Options.getCommonTokenAction();
 
                 CSharpCCGlobals.PrintTokenSetup(CSharpCCGlobals.token_mgr_decls[0]);
@@ -526,7 +531,9 @@ namespace Deveel.CSharpCC.Parser {
 			NfaState.PrintBoilerPlate(ostr);
 			ostr.WriteLine( /*{*/ "}");
 
-			if (namespaceInserted)
+			if (CSharpCCGlobals.CompilationLayout is { } ending)
+                ostr.Write(ending.SupportFooter);
+            else if (namespaceInserted)
 				ostr.WriteLine("}");
 				
 
