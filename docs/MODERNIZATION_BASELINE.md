@@ -66,9 +66,9 @@ was introduced.
 ## Verification commands
 
 ```sh
-dotnet build src/CSharpCC.sln -c Release --no-incremental
-dotnet test src/CSharpCC.sln -c Release --no-build
-dotnet test src/CSharpCC.sln -c Debug
+dotnet build src/CSharpCC.slnx -c Release --no-incremental
+dotnet test src/CSharpCC.slnx -c Release --no-build
+dotnet test src/CSharpCC.slnx -c Debug
 ```
 
 Integration tests require a repository checkout and the .NET 10 SDK. They locate

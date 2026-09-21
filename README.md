@@ -11,8 +11,8 @@ Build and test (.NET 10)
 Install the .NET 10 SDK, then run from the repository root:
 
 ```sh
-dotnet build src/CSharpCC.sln --configuration Release
-dotnet test src/CSharpCC.sln --configuration Release --no-build
+dotnet build src/CSharpCC.slnx --configuration Release
+dotnet test src/CSharpCC.slnx --configuration Release --no-build
 ```
 
 All four projects target `net10.0`. `global.json` selects a stable .NET 10 SDK.
@@ -129,9 +129,9 @@ After changing `CSharpCC.cc`, generator code, or bootstrap compatibility sources
 run these commands from the repository root:
 
 ```sh
-dotnet build src/CSharpCC.sln --configuration Release
+dotnet build src/CSharpCC.slnx --configuration Release
 dotnet run --project tools/Bootstrap --configuration Release -- --generator src/csharpcc/bin/Release/net10.0/csharpcc.dll --grammar src/Deveel.CSharpCC/Deveel.CSharpCC.Parser/CSharpCC.cc --output src/Deveel.CSharpCC/Deveel.CSharpCC.Parser
-dotnet test src/CSharpCC.sln --configuration Release
+dotnet test src/CSharpCC.slnx --configuration Release
 dotnet run --project tools/Bootstrap --configuration Release -- --generator src/csharpcc/bin/Release/net10.0/csharpcc.dll --grammar src/Deveel.CSharpCC/Deveel.CSharpCC.Parser/CSharpCC.cc --output src/Deveel.CSharpCC/Deveel.CSharpCC.Parser --check
 ```
 

@@ -64,9 +64,9 @@ Verified on Linux with .NET SDK 10.0.111 against phase 2 commit `c5e9007`:
 - `git diff --check` passes. Windows/macOS verification remains with CI.
 
 ```sh
-dotnet build src/CSharpCC.sln -c Release --no-incremental
-dotnet test src/CSharpCC.sln -c Release --no-build
-dotnet test src/CSharpCC.sln -c Debug
+dotnet build src/CSharpCC.slnx -c Release --no-incremental
+dotnet test src/CSharpCC.slnx -c Release --no-build
+dotnet test src/CSharpCC.slnx -c Debug
 ```
 
 Phase 4 is next: nullable analysis and explicit resource ownership.

@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="csharpcc/csharpcc.csproj" />
+  <Project Path="Deveel.CSharpCC.NUnit/Deveel.CSharpCC.NUnit.csproj" />
+  <Project Path="Deveel.CSharpCC/Deveel.CSharpCC.csproj" />
+  <Project Path="SimpleParserApp/SimpleParserApp.csproj" />
+</Solution>

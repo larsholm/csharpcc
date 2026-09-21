@@ -23,7 +23,7 @@ internal sealed class ParserFixture : IDisposable {
             options = [.. options, "CSHARP_VERSION=14"];
         File.WriteAllText(Path.Combine(DirectoryPath, "Parser.cc"), grammar);
         var repository = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
-        while (repository != null && !File.Exists(Path.Combine(repository.FullName, "src", "CSharpCC.sln")))
+        while (repository != null && !File.Exists(Path.Combine(repository.FullName, "src", "CSharpCC.slnx")))
             repository = repository.Parent;
         Assert.That(repository, Is.Not.Null, "Integration tests must run from a repository checkout.");
 

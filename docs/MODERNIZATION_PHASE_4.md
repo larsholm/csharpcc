@@ -72,9 +72,9 @@ The test assembly has friend access to core/CLI internals so it can exercise the
 writer protocol and run the CLI in-process without adding public APIs.
 
 ```sh
-dotnet build src/CSharpCC.sln -c Release --no-incremental
-dotnet test src/CSharpCC.sln -c Release --no-build
-dotnet test src/CSharpCC.sln -c Debug
+dotnet build src/CSharpCC.slnx -c Release --no-incremental
+dotnet test src/CSharpCC.slnx -c Release --no-build
+dotnet test src/CSharpCC.slnx -c Debug
 ```
 
 ## Bootstrap-source policy

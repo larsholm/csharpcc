@@ -41,8 +41,8 @@ The output and API comparisons were one-time migration checks against saved
 baseline binaries. The committed behavioral suite remains the regression check:
 
 ```sh
-dotnet test src/CSharpCC.sln -c Release
-dotnet test src/CSharpCC.sln -c Debug
+dotnet test src/CSharpCC.slnx -c Release
+dotnet test src/CSharpCC.slnx -c Debug
 ```
 
 No templates, bootstrap parser sources, or generated-language defaults changed.
